@@ -40,3 +40,10 @@
 - **密码**：`nine-super`
 
 请确保遵循上述步骤进行配置和启动，以保证系统的正确运行。
+
+## 学习交流
+
+<img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/d0b4764c-3b71-4e5b-9fb2-3263f5466e9f" width="300">
+
+
+
