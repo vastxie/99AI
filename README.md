@@ -1,4 +1,16 @@
-# 部署文档
+# NineAI 整合版
+
+## 页面预览
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/7b71ea8f-d7ed-4f56-9786-2f9870d57146">
+
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/c1a6a266-2617-4057-8c7f-fd5c4b81990d">
+
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/ff86d090-06c9-4da8-a003-ab927304db63">
+
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/e367d24f-4d55-48e6-8885-bff9bb503923">
+
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/a5dda0b3-98e7-4a17-b8b6-8a2df9969d31">
+
 
 ## 环境准备
 
