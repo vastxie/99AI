@@ -1,0 +1,1 @@
+.card{transition:all .35s cubic-bezier(.075,.82,.165,1)}.card .run-icon{display:none}.card:hover{border:1px solid #5A91FC;transform:translateY(-8px) translate(6px)}.card:hover .run-icon{display:block}

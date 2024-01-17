@@ -1,0 +1,9 @@
+
+/**
+ * 由 Fantastic-admin 提供技术支持
+ * Powered by Fantastic-admin
+ * Gitee  https://gitee.com/hooray/fantastic-admin
+ * Github https://github.com/hooray/fantastic-admin
+ */
+  
+.main-sidebar-container[data-v-27edc889]{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;position:relative;z-index:1;width:var(--g-main-sidebar-width);color:var(--g-main-sidebar-menu-color);background-color:var(--g-main-sidebar-bg);transition:background-color .3s,var(--el-transition-color)}.main-sidebar-container[data-v-27edc889]::-webkit-scrollbar{display:none}.main-sidebar-container .sidebar-logo[data-v-27edc889]{transition:.3s;background-color:var(--g-main-sidebar-bg)}.main-sidebar-container .nav[data-v-27edc889]{width:inherit;padding-top:var(--g-sidebar-logo-height)}.main-sidebar-container .nav .item[data-v-27edc889]{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;height:60px;padding:0 5px;cursor:pointer;color:var(--g-main-sidebar-menu-color);background-color:var(--g-main-sidebar-bg);transition:background-color .3s,var(--el-transition-color)}.main-sidebar-container .nav .item[data-v-27edc889]:hover{color:var(--g-main-sidebar-menu-hover-color);background-color:var(--g-main-sidebar-menu-hover-bg)}.main-sidebar-container .nav .item.active[data-v-27edc889]{color:var(--g-main-sidebar-menu-active-color);background-color:var(--g-main-sidebar-menu-active-bg)}.main-sidebar-container .nav .item .el-icon[data-v-27edc889]{margin:0 auto;font-size:24px}.main-sidebar-container .nav .item span[data-v-27edc889]{text-align:center;font-size:14px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}.main-sidebar-enter-active[data-v-27edc889],.main-sidebar-leave-active[data-v-27edc889]{transition:transform .3s}.main-sidebar-enter-from[data-v-27edc889],.main-sidebar-leave-to[data-v-27edc889]{transform:translate(calc(var(--g-main-sidebar-width) * -1))}

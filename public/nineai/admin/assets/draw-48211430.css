@@ -1,0 +1,9 @@
+
+/**
+ * 由 Fantastic-admin 提供技术支持
+ * Powered by Fantastic-admin
+ * Gitee  https://gitee.com/hooray/fantastic-admin
+ * Github https://github.com/hooray/fantastic-admin
+ */
+  
+.draw_container{flex-wrap:wrap;min-height:400px}.draw_img_container{max-width:18%;flex-direction:column;margin:8px;box-sizing:border-box;border:1px solid #ccc;border-radius:5px}.draw_img_container .draw_head{flex:1;display:flex;justify-content:center;align-items:center;overflow:hidden}.draw_img_container .draw_img{width:100%}.draw_img_container .draw_footer{height:25px}

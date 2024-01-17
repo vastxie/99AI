@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{registerVerifyEmailFrom}}邮箱验证</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      min-height: 300px;
+      align-items: center;
+      justify-content: center;
+      background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
+    }
+    .content {
+      width: 400px;
+      height: 200px;
+      padding: 15px;
+      display: flex;
+      border-radius: 15px;
+      flex-direction: column;
+      justify-content: center;
+      background-color: transparent;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2),
+        0 6px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .content b {
+      font-size: 20px;
+      color: #5ead22;
+      margin-bottom: 10px;
+    }
+
+    .detail {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .detail a {
+      color: #32e24e;
+    }
+
+    .tips {
+      font-size: 12px;
+      color: #797676;
+    }
+
+    .footer {
+      padding-right: 15px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: right;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <span class="content">
+      <b>{{registerVerifyEmailTitle}}</b>
+      <p class="detail">{{registerVerifyEmailDesc}}
+        <a href="{{baseUrl}}/api/auth/activateAccount?code={{code}}&id={{id}}">点此激活您的账号</a>
+      </p>
+      <p class="tips">System mail,please do not reply</p>
+      <span class="footer">FROM: {{registerVerifyEmailFrom}}</span>
+    </span>
+  </div>
+</body>
+
+</html>

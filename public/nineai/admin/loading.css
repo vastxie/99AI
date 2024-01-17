@@ -1,0 +1,74 @@
+#app {
+  height: 100%;
+}
+
+.fantastic-admin-home {
+  position: absolute;
+  z-index: 10000;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  user-select: none;
+  color: #736477;
+  background-color: snow;
+}
+
+.fantastic-admin-home .loading {
+  --r1: 154%;
+  --r2: 68.5%;
+
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background:
+    radial-gradient(var(--r1) var(--r2) at top, #0000 79.5%, #269af2 80%) center left,
+    radial-gradient(var(--r1) var(--r2) at bottom, #269af2 79.5%, #0000 80%) center center,
+    radial-gradient(var(--r1) var(--r2) at top, #0000 79.5%, #269af2 80%) center right,
+    #ccc;
+  background-size: 50.5% 220%;
+  background-position: -100% 0%, 0% 0%, 100% 0%;
+  background-repeat: no-repeat;
+  animation: p9 2s infinite linear;
+}
+
+@keyframes p9 {
+  33% { background-position: 0% 33%, 100% 33%, 200% 33%; }
+  66% { background-position: -100%  66%, 0%   66%, 100% 66%; }
+  100% { background-position: 0% 100%, 100% 100%, 200% 100%; }
+}
+
+@keyframes square-to-dot-animation {
+  15%,
+  25% {
+    border-radius: 100%;
+    width: 0;
+    height: 0;
+    margin: 5px;
+    border-width: 5px;
+  }
+
+  40% {
+    border-radius: 15%;
+    width: 10px;
+    height: 10px;
+    margin: initial;
+    border-width: 3px;
+  }
+}
+
+.fantastic-admin-home .text {
+  position: relative;
+  font-size: 24px;
+  margin-top: 20px;
+}
+
+.fantastic-admin-home .text::after {
+  content: "…";
+  position: absolute;
+  padding-left: 5px;
+}
