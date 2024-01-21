@@ -72,7 +72,7 @@ let ChatgptService = class ChatgptService {
         };
     }
     async onModuleInit() {
-        let chatgpt = await (0, utils_1.importDynamic)('chatgpt-nine-ai');
+        let chatgpt = await (0, utils_1.importDynamic)('chatgpt-ai-web');
         let KeyvRedis = await (0, utils_1.importDynamic)('@keyv/redis');
         let Keyv = await (0, utils_1.importDynamic)('keyv');
         chatgpt = (chatgpt === null || chatgpt === void 0 ? void 0 : chatgpt.default) ? chatgpt.default : chatgpt;
@@ -149,7 +149,7 @@ let ChatgptService = class ChatgptService {
         if (!currentRequestModelKey) {
             throw new common_1.HttpException('当前流程所需要的模型已被管理员下架、请联系管理员上架专属模型！', common_1.HttpStatus.BAD_REQUEST);
         }
-        const { deduct, deductType, key: modelKey, secret, modelName, id: keyId, accessToken } = currentRequestModelKey;
+        const { deduct, isTokenBased, deductType, key: modelKey, secret, modelName, id: keyId, accessToken } = currentRequestModelKey;
         await this.userService.checkUserStatus(req.user);
         await this.userBalanceService.validateBalance(req, deductType === 1 ? 'model3' : 'model4', deduct);
         res && res.setHeader('Content-type', 'application/octet-stream; charset=utf-8');
@@ -247,7 +247,11 @@ let ChatgptService = class ChatgptService {
                             temperature,
                         }),
                     });
-                    await this.userBalanceService.deductFromBalance(req.user.id, `model${deductType === 1 ? 3 : 4}`, deduct, total_tokens);
+                    let charge = deduct;
+                    if (isTokenBased === true) {
+                        charge = deduct * total_tokens;
+                    }
+                    await this.userBalanceService.deductFromBalance(req.user.id, `model${deductType === 1 ? 3 : 4}`, charge, total_tokens);
                 });
                 if (Number(keyType) === 1) {
                     const { key, maxToken, maxTokenRes, proxyResUrl } = await this.formatModelToken(currentRequestModelKey);
@@ -354,7 +358,11 @@ let ChatgptService = class ChatgptService {
             }
             const formatResponse = await (0, helper_1.unifiedFormattingResponse)(keyType, response, othersInfo);
             const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0 } = formatResponse.usage;
-            await this.userBalanceService.deductFromBalance(req.user.id, `model${deductType === 1 ? 3 : 4}`, deduct, total_tokens);
+            let charge = deduct;
+            if (isTokenBased === true) {
+                charge = deduct * total_tokens;
+            }
+            await this.userBalanceService.deductFromBalance(req.user.id, `model${deductType === 1 ? 3 : 4}`, charge, total_tokens);
             await this.modelsService.saveUseLog(keyId, total_tokens);
             const curIp = (0, utils_1.getClientIp)(req);
             await this.chatLogService.saveChatLog({

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/admin/favicon.ico" />
+    <link rel="stylesheet" href="/admin/loading.css" />
+    <link rel="stylesheet" href="/admin/browser_upgrade/index.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nine-Admin</title>
+    <script type="module" crossorigin src="/admin/assets/index-88a47d42.js"></script>
+    <link rel="stylesheet" href="/admin/assets/index-5d2e0ed3.css">
+  </head>
+  <body>
+    <div id="app">
+      <div class="fantastic-admin-home">
+        <div class="loading"></div>
+        <div class="text">Nine Ai Admin</div>
+      </div>
+      <div id="browser-upgrade">
+        <div class="title">为了您的体验，推荐使用以下浏览器</div>
+        <div class="browsers">
+          <a href="https://www.microsoft.com/edge" target="_blank" class="browser">
+            <img class="browser-icon" src="/admin/browser_upgrade/edge.png" />
+            <div class="browser-name">Mircosoft Edge</div>
+          </a>
+          <a href="https://www.google.cn/chrome/" target="_blank" class="browser">
+            <img class="browser-icon" src="/admin/browser_upgrade/chrome.png" />
+            <div class="browser-name">Google Chrome</div>
+          </a>
+        </div>
+      </div>
+    </div>
+    <script>
+      if (!!window.ActiveXObject || 'ActiveXObject' in window) {
+        document.getElementById('browser-upgrade').style.display = 'block'
+      }
+    </script>
+    
+  </body>
+</html>

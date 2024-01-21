@@ -24,7 +24,7 @@ let DatabaseService = class DatabaseService {
     async checkSuperAdmin() {
         const user = await this.connection.query(`SELECT * FROM users WHERE role = 'super'`);
         if (!user || user.length === 0) {
-            const superPassword = bcrypt.hashSync('nine-super', 10);
+            const superPassword = bcrypt.hashSync('123456', 10);
             const adminPassword = bcrypt.hashSync('123456', 10);
             const superEmail = 'default@cooper.com';
             const adminEmail = 'defaultAdmin@cooper.com';

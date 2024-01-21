@@ -1,6 +1,6 @@
 {
   "apps": {
-    "name": "nineai-v2.4.2",
+    "name": "nineai-v2.4.5",
     "script": "./dist/main.js",
     "watch": true,
     "ignore_watch": [

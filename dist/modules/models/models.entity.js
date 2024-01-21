@@ -75,7 +75,7 @@ __decorate([
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "timeout", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '单词调用扣除的次数', default: 1 }),
+    (0, typeorm_1.Column)({ comment: '单次调用扣除的次数', default: 1 }),
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "deduct", void 0);
 __decorate([
@@ -94,6 +94,10 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '是否是绘画key: 0:不是 1：是', default: 0 }),
     __metadata("design:type", Boolean)
 ], ModelsEntity.prototype, "isDraw", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '是否使用token计费: 0:不是 1：是', default: 0 }),
+    __metadata("design:type", Boolean)
+], ModelsEntity.prototype, "isTokenBased", void 0);
 ModelsEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'models' })
 ], ModelsEntity);

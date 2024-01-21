@@ -81,4 +81,8 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '是否设置为绘画Key', required: false }),
     __metadata("design:type", Boolean)
 ], SetModelDto.prototype, "isDraw", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: true, description: '是否使用token计费', required: false }),
+    __metadata("design:type", Boolean)
+], SetModelDto.prototype, "isTokenBased", void 0);
 exports.SetModelDto = SetModelDto;
