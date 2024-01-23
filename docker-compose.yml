@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    volumes:
+      - ./data/mysql/:/var/lib/mysql/
+#    ports:
+#     - "3306:3306"
+    environment:
+      TZ: Asia/Shanghai # 指定时区
+      MYSQL_ROOT_PASSWORD: "123456" # 配置root用户密码
+      MYSQL_DATABASE: "chatgpt" # 业务库名
+      MYSQL_USER: "chatgpt" # 业务库用户名
+      MYSQL_PASSWORD: "chatgpt" # 业务库密码
+
+  redis:
+    image: redis
+    # command: --requirepass "12345678" # redis库密码,不需要密码注释本行
+    restart: always
+#    ports:
+#      - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai # 指定时区
+    volumes:
+      - ./data/redis/:/data/
+
+  nineai-open:
+    build: ./
+    container_name: nineai-open
+    restart: always
+    ports:
+      - "9520:9520"
+    volumes:
+      - ./.env:/app/.env
+    environment:
+      - TZ=Asia/Shanghai
