@@ -1,0 +1,20 @@
+node_modules
+data
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Macos ###
+.DS_Store
+.env
+.git
+.gitignore
+docker
+docs
+README.md
