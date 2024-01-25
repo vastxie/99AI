@@ -86,7 +86,7 @@
 
 ## 学习交流
 
-<img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/d0b4764c-3b71-4e5b-9fb2-3263f5466e9f" width="300">
+<img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/003c1060-dec0-46d0-8382-b6eef5d85298" width="300">
 
 
 
