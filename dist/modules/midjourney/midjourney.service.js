@@ -92,6 +92,7 @@ let MidjourneyService = class MidjourneyService {
                 await this.updateDrawData(jobData, drawRes);
                 this.lockPrompt = this.lockPrompt.filter((item) => item !== drawInfo.randomDrawId);
             }
+            this.drawSuccess(jobData);
             return true;
         }
         catch (error) {
@@ -754,9 +755,14 @@ let MidjourneyService = class MidjourneyService {
     }
     async drawFailed(jobData) {
         const { id, userId, action } = jobData;
-        const amount = action === 2 ? 1 : 4;
-        await this.userBalanceService.refundMjBalance(userId, amount);
         await this.midjourneyEntity.update({ id }, { status: 4 });
+    }
+    async drawSuccess(jobData) {
+        const { id, userId, action } = jobData;
+        const amount = action === 2 ? 1 : 4;
+        common_1.Logger.debug(`绘画完成，执行扣费，扣除费用:${amount}积分。`);
+        await this.userBalanceService.refundMjBalance(userId, -amount);
+        await this.midjourneyEntity.update({ id }, { status: 3 });
     }
     async getList(params) {
         const { page = 1, size = 20, rec, userId, status } = params;

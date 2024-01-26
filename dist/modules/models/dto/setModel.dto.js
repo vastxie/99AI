@@ -85,4 +85,8 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '是否使用token计费', required: false }),
     __metadata("design:type", Boolean)
 ], SetModelDto.prototype, "isTokenBased", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: true, description: 'token计费比例', required: false }),
+    __metadata("design:type", Number)
+], SetModelDto.prototype, "tokenFeeRatio", void 0);
 exports.SetModelDto = SetModelDto;

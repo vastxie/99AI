@@ -35,10 +35,8 @@ const fanyi_service_1 = require("../fanyi/fanyi.service");
 const app_entity_1 = require("../app/app.entity");
 const chatGroup_service_1 = require("../chatGroup/chatGroup.service");
 const models_service_1 = require("../models/models.service");
-const baidu_1 = require("./baidu");
 const helper_1 = require("./helper");
 const store_1 = require("./store");
-const zhipu_1 = require("./zhipu");
 const openai_1 = require("./openai");
 const chatBoxType_entity_1 = require("./chatBoxType.entity");
 const chatBox_entity_1 = require("./chatBox.entity");
@@ -134,7 +132,7 @@ let ChatgptService = class ChatgptService {
         const { options = {}, appId, cusromPrompt, systemMessage = '' } = body;
         let setSystemMessage = systemMessage;
         const { parentMessageId } = options;
-        const { prompt } = body;
+        const { prompt, fileInfo } = body;
         const { groupId, usingNetwork } = options;
         const groupInfo = await this.chatGroupService.getGroupInfoFromId(groupId);
         const groupConfig = (groupInfo === null || groupInfo === void 0 ? void 0 : groupInfo.config) ? JSON.parse(groupInfo.config) : await this.modelsService.getBaseConfig();
@@ -149,7 +147,7 @@ let ChatgptService = class ChatgptService {
         if (!currentRequestModelKey) {
             throw new common_1.HttpException('当前流程所需要的模型已被管理员下架、请联系管理员上架专属模型！', common_1.HttpStatus.BAD_REQUEST);
         }
-        const { deduct, isTokenBased, deductType, key: modelKey, secret, modelName, id: keyId, accessToken } = currentRequestModelKey;
+        const { deduct, isTokenBased, tokenFeeRatio, deductType, key: modelKey, secret, modelName, id: keyId, accessToken } = currentRequestModelKey;
         await this.userService.checkUserStatus(req.user);
         await this.userBalanceService.validateBalance(req, deductType === 1 ? 'model3' : 'model4', deduct);
         res && res.setHeader('Content-type', 'application/octet-stream; charset=utf-8');
@@ -208,6 +206,7 @@ let ChatgptService = class ChatgptService {
                         userId: req.user.id,
                         type: balance_constant_1.DeductionKey.CHAT_TYPE,
                         prompt,
+                        fileInfo: fileInfo,
                         answer: '',
                         promptTokens: prompt_tokens,
                         completionTokens: 0,
@@ -249,79 +248,45 @@ let ChatgptService = class ChatgptService {
                     });
                     let charge = deduct;
                     if (isTokenBased === true) {
-                        charge = deduct * total_tokens;
+                        charge = Math.ceil((deduct * total_tokens) / tokenFeeRatio);
                     }
                     await this.userBalanceService.deductFromBalance(req.user.id, `model${deductType === 1 ? 3 : 4}`, charge, total_tokens);
                 });
-                if (Number(keyType) === 1) {
-                    const { key, maxToken, maxTokenRes, proxyResUrl } = await this.formatModelToken(currentRequestModelKey);
-                    const { parentMessageId, completionParams, systemMessage } = mergedOptions;
-                    const { model, temperature } = completionParams;
-                    const { context: messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(usingNetwork ? netWorkPrompt : prompt, {
-                        parentMessageId,
-                        systemMessage,
-                        maxModelToken: maxToken,
-                        maxResponseTokens: maxTokenRes,
-                        maxRounds: (0, helper_1.addOneIfOdd)(rounds),
-                    });
-                    let firstChunk = true;
-                    response = await (0, openai_1.sendMessageFromOpenAi)(messagesHistory, {
-                        maxToken,
-                        maxTokenRes,
-                        apiKey: modelKey,
-                        model,
-                        temperature,
-                        proxyUrl: proxyResUrl,
-                        onProgress: (chat) => {
-                            res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`);
-                            lastChat = chat;
-                            firstChunk = false;
-                        },
-                    });
-                    isSuccess = true;
-                }
-                if (Number(keyType) === 2) {
-                    let firstChunk = true;
-                    const { context: messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(usingNetwork ? netWorkPrompt : prompt, {
-                        parentMessageId,
-                        maxRounds: (0, helper_1.addOneIfOdd)(rounds),
-                    });
-                    response = await (0, baidu_1.sendMessageFromBaidu)(usingNetwork ? netWorkPrompt : messagesHistory, {
-                        temperature,
-                        accessToken,
-                        model,
-                        onProgress: (data) => {
-                            res.write(firstChunk ? JSON.stringify(data) : `\n${JSON.stringify(data)}`);
-                            firstChunk = false;
-                            lastChat = data;
-                        },
-                    });
-                    isSuccess = true;
-                }
-                if (Number(keyType) === 3) {
-                    let firstChunk = true;
-                    const { context: messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(usingNetwork ? netWorkPrompt : prompt, {
-                        parentMessageId,
-                        maxRounds: (0, helper_1.addOneIfOdd)(rounds),
-                    });
-                    response = await (0, zhipu_1.sendMessageFromZhipu)(usingNetwork ? netWorkPrompt : messagesHistory, {
-                        temperature,
-                        key,
-                        model,
-                        onProgress: (data) => {
-                            res.write(firstChunk ? JSON.stringify(data) : `\n${JSON.stringify(data)}`);
-                            firstChunk = false;
-                            lastChat = data;
-                        },
-                    });
-                    isSuccess = true;
-                }
+                const { key, maxToken, maxTokenRes, proxyResUrl } = await this.formatModelToken(currentRequestModelKey);
+                const { parentMessageId, completionParams, systemMessage } = mergedOptions;
+                const { model, temperature } = completionParams;
+                const { context: messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(usingNetwork ? netWorkPrompt : prompt, {
+                    parentMessageId,
+                    systemMessage,
+                    maxModelToken: maxToken,
+                    maxResponseTokens: maxTokenRes,
+                    maxRounds: (0, helper_1.addOneIfOdd)(rounds),
+                    fileInfo: fileInfo,
+                    model: model
+                });
+                let firstChunk = true;
+                response = await (0, openai_1.sendMessageFromOpenAi)(messagesHistory, {
+                    maxToken,
+                    maxTokenRes,
+                    apiKey: modelKey,
+                    model,
+                    fileInfo,
+                    temperature,
+                    proxyUrl: proxyResUrl,
+                    onProgress: (chat) => {
+                        res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`);
+                        lastChat = chat;
+                        firstChunk = false;
+                    },
+                });
+                isSuccess = true;
                 const userMessageData = {
                     id: this.nineStore.getUuid(),
                     text: prompt,
                     role: 'user',
                     name: undefined,
                     usage: null,
+                    fileInfo: fileInfo,
                     parentMessageId: parentMessageId,
                     conversationId: response === null || response === void 0 ? void 0 : response.conversationId,
                 };
@@ -356,11 +321,12 @@ let ChatgptService = class ChatgptService {
                     onProgress: null,
                 });
             }
-            const formatResponse = await (0, helper_1.unifiedFormattingResponse)(keyType, response, othersInfo);
-            const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0 } = formatResponse.usage;
+            let prompt_tokens = response.prompt_tokens || 0;
+            let completion_tokens = response.completion_tokens || 0;
+            let total_tokens = response.total_tokens || 0;
             let charge = deduct;
             if (isTokenBased === true) {
-                charge = deduct * total_tokens;
+                charge = Math.ceil((deduct * total_tokens) / tokenFeeRatio);
             }
             await this.userBalanceService.deductFromBalance(req.user.id, `model${deductType === 1 ? 3 : 4}`, charge, total_tokens);
             await this.modelsService.saveUseLog(keyId, total_tokens);
@@ -371,11 +337,12 @@ let ChatgptService = class ChatgptService {
                 userId: req.user.id,
                 type: balance_constant_1.DeductionKey.CHAT_TYPE,
                 prompt,
+                fileInfo: fileInfo,
                 answer: '',
                 promptTokens: prompt_tokens,
                 completionTokens: 0,
                 totalTokens: total_tokens,
-                model: formatResponse.model,
+                model: model,
                 role: 'user',
                 groupId,
                 requestOptions: JSON.stringify({
@@ -389,7 +356,7 @@ let ChatgptService = class ChatgptService {
                 userId: req.user.id,
                 type: balance_constant_1.DeductionKey.CHAT_TYPE,
                 prompt: prompt,
-                answer: formatResponse === null || formatResponse === void 0 ? void 0 : formatResponse.text,
+                answer: response.text,
                 promptTokens: prompt_tokens,
                 completionTokens: completion_tokens,
                 totalTokens: total_tokens,

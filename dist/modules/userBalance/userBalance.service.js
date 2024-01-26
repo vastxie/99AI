@@ -235,9 +235,16 @@ let UserBalanceService = class UserBalanceService {
         if (updateKey.includes('MjCount')) {
             useKey = 'useDrawMjToken';
         }
-        const updateBalance = { [updateKey]: b[updateKey] - amount < 0 ? 0 : b[updateKey] - amount, [useKey]: b[useKey] + UseAmount };
-        useKey === 'useModel3Token' && (updateBalance['useModel3Count'] = b['useModel3Count'] + 1);
-        useKey === 'useModel4Token' && (updateBalance['useModel4Count'] = b['useModel4Count'] + 1);
+        const updateBalance = {
+            [updateKey]: b[updateKey] - amount < 0 ? 0 : b[updateKey] - amount,
+            [useKey]: b[useKey] + UseAmount,
+        };
+        if (useKey === 'useModel3Token') {
+            updateBalance['useModel3Count'] = b['useModel3Count'] + amount;
+        }
+        if (useKey === 'useModel4Token') {
+            updateBalance['useModel4Count'] = b['useModel4Count'] + amount;
+        }
         const result = await this.userBalanceEntity.update({ userId }, updateBalance);
         if (result.affected === 0) {
             throw new common_1.HttpException('消费余额失败！', common_1.HttpStatus.BAD_REQUEST);
@@ -465,6 +472,7 @@ let UserBalanceService = class UserBalanceService {
         return await this.userBalanceEntity.find({ where: { userId: (0, typeorm_2.In)(ids) } });
     }
     async refundMjBalance(userId, amount) {
+        return await this.deductFromBalance(userId, 'mjDraw', -amount);
     }
     async upgradeBalance() {
         const users = await this.userEntity.find();

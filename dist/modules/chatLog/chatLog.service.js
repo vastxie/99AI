@@ -195,7 +195,7 @@ let ChatLogService = class ChatLogService {
         }
         const list = await this.chatLogEntity.find({ where });
         return list.map((item) => {
-            const { prompt, role, answer, createdAt, model, conversationOptions, requestOptions, id } = item;
+            const { prompt, role, answer, createdAt, model, conversationOptions, requestOptions, id, fileInfo } = item;
             let parseConversationOptions = null;
             let parseRequestOptions = null;
             try {
@@ -212,6 +212,8 @@ let ChatLogService = class ChatLogService {
                 error: false,
                 conversationOptions: parseConversationOptions,
                 requestOptions: parseRequestOptions,
+                fileInfo: fileInfo,
+                model: model,
             };
         });
     }

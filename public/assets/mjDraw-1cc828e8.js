@@ -1,0 +1,1 @@
+import{c8 as e,c9 as a}from"./index-f389b6b2.js";function u(r){return e({url:"/fanyi/translate",data:r})}function n(r){return a({url:"/queue/addMjDrawQueue",data:r})}function s(r){return e({url:"/midjourney/proxy",data:r,headers:{responseType:"arraybuffer"}})}export{u as a,s as b,n as f};

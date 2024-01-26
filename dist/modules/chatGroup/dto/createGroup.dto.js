@@ -19,4 +19,8 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateGroupDto.prototype, "appId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "", description: '对话模型配置项序列化的字符串', required: false }),
+    __metadata("design:type", Object)
+], CreateGroupDto.prototype, "modelConfig", void 0);
 exports.CreateGroupDto = CreateGroupDto;

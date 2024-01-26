@@ -27,32 +27,38 @@ let ChatGroupService = class ChatGroupService {
     }
     async create(body, req) {
         const { id } = req.user;
-        const { appId } = body;
+        const { appId, modelConfig: bodyModelConfig } = body;
+        let modelConfig = bodyModelConfig;
+        if (!modelConfig) {
+            modelConfig = await this.modelsService.getBaseConfig(appId);
+            if (!modelConfig) {
+                throw new common_1.HttpException('管理员未配置任何AI模型、请先联系管理员开通聊天模型配置！', common_1.HttpStatus.BAD_REQUEST);
+            }
+        }
         const params = { title: '新对话', userId: id };
         if (appId) {
             const appInfo = await this.appEntity.findOne({ where: { id: appId } });
             if (!appInfo) {
                 throw new common_1.HttpException('非法操作、您在使用一个不存在的应用！', common_1.HttpStatus.BAD_REQUEST);
             }
-            else {
-                const { status, name } = appInfo;
-                const g = await this.chatGroupEntity.count({ where: { userId: id, appId, isDelete: false } });
-                if (g > 0) {
-                    throw new common_1.HttpException('当前应用已经开启了一个对话无需新建了！', common_1.HttpStatus.BAD_REQUEST);
-                }
-                if (![1, 3, 4, 5].includes(status)) {
-                    throw new common_1.HttpException('非法操作、您在使用一个未启用的应用！', common_1.HttpStatus.BAD_REQUEST);
-                }
-                name && (params['title'] = name);
-                appId && (params['appId'] = appId);
+            const { status, name } = appInfo;
+            const existingGroupCount = await this.chatGroupEntity.count({ where: { userId: id, appId, isDelete: false } });
+            if (existingGroupCount > 0) {
+                throw new common_1.HttpException('当前应用已经开启了一个对话无需新建了！', common_1.HttpStatus.BAD_REQUEST);
             }
+            if (![1, 3, 4, 5].includes(status)) {
+                throw new common_1.HttpException('非法操作、您在使用一个未启用的应用！', common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (name) {
+                params['title'] = name;
+            }
+            params['appId'] = appId;
         }
-        const modelConfig = await this.modelsService.getBaseConfig(appId);
-        appId && (modelConfig.appId = appId);
-        if (!modelConfig) {
-            throw new common_1.HttpException('管理员未配置任何AI模型、请先联系管理员开通聊天模型配置！', common_1.HttpStatus.BAD_REQUEST);
+        if (appId) {
+            modelConfig.appId = appId;
         }
-        return await this.chatGroupEntity.save(Object.assign(Object.assign({}, params), { config: JSON.stringify(modelConfig) }));
+        const newGroup = await this.chatGroupEntity.save(Object.assign(Object.assign({}, params), { config: JSON.stringify(modelConfig) }));
+        return newGroup;
     }
     async query(req) {
         try {

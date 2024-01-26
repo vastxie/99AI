@@ -43,7 +43,6 @@ let QueueService = class QueueService {
             const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
             const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action: imgUrl ? 4 : 1, userId: req.user.id }, { delay: 1000, timeout: +timeout });
             this.jobIds.push(job.id);
-            await this.userBalanceService.deductFromBalance(req.user.id, 'mjDraw', 4, 4);
             return true;
         }
         if (!drawId || !orderId) {
@@ -57,7 +56,6 @@ let QueueService = class QueueService {
             const res = await this.midjourneyService.addDrawQueue(params);
             const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
             const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id }, { delay: 1000, timeout: +timeout });
-            await this.userBalanceService.deductFromBalance(req.user.id, 'mjDraw', 1, 1);
             this.jobIds.push(job.id);
             return;
         }
@@ -68,7 +66,6 @@ let QueueService = class QueueService {
             const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
             const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id }, { delay: 1000, timeout: +timeout });
             this.jobIds.push(job.id);
-            await this.userBalanceService.deductFromBalance(req.user.id, 'mjDraw', 4, 4);
             return;
         }
         if (action === midjourney_constant_1.MidjourneyActionEnum.REGENERATE) {
@@ -78,7 +75,6 @@ let QueueService = class QueueService {
             const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
             const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id }, { delay: 1000, timeout: +timeout });
             this.jobIds.push(job.id);
-            await this.userBalanceService.deductFromBalance(req.user.id, 'mjDraw', 4, 4);
             return;
         }
         if (action === midjourney_constant_1.MidjourneyActionEnum.VARY) {
@@ -88,7 +84,6 @@ let QueueService = class QueueService {
             const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
             const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id }, { delay: 1000, timeout: +timeout });
             this.jobIds.push(job.id);
-            await this.userBalanceService.deductFromBalance(req.user.id, 'mjDraw', 4, 4);
             return;
         }
         if (action === midjourney_constant_1.MidjourneyActionEnum.ZOOM) {
@@ -98,7 +93,6 @@ let QueueService = class QueueService {
             const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
             const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id }, { delay: 1000, timeout: +timeout });
             this.jobIds.push(job.id);
-            await this.userBalanceService.deductFromBalance(req.user.id, 'mjDraw', 4, 4);
             return;
         }
     }

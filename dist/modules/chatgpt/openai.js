@@ -13,7 +13,6 @@ function getFullUrl(proxyUrl) {
 function sendMessageFromOpenAi(messagesHistory, inputs) {
     var _a;
     const { onProgress, maxToken, apiKey, model, temperature = 0.95, proxyUrl } = inputs;
-    console.log('current request options: ', apiKey, model, maxToken, proxyUrl);
     const max_tokens = compilerToken(model, maxToken);
     const options = {
         method: 'POST',
@@ -49,7 +48,7 @@ function sendMessageFromOpenAi(messagesHistory, inputs) {
                     catch (error) {
                         ISEND = false;
                     }
-                    if (data === '[DONE]' || ISEND) {
+                    if (ISEND) {
                         result.text = result.text.trim();
                         return result;
                     }
@@ -98,6 +97,9 @@ exports.sendMessageFromOpenAi = sendMessageFromOpenAi;
 function getTokenCount(text) {
     if (!text)
         return 0;
+    if (typeof text !== 'string') {
+        text = String(text);
+    }
     text = text.replace(/<\|endoftext\|>/g, '');
     return tokenizer.encode(text).length;
 }

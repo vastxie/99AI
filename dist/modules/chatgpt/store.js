@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NineStore = void 0;
 const uuid_1 = require("uuid");
 const tiktoken_1 = require("@dqbd/tiktoken");
+const common_1 = require("@nestjs/common");
 const tokenizer = (0, tiktoken_1.get_encoding)('cl100k_base');
 class NineStore {
     constructor(options) {
@@ -26,16 +27,46 @@ class NineStore {
         await this.store.set(message.id, message, expires);
     }
     async buildMessageFromParentMessageId(text, options) {
-        let { maxRounds, maxModelToken, maxResponseTokens, systemMessage = '', name } = options;
+        let { maxRounds, maxModelToken, maxResponseTokens, systemMessage = '', name, fileInfo, model } = options;
         let { parentMessageId } = options;
         let messages = [];
         let nextNumTokensEstimate = 0;
         if (systemMessage) {
-            messages.push({ role: 'system', content: systemMessage });
+            const specialModels = ['gemini-pro', 'ERNIE', 'qwen', 'SparkDesk', 'hunyuan'];
+            const isSpecialModel = specialModels.some(specialModel => model.includes(specialModel));
+            if (isSpecialModel) {
+                messages.push({ role: 'user', content: systemMessage });
+                messages.push({ role: 'assistant', content: "好的" });
+            }
+            else {
+                messages.push({ role: 'system', content: systemMessage, name });
+            }
         }
         const systemMessageOffset = messages.length;
         let round = 0;
-        let nextMessages = text ? messages.concat([{ role: 'user', content: text, name }]) : messages;
+        if (model === 'gpt-4-vision-preview' && fileInfo) {
+            const content = [
+                {
+                    "type": "text",
+                    "text": text
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": fileInfo
+                    }
+                }
+            ];
+            messages.push({ role: 'user', content: content, name });
+        }
+        else {
+            if (model === 'gpt-4-all' && fileInfo) {
+                text = fileInfo + "\n" + text;
+            }
+            messages.push({ role: 'user', content: text, name });
+        }
+        common_1.Logger.debug(`发送的参数：${messages}`);
+        let nextMessages = messages;
         do {
             if (!parentMessageId) {
                 break;
@@ -44,9 +75,21 @@ class NineStore {
             if (!parentMessage) {
                 break;
             }
-            const { text, name, role } = parentMessage;
+            const { text, name, role, fileInfo } = parentMessage;
+            let content = text;
+            if (role === 'user' && fileInfo) {
+                if (model === 'gpt-4-vision-preview') {
+                    content = [
+                        { "type": "text", "text": text },
+                        { "type": "image_url", "image_url": { "url": fileInfo } }
+                    ];
+                }
+                else if (model === 'gpt-4-all') {
+                    content = fileInfo + "\n" + text;
+                }
+            }
             nextMessages = nextMessages.slice(0, systemMessageOffset).concat([
-                { role, content: text, name },
+                { role, content, name },
                 ...nextMessages.slice(systemMessageOffset)
             ]);
             round++;
@@ -69,7 +112,16 @@ class NineStore {
     }
     _getTokenCount(messages) {
         let text = messages.reduce((pre, cur) => {
-            return pre += cur.content;
+            if (Array.isArray(cur.content)) {
+                const contentText = cur.content
+                    .filter((item) => item.type === 'text')
+                    .map((item) => item.text)
+                    .join(' ');
+                return pre + contentText;
+            }
+            else {
+                return pre + (cur.content || '');
+            }
         }, '');
         text = text.replace(/<\|endoftext\|>/g, '');
         return tokenizer.encode(text).length;

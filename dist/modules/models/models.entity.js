@@ -98,6 +98,10 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '是否使用token计费: 0:不是 1：是', default: 0 }),
     __metadata("design:type", Boolean)
 ], ModelsEntity.prototype, "isTokenBased", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'token计费比例', default: 0 }),
+    __metadata("design:type", Number)
+], ModelsEntity.prototype, "tokenFeeRatio", void 0);
 ModelsEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'models' })
 ], ModelsEntity);
