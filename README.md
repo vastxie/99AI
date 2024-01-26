@@ -3,15 +3,19 @@
 99AI整合版（基于 NineAI 二开），免授权，支持快速部署。
 
 ## 页面预览
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/7b71ea8f-d7ed-4f56-9786-2f9870d57146">
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/7e9927a5-b0a7-42e0-8699-c9cd13a6d31a">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/c1a6a266-2617-4057-8c7f-fd5c4b81990d">
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/232ccf5d-90f6-45b5-8b9b-038959ac03af">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/ff86d090-06c9-4da8-a003-ab927304db63">
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/131b085c-54b9-455f-b62f-8b0baab11740">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/e367d24f-4d55-48e6-8885-bff9bb503923">
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/5af15484-4762-42ae-b175-6b97638fb7d0">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/a5dda0b3-98e7-4a17-b8b6-8a2df9969d31">
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/8e872177-2afc-4cfb-b435-d17ead5dac36">
+
+<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/18f32097-1c4d-4b8f-8c2e-2c7c36a51be1">
+
+
 
 ## 更新日志
 
