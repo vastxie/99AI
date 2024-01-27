@@ -321,9 +321,8 @@ let ChatgptService = class ChatgptService {
                     onProgress: null,
                 });
             }
-            let prompt_tokens = response.prompt_tokens || 0;
-            let completion_tokens = response.completion_tokens || 0;
-            let total_tokens = response.total_tokens || 0;
+            let { usage } = response === null || response === void 0 ? void 0 : response.detail;
+            const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0 } = usage;
             let charge = deduct;
             if (isTokenBased === true) {
                 charge = Math.ceil((deduct * total_tokens) / tokenFeeRatio);
