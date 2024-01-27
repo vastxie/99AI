@@ -33,10 +33,10 @@ class NineStore {
         let nextNumTokensEstimate = 0;
         if (systemMessage) {
             const specialModels = ['gemini-pro', 'ERNIE', 'qwen', 'SparkDesk', 'hunyuan'];
-            const isSpecialModel = specialModels.some(specialModel => model.includes(specialModel));
+            const isSpecialModel = model && specialModels.some(specialModel => model.includes(specialModel));
             if (isSpecialModel) {
-                messages.push({ role: 'user', content: systemMessage });
-                messages.push({ role: 'assistant', content: "好的" });
+                messages.push({ role: 'user', content: systemMessage, name });
+                messages.push({ role: 'assistant', content: "好的", name });
             }
             else {
                 messages.push({ role: 'system', content: systemMessage, name });
