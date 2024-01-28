@@ -2,7 +2,6 @@
 
 99AI整合版：基于 NineAI 二开的可商业化 AI Web 应用（免授权，无后门，支持快速部署）
 
-演示站地址：[LightAI 助手](https://aiweb.lightai.io)
 
 
 ## 页面预览
