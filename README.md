@@ -1,6 +1,9 @@
 # NineAI 更新整合版
 
-99AI整合版（基于 NineAI 二开），免授权，支持快速部署。
+99AI整合版：基于 NineAI 二开的可商业化 AI Web 应用（免授权，无后门，支持快速部署）
+
+演示站地址：[LightAI 助手](https://aiweb.lightai.io)
+
 
 ## 页面预览
 <img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/7e9927a5-b0a7-42e0-8699-c9cd13a6d31a">
