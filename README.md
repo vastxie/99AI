@@ -99,9 +99,10 @@
 
 ## 学习交流
 
-完整未编译源码暂未开源，欢迎进群交流
+完整未编译源码暂未开源，扫码添加微信备注99，拉交流群
 
-<img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/003c1060-dec0-46d0-8382-b6eef5d85298" width="300">
+<img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/ee20578f-063d-48d8-bff6-85ac3e38fe60" width="300">
+
 
 
 
