@@ -16,6 +16,6 @@ var MidjourneyActionEnum;
     MidjourneyActionEnum[MidjourneyActionEnum["VARIATION"] = 3] = "VARIATION";
     MidjourneyActionEnum[MidjourneyActionEnum["GENERATE"] = 4] = "GENERATE";
     MidjourneyActionEnum[MidjourneyActionEnum["REGENERATE"] = 5] = "REGENERATE";
-    MidjourneyActionEnum[MidjourneyActionEnum["ZOOM"] = 6] = "ZOOM";
-    MidjourneyActionEnum[MidjourneyActionEnum["VARY"] = 7] = "VARY";
+    MidjourneyActionEnum[MidjourneyActionEnum["VARY"] = 6] = "VARY";
+    MidjourneyActionEnum[MidjourneyActionEnum["ZOOM"] = 7] = "ZOOM";
 })(MidjourneyActionEnum = exports.MidjourneyActionEnum || (exports.MidjourneyActionEnum = {}));

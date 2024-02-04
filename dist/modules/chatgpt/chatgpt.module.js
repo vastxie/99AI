@@ -21,7 +21,7 @@ const chatLog_service_1 = require("../chatLog/chatLog.service");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 const accountLog_entity_1 = require("../userBalance/accountLog.entity");
 const config_entity_1 = require("../globalConfig/config.entity");
-const gptkeys_entity_1 = require("./gptkeys.entity");
+const gptKeys_entity_1 = require("./gptKeys.entity");
 const whiteList_entity_1 = require("./whiteList.entity");
 const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
 const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
@@ -48,7 +48,7 @@ ChatgptModule = __decorate([
                 chatLog_entity_1.ChatLogEntity,
                 accountLog_entity_1.AccountLogEntity,
                 config_entity_1.ConfigEntity,
-                gptkeys_entity_1.GptKeysEntity,
+                gptKeys_entity_1.GptKeysEntity,
                 whiteList_entity_1.WhiteListEntity,
                 user_entity_1.UserEntity,
                 cramiPackage_entity_1.CramiPackageEntity,

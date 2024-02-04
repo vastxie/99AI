@@ -1,0 +1,9 @@
+
+/**
+ * 由 Fantastic-admin 提供技术支持
+ * Powered by Fantastic-admin
+ * Gitee  https://gitee.com/hooray/fantastic-admin
+ * Github https://github.com/hooray/fantastic-admin
+ */
+  
+import{_ as v}from"./index-7911c6db.js";import{a as _}from"./config-b4a9e7c0.js";import{d as V,Q as q,r as i,x as j,o as B,c as E,e,f as o,a as f,k as N,E as m,h as s,q as u}from"./index-4eef28ae.js";const A={class:"flex justify-between"},O=f("b",null,"模型系统消息预设",-1),R=V({__name:"globalPre",setup(U){const l=q({systemPreMessage:""}),p=i({systemPreMessage:[{required:!0,trigger:"blur",message:"请填写全局预设信息、用于模型预设词"}]}),a=i();async function r(){const t=await _.queryConfig({keys:["systemPreMessage"]});Object.assign(l,t.data)}function d(){var t;(t=a.value)==null||t.validate(async n=>{if(n){try{await _.setConfig({settings:g(l)}),m.success("变更配置信息成功")}catch{}r()}else m.error("请填写完整信息")})}function g(t){return Object.keys(t).map(n=>({configKey:n,configVal:t[n]}))}return j(()=>{r()}),(t,n)=>{const c=s("el-alert"),y=v,b=s("el-button"),x=s("el-input"),h=s("el-form-item"),w=s("el-col"),P=s("el-row"),C=s("el-form"),M=s("el-card");return B(),E("div",null,[e(y,null,{default:o(()=>[e(c,{closable:!1,"show-icon":"",title:"模型全局头部预设说明",description:"当前消息将会被追加到对话模型的全局预设当中、对应用APP无效、对其他所有绘画生效！",type:"success"})]),_:1}),e(M,{style:{margin:"20px"}},{header:o(()=>[f("div",A,[O,e(b,{class:"button",text:"",onClick:d},{default:o(()=>[N(" 保存设置 ")]),_:1})])]),default:o(()=>[e(C,{ref_key:"formRef",ref:a,rules:p.value,model:l,"label-width":"140px"},{default:o(()=>[e(P,null,{default:o(()=>[e(w,{xs:24,md:20,lg:15,xl:12},{default:o(()=>[e(h,{label:"模型全局头部预设",prop:"systemPreMessage"},{default:o(()=>[e(x,{modelValue:l.systemPreMessage,"onUpdate:modelValue":n[0]||(n[0]=k=>l.systemPreMessage=k),type:"textarea",rows:5,placeholder:"请填写模型全局头部预设信息！",clearable:""},null,8,["modelValue"])]),_:1})]),_:1})]),_:1})]),_:1},8,["rules","model"])]),_:1})])}}});typeof u=="function"&&u(R);export{R as default};

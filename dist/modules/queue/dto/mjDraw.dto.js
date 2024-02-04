@@ -34,9 +34,9 @@ __decorate([
     __metadata("design:type", String)
 ], MjDrawDto.prototype, "imgUrl", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1, description: '绘画动作 绘图、放大、变换、图生图' }),
+    (0, swagger_1.ApiProperty)({ example: 'IMAGINE', description: '任务类型,可用值:IMAGINE,UPSCALE,VARIATION,ZOOM,PAN,DESCRIBE,BLEND,SHORTEN,SWAP_FACE' }),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], MjDrawDto.prototype, "action", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 1, description: '变体或者放大的序号' }),
@@ -48,4 +48,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], MjDrawDto.prototype, "drawId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1, description: '任务ID' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], MjDrawDto.prototype, "taskId", void 0);
 exports.MjDrawDto = MjDrawDto;

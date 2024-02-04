@@ -43,6 +43,10 @@ __decorate([
     __metadata("design:type", Number)
 ], ModelsTypeEntity.prototype, "useToken", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ comment: '模型排序', default: 1 }),
+    __metadata("design:type", Number)
+], ModelsTypeEntity.prototype, "modelOrder", void 0);
+__decorate([
     (0, typeorm_1.Column)({ comment: '单词调用扣除的次数', default: 1 }),
     __metadata("design:type", Number)
 ], ModelsTypeEntity.prototype, "deduct", void 0);

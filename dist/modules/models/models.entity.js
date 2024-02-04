@@ -51,6 +51,10 @@ __decorate([
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "keyWeight", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ comment: 'key权重', default: 1 }),
+    __metadata("design:type", Number)
+], ModelsEntity.prototype, "modelOrder", void 0);
+__decorate([
     (0, typeorm_1.Column)({ comment: 'key的使用次数', default: 0 }),
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "useCount", void 0);

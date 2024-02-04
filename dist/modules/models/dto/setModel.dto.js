@@ -46,6 +46,10 @@ __decorate([
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "keyWeight", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: 1, description: '模型排序' }),
+    __metadata("design:type", Number)
+], SetModelDto.prototype, "modelOrder", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ example: 4096, description: '模型支持的最大TOken数量', required: true }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "maxModelTokens", void 0);

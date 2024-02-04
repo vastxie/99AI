@@ -18,7 +18,6 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const models_entity_1 = require("./models.entity");
 const status_constant_1 = require("../../common/constants/status.constant");
-const baidu_1 = require("../chatgpt/baidu");
 const utils_1 = require("../../common/utils");
 const modelType_entity_1 = require("./modelType.entity");
 let ModelsService = class ModelsService {
@@ -33,7 +32,6 @@ let ModelsService = class ModelsService {
     }
     async onModuleInit() {
         await this.initCalcKey();
-        this.refreshBaiduAccesstoken();
     }
     async initCalcKey() {
         this.keyPoolMap = {};
@@ -114,9 +112,6 @@ let ModelsService = class ModelsService {
                 if (Number(keyType !== 1)) {
                     const res = await this.modelsEntity.save(params);
                     await this.initCalcKey();
-                    if (keyType === 2) {
-                        this.refreshBaiduAccesstoken();
-                    }
                     return res;
                 }
                 else {
@@ -162,6 +157,9 @@ let ModelsService = class ModelsService {
         key && (where.key = (0, typeorm_2.Like)(`%${key}%`));
         const [rows, count] = await this.modelsEntity.findAndCount({
             where: where,
+            order: {
+                modelOrder: 'ASC'
+            },
             skip: (page - 1) * size,
             take: size,
         });
@@ -176,10 +174,13 @@ let ModelsService = class ModelsService {
     async modelsList() {
         const cloneModelMaps = JSON.parse(JSON.stringify(this.modelMaps));
         Object.keys(cloneModelMaps).forEach(key => {
-            cloneModelMaps[key] = Array.from(cloneModelMaps[key].map(t => {
+            cloneModelMaps[key] = cloneModelMaps[key].sort((a, b) => a.modelOrder - b.modelOrder);
+            cloneModelMaps[key] = Array.from(cloneModelMaps[key]
+                .map(t => {
                 const { modelName, model, deduct, deductType, maxRounds } = t;
                 return { modelName, model, deduct, deductType, maxRounds };
-            }).reduce((map, obj) => map.set(obj.modelName, obj), new Map()).values());
+            })
+                .reduce((map, obj) => map.set(obj.modelName, obj), new Map()).values());
         });
         return {
             modelTypeList: this.modelTypes,
@@ -193,27 +194,6 @@ let ModelsService = class ModelsService {
             .set({ useCount: () => 'useCount + 1', useToken: () => `useToken + ${useToken}` })
             .where('id = :id', { id })
             .execute();
-    }
-    async refreshBaiduAccesstoken() {
-        const allKeys = await this.modelsEntity.find({ where: { keyType: 2 } });
-        const keysMap = {};
-        allKeys.forEach(keyInfo => {
-            const { key, secret } = keyInfo;
-            if (!keysMap.key) {
-                keysMap[key] = [{ keyInfo }];
-            }
-            else {
-                keysMap[key].push(keyInfo);
-            }
-        });
-        Object.keys(keysMap).forEach(async (key) => {
-            const { secret, id } = keysMap[key][0]['keyInfo'];
-            const accessToken = await (0, baidu_1.getAccessToken)(key, secret);
-            await this.modelsEntity.update({ key }, { accessToken });
-        });
-        setTimeout(() => {
-            this.initCalcKey();
-        }, 1000);
     }
     async getRandomDrawKey() {
         const drawkeys = await this.modelsEntity.find({ where: { isDraw: true, status: true } });

@@ -29,7 +29,7 @@ const typeorm_1 = require("typeorm");
 const typeorm_2 = require("@nestjs/typeorm");
 const badwords_service_1 = require("../badwords/badwords.service");
 const autoreply_service_1 = require("../autoreply/autoreply.service");
-const gptkeys_entity_1 = require("./gptkeys.entity");
+const gptKeys_entity_1 = require("./gptKeys.entity");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 const fanyi_service_1 = require("../fanyi/fanyi.service");
 const app_entity_1 = require("../app/app.entity");
@@ -127,7 +127,7 @@ let ChatgptService = class ChatgptService {
         }
     }
     async chatProcess(body, req, res) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const abortController = req.abortController;
         const { options = {}, appId, cusromPrompt, systemMessage = '' } = body;
         let setSystemMessage = systemMessage;
@@ -184,7 +184,6 @@ let ChatgptService = class ChatgptService {
             setSystemMessage = systemPreMessage + `\n Current date: ${currentDate}`;
         }
         const mergedOptions = await this.getRequestParams(options, setSystemMessage, currentRequestModelKey, groupConfig.modelInfo);
-        const { maxModelTokens = 8000, maxResponseTokens = 4096, key } = currentRequestModelKey;
         res && res.status(200);
         let response = null;
         let othersInfo = null;
@@ -270,6 +269,7 @@ let ChatgptService = class ChatgptService {
                     maxTokenRes,
                     apiKey: modelKey,
                     model,
+                    prompt,
                     fileInfo,
                     temperature,
                     proxyUrl: proxyResUrl,
@@ -277,8 +277,8 @@ let ChatgptService = class ChatgptService {
                         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`);
                         lastChat = chat;
                         firstChunk = false;
-                    },
-                });
+                    }
+                }, this.uploadService);
                 isSuccess = true;
                 const userMessageData = {
                     id: this.nineStore.getUuid(),
@@ -297,7 +297,8 @@ let ChatgptService = class ChatgptService {
                     text: response.text,
                     role: 'assistant',
                     name: undefined,
-                    usage: response.usage,
+                    usage: response === null || response === void 0 ? void 0 : response.usage,
+                    fileInfo: response === null || response === void 0 ? void 0 : response.fileInfo,
                     parentMessageId: userMessageData.id,
                     conversationId: response === null || response === void 0 ? void 0 : response.conversationId,
                 };
@@ -319,10 +320,11 @@ let ChatgptService = class ChatgptService {
                     temperature,
                     proxyUrl: proxyResUrl,
                     onProgress: null,
+                    prompt,
                 });
             }
-            let { usage } = response === null || response === void 0 ? void 0 : response.detail;
-            const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0 } = usage;
+            const usage = ((_a = response.detail) === null || _a === void 0 ? void 0 : _a.usage) || { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 };
+            const { prompt_tokens, completion_tokens, total_tokens } = usage;
             let charge = deduct;
             if (isTokenBased === true) {
                 charge = Math.ceil((deduct * total_tokens) / tokenFeeRatio);
@@ -355,6 +357,7 @@ let ChatgptService = class ChatgptService {
                 userId: req.user.id,
                 type: balance_constant_1.DeductionKey.CHAT_TYPE,
                 prompt: prompt,
+                fileInfo: response === null || response === void 0 ? void 0 : response.fileInfo,
                 answer: response.text,
                 promptTokens: prompt_tokens,
                 completionTokens: completion_tokens,
@@ -376,7 +379,7 @@ let ChatgptService = class ChatgptService {
                     temperature,
                 }),
             });
-            common_1.Logger.debug(`本次调用: ${req.user.id} model: ${model} key -> ${key}, 模型名称: ${modelName}, 最大回复token: ${maxResponseTokens}`, 'ChatgptService');
+            common_1.Logger.debug(`用户ID: ${req.user.id} 模型名称: ${modelName}-${model}, 消耗token: ${total_tokens}, 消耗积分： ${charge}`, 'ChatgptService');
             const userBalance = await this.userBalanceService.queryUserBalance(req.user.id);
             response.userBanance = Object.assign({}, userBalance);
             response.result && (response.result = '');
@@ -391,8 +394,8 @@ let ChatgptService = class ChatgptService {
         catch (error) {
             console.log('chat-error <----------------------------------------->', modelKey, error);
             const code = (error === null || error === void 0 ? void 0 : error.statusCode) || 400;
-            const status = ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.status) || (error === null || error === void 0 ? void 0 : error.statusCode) || 400;
-            console.log('chat-error-detail  <----------------------------------------->', 'code: ', code, 'message', error === null || error === void 0 ? void 0 : error.message, 'statusText:', (_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.statusText, 'status', (_c = error === null || error === void 0 ? void 0 : error.response) === null || _c === void 0 ? void 0 : _c.status);
+            const status = ((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.status) || (error === null || error === void 0 ? void 0 : error.statusCode) || 400;
+            console.log('chat-error-detail  <----------------------------------------->', 'code: ', code, 'message', error === null || error === void 0 ? void 0 : error.message, 'statusText:', (_c = error === null || error === void 0 ? void 0 : error.response) === null || _c === void 0 ? void 0 : _c.statusText, 'status', (_d = error === null || error === void 0 ? void 0 : error.response) === null || _d === void 0 ? void 0 : _d.status);
             if (error.status && error.status === 402) {
                 const errMsg = { message: `Catch Error ${error.message}`, code: 402 };
                 if (res) {
@@ -452,7 +455,7 @@ let ChatgptService = class ChatgptService {
         const money = (body === null || body === void 0 ? void 0 : body.quality) === 'hd' ? 4 : 2;
         await this.userBalanceService.validateBalance(req, 'mjDraw', money);
         let images = [];
-        const detailKeyInfo = await this.modelsService.getRandomDrawKey();
+        const detailKeyInfo = await this.modelsService.getCurrentModelKeyInfo('dall-e-3');
         const keyId = detailKeyInfo === null || detailKeyInfo === void 0 ? void 0 : detailKeyInfo.id;
         const { key, proxyResUrl } = await this.formatModelToken(detailKeyInfo);
         common_1.Logger.log(`draw paompt info <==**==> ${body.prompt}, key ===> ${key}`, 'DrawService');
@@ -795,7 +798,7 @@ let ChatgptService = class ChatgptService {
 };
 ChatgptService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_2.InjectRepository)(gptkeys_entity_1.GptKeysEntity)),
+    __param(0, (0, typeorm_2.InjectRepository)(gptKeys_entity_1.GptKeysEntity)),
     __param(1, (0, typeorm_2.InjectRepository)(config_entity_1.ConfigEntity)),
     __param(2, (0, typeorm_2.InjectRepository)(chatBoxType_entity_1.ChatBoxTypeEntity)),
     __param(3, (0, typeorm_2.InjectRepository)(chatBox_entity_1.ChatBoxEntity)),

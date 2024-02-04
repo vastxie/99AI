@@ -44,9 +44,6 @@ let TaskService = class TaskService {
             });
         });
     }
-    refreshBaiduAccesstoken() {
-        this.modelsService.refreshBaiduAccesstoken();
-    }
 };
 __decorate([
     (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_HOUR),
@@ -60,12 +57,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TaskService.prototype, "checkUserMemerExpire", null);
-__decorate([
-    (0, schedule_1.Cron)('0 0 */5 * *'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], TaskService.prototype, "refreshBaiduAccesstoken", null);
 TaskService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(userBalance_entity_1.UserBalanceEntity)),

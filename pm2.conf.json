@@ -1,12 +1,9 @@
 {
   "apps": {
-    "name": "99ai-v2.5.0",
+    "name": "99ai-v2.6.0",
     "script": "./dist/main.js",
     "watch": true,
-    "ignore_watch": [
-      "node_modules",
-      "logs"
-    ],
+    "ignore_watch": ["node_modules", "logs"],
     "env": {
       "TZ": "Asia/Shanghai"
     },

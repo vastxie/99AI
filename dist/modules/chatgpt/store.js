@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NineStore = void 0;
 const uuid_1 = require("uuid");
 const tiktoken_1 = require("@dqbd/tiktoken");
-const common_1 = require("@nestjs/common");
 const tokenizer = (0, tiktoken_1.get_encoding)('cl100k_base');
 class NineStore {
     constructor(options) {
@@ -32,7 +31,7 @@ class NineStore {
         let messages = [];
         let nextNumTokensEstimate = 0;
         if (systemMessage) {
-            const specialModels = ['gemini-pro', 'ERNIE', 'qwen', 'SparkDesk', 'hunyuan'];
+            const specialModels = ['gemini-pro', 'ERNIE', 'hunyuan'];
             const isSpecialModel = model && specialModels.some(specialModel => model.includes(specialModel));
             if (isSpecialModel) {
                 messages.push({ role: 'user', content: systemMessage, name });
@@ -65,7 +64,6 @@ class NineStore {
             }
             messages.push({ role: 'user', content: text, name });
         }
-        common_1.Logger.debug(`发送的参数：${messages}`);
         let nextMessages = messages;
         do {
             if (!parentMessageId) {
@@ -77,7 +75,7 @@ class NineStore {
             }
             const { text, name, role, fileInfo } = parentMessage;
             let content = text;
-            if (role === 'user' && fileInfo) {
+            if (fileInfo) {
                 if (model === 'gpt-4-vision-preview') {
                     content = [
                         { "type": "text", "text": text },

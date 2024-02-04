@@ -39,10 +39,6 @@ __decorate([
     __metadata("design:type", String)
 ], MidjourneyEntity.prototype, "fullPrompt", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '随机产生的绘画ID用于拿取比对结果' }),
-    __metadata("design:type", String)
-], MidjourneyEntity.prototype, "randomDrawId", void 0);
-__decorate([
     (0, typeorm_1.Column)({ comment: '当前绘制任务的进度', nullable: true }),
     __metadata("design:type", Number)
 ], MidjourneyEntity.prototype, "progress", void 0);
@@ -56,7 +52,7 @@ __decorate([
 ], MidjourneyEntity.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: 'mj绘画的动作、绘图、放大、变换、图生图' }),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], MidjourneyEntity.prototype, "action", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: '一组图片的第几张、放大或者变换的时候需要使用', nullable: true }),
@@ -67,17 +63,21 @@ __decorate([
     __metadata("design:type", Number)
 ], MidjourneyEntity.prototype, "rec", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ comment: '对图片操作的', nullable: true }),
+    __metadata("design:type", String)
+], MidjourneyEntity.prototype, "customId", void 0);
+__decorate([
     (0, typeorm_1.Column)({ comment: '绘画的ID每条不一样', nullable: true }),
     __metadata("design:type", String)
-], MidjourneyEntity.prototype, "message_id", void 0);
+], MidjourneyEntity.prototype, "drawId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '对图片放大或者变体的ID', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '图片链接', nullable: true, type: 'text' }),
     __metadata("design:type", String)
-], MidjourneyEntity.prototype, "custom_id", void 0);
+], MidjourneyEntity.prototype, "drawUrl", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '图片信息尺寸', nullable: true, type: 'text' }),
+    (0, typeorm_1.Column)({ comment: '图片比例', nullable: true, type: 'text' }),
     __metadata("design:type", String)
-], MidjourneyEntity.prototype, "fileInfo", void 0);
+], MidjourneyEntity.prototype, "drawRatio", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: '扩展参数', nullable: true, type: 'text' }),
     __metadata("design:type", String)
