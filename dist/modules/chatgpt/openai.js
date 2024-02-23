@@ -85,7 +85,6 @@ async function sendMessageFromOpenAi(messagesHistory, inputs, uploadService) {
             responseType: 'stream',
             headers: {
                 'Content-Type': 'application/json',
-                Accept: "application/json",
                 Authorization: `Bearer ${apiKey}`,
             },
             data: {
