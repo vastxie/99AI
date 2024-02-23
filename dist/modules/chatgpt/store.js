@@ -31,15 +31,7 @@ class NineStore {
         let messages = [];
         let nextNumTokensEstimate = 0;
         if (systemMessage) {
-            const specialModels = ['gemini-pro', 'ERNIE', 'hunyuan'];
-            const isSpecialModel = model && specialModels.some(specialModel => model.includes(specialModel));
-            if (isSpecialModel) {
-                messages.push({ role: 'user', content: systemMessage, name });
-                messages.push({ role: 'assistant', content: "好的", name });
-            }
-            else {
                 messages.push({ role: 'system', content: systemMessage, name });
-            }
         }
         const systemMessageOffset = messages.length;
         let round = 0;
