@@ -42,7 +42,7 @@ __decorate([
     (0, typeorm_1.Column)({
         length: 300,
         nullable: true,
-        default: 'https://public-1300678944.cos.ap-shanghai.myqcloud.com/ai/7f042f63f.png',
+        default: '',
         comment: '用户头像',
     }),
     __metadata("design:type", String)

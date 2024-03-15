@@ -1,6 +1,6 @@
 {
   "apps": {
-    "name": "99ai-v2.6.0",
+    "name": "99AI",
     "script": "./dist/main.js",
     "watch": true,
     "ignore_watch": ["node_modules", "logs"],

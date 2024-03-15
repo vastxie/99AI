@@ -70,7 +70,7 @@ let AppService = class AppService {
             demoData: demo ? demo.split('\n') : [],
             coverImg,
             des,
-            name
+            name,
         };
     }
     async appCatsList(query) {

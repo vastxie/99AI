@@ -225,7 +225,7 @@ let AuthService = class AuthService {
         const token = this.jwtService.sign({
             username: `游客${fingerprint}`,
             id: fingerprint,
-            email: `${fingerprint}@nine.com`,
+            email: `${fingerprint}@visitor.com`,
             role: 'visitor',
             openId: null,
             client: null,

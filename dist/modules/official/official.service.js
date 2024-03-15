@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OfficialService = void 0;
-const chatgpt_service_1 = require("./../chatgpt/chatgpt.service");
+const chat_service_1 = require("../chat/chat.service");
 const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
 const auth_service_1 = require("./../auth/auth.service");
 const user_service_1 = require("./../user/user.service");
@@ -123,7 +123,7 @@ let OfficialService = class OfficialService {
         return res;
     }
     async verify(signature, nonce, timestamp) {
-        const token = (await this.globalConfigService.getConfigs(['wechatOfficialToken'])) || 'jiangly';
+        const token = (await this.globalConfigService.getConfigs(['wechatOfficialToken'])) || '';
         return (await this.sha1([token, nonce, timestamp].sort().join(''))) == signature;
     }
     sha1(data) {
@@ -152,8 +152,7 @@ let OfficialService = class OfficialService {
         let question = '';
         try {
             console.log('来自公众号的询问问题 =======> ', msg);
-            const response = await Promise.race([this.chatgptService.chatSyncFree(msg), timeoutPromise]);
-            question = response || await this.autoreplyService.checkAutoReply(msg);
+            question = await this.autoreplyService.checkAutoReply(msg);
         }
         catch (error) {
             console.log('来自公众号的回复问题 =======> 超时导致问题无法回答完整');
@@ -168,6 +167,6 @@ OfficialService = __decorate([
         user_service_1.UserService,
         auth_service_1.AuthService,
         globalConfig_service_1.GlobalConfigService,
-        chatgpt_service_1.ChatgptService])
+        chat_service_1.ChatService])
 ], OfficialService);
 exports.OfficialService = OfficialService;

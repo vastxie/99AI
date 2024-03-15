@@ -87,6 +87,9 @@ let DatabaseService = class DatabaseService {
                 },
                 { configKey: 'buyCramiAddress', configVal: '', public: 1, encry: 0 },
                 { configKey: 'openaiBaseUrl', configVal: 'https://api.lightai.io', public: 0, encry: 0 },
+                { configKey: 'openaiTimeout', configVal: '300', public: 0, encry: 0 },
+                { configKey: 'openaiBaseKey', configVal: 'sk-', public: 0, encry: 0 },
+                { configKey: 'mjTranslatePrompt', configVal: `Translate any given phrase from any language into English. For instance, when I input '{可爱的熊猫}', you should output '{cute panda}', with no period at the end.`, public: 0, encry: 0 },
                 { configKey: 'noticeInfo', configVal: noticeInfo, public: 1, encry: 0 },
                 { configKey: 'registerVerifyEmailTitle', configVal: 'AIWeb账号验证', public: 0, encry: 0 },
                 {

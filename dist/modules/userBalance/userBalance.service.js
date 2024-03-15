@@ -28,7 +28,7 @@ const date_1 = require("../../common/utils/date");
 const user_entity_1 = require("../user/user.entity");
 const salesUsers_entity_1 = require("../sales/salesUsers.entity");
 const sales_service_1 = require("../sales/sales.service");
-const whiteList_entity_1 = require("../chatgpt/whiteList.entity");
+const whiteList_entity_1 = require("../chat/whiteList.entity");
 const fingerprint_entity_1 = require("./fingerprint.entity");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
@@ -138,21 +138,21 @@ let UserBalanceService = class UserBalanceService {
         }
         const res = await this.configEntity.findOne({ where: { configKey: 'vxNumber' } });
         const vxNumber = res ? res.configVal : '---';
-        const memberKey = type === 'model3' ? 'memberModel3Count' : type === 'model4' ? 'memberModel4Count' : type === 'mjDraw' ? 'memberDrawMjCount' : null;
-        const baseKey = type === 'model3' ? 'model3Count' : type === 'model4' ? 'model4Count' : type === 'mjDraw' ? 'drawMjCount' : null;
+        const memberKey = type === 1 ? 'memberModel3Count' : type === 2 ? 'memberModel4Count' : type === 3 ? 'memberDrawMjCount' : null;
+        const baseKey = type === 1 ? 'model3Count' : type === 2 ? 'model4Count' : type === 3 ? 'drawMjCount' : null;
         if (b.packageId && b[memberKey] < amount) {
             if (b[baseKey] < amount) {
-                throw new common_1.HttpException(`您的账户余额不足,如果想继续体验服务,请联系管理员 <VX: ${vxNumber}> 或购买专属套餐 ！`, common_1.HttpStatus.PAYMENT_REQUIRED);
+                throw new common_1.HttpException(`您的账户余额不足,如果想继续体验服务,请联系管理员或购买专属套餐 ！`, common_1.HttpStatus.PAYMENT_REQUIRED);
             }
         }
         if (!b.packageId && b[baseKey] < amount) {
-            throw new common_1.HttpException(`您的账户余额不足,如果想继续体验服务,请联系管理员 <VX: ${vxNumber}> 或购买专属套餐 ！`, common_1.HttpStatus.PAYMENT_REQUIRED);
+            throw new common_1.HttpException(`您的账户余额不足,如果想继续体验服务,请联系管理员或购买专属套餐 ！`, common_1.HttpStatus.PAYMENT_REQUIRED);
         }
         return b;
     }
     async validateVisitorBalance(req, type, amount) {
         const { id } = req.user;
-        const baseKey = type === 'model3' ? 'model3Count' : type === 'model4' ? 'model4Count' : type === 'mjDraw' ? 'drawMjCount' : null;
+        const baseKey = type === 1 ? 'model3Count' : type === 2 ? 'model4Count' : type === 3 ? 'drawMjCount' : null;
         const now = new Date();
         const log = await this.fingerprintLogEntity.findOne({ where: { fingerprint: id } });
         const { visitorModel3Num, visitorModel4Num, visitorMJNum } = await this.globalConfigService.getConfigs(['visitorModel3Num', 'visitorModel4Num', 'visitorMJNum']);
@@ -216,14 +216,14 @@ let UserBalanceService = class UserBalanceService {
         if (!b) {
             throw new common_1.HttpException('缺失当前用户账户记录！', common_1.HttpStatus.BAD_REQUEST);
         }
-        const memberKey = deductionType === 'model3'
+        const memberKey = deductionType === 1
             ? 'memberModel3Count'
-            : deductionType === 'model4'
+            : deductionType === 2
                 ? 'memberModel4Count'
-                : deductionType === 'mjDraw'
+                : deductionType === 3
                     ? 'memberDrawMjCount'
                     : null;
-        const baseKey = deductionType === 'model3' ? 'model3Count' : deductionType === 'model4' ? 'model4Count' : deductionType === 'mjDraw' ? 'drawMjCount' : null;
+        const baseKey = deductionType === 1 ? 'model3Count' : deductionType === 2 ? 'model4Count' : deductionType === 3 ? 'drawMjCount' : null;
         const updateKey = b.packageId && b[memberKey] < amount ? baseKey : b.packageId ? memberKey : baseKey;
         let useKey = null;
         if (updateKey.includes('odel3')) {
@@ -244,6 +244,9 @@ let UserBalanceService = class UserBalanceService {
         }
         if (useKey === 'useModel4Token') {
             updateBalance['useModel4Count'] = b['useModel4Count'] + amount;
+        }
+        if (useKey === 'useDrawMjToken') {
+            updateBalance['useDrawMjToken'] = b['useDrawMjToken'] + amount;
         }
         const result = await this.userBalanceEntity.update({ userId }, updateBalance);
         if (result.affected === 0) {

@@ -19,97 +19,101 @@ __decorate([
     __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '使用类型', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '使用的模型', nullable: true }),
     __metadata("design:type", String)
+], ChatLogEntity.prototype, "model", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '使用类型1: 普通对话 2: 绘图 3: 拓展性对话', nullable: true, default: 1 }),
+    __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '自定义的模型名称', nullable: true, default: 'AI' }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "modelName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'Ip地址', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "curIp", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: '询问的问题', type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], ChatLogEntity.prototype, "prompt", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ comment: '附加参数', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "extraParam", void 0);
+__decorate([
     (0, typeorm_1.Column)({ comment: '回答的答案', type: 'text', nullable: true }),
     __metadata("design:type", String)
 ], ChatLogEntity.prototype, "answer", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '本次问题的token', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '提问的token', nullable: true }),
     __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "promptTokens", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '本次回答的token', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '回答的token', nullable: true }),
     __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "completionTokens", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '本次总花费的token', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '总花费的token', nullable: true }),
     __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "totalTokens", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '本次使用的模型', nullable: true }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "model", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '本次访问的Ip地址', nullable: true }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "curIp", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '是否推荐0: 默认 1: 推荐', nullable: true, default: 0 }),
-    __metadata("design:type", Number)
-], ChatLogEntity.prototype, "rec", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '扩展参数', nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "extend", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: 'mj绘画列表携带的一级id用于图片变换或者放大', nullable: true }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "message_id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '一组图片的第几张、放大或者变换的时候需要使用', nullable: true }),
-    __metadata("design:type", Number)
-], ChatLogEntity.prototype, "orderId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: 'mj绘画的动作、放大或者变换、或者全部重新绘制', nullable: true }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "action", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '是否是组图，这种图才可以指定放大', default: 0 }),
-    __metadata("design:type", Number)
-], ChatLogEntity.prototype, "group", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '放大图片的Id记录', nullable: true }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "upscaleId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '变换图片的Id记录', nullable: true }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "variationId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '图片信息的string', nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "fileInfo", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: 'role system user assistant', nullable: true }),
     __metadata("design:type", String)
 ], ChatLogEntity.prototype, "role", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '对话分组ID', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '当前绘制任务的进度', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "progress", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '当前绘制任务的耗时', nullable: true }),
+    __metadata("design:type", Number)
+], ChatLogEntity.prototype, "durationSpent", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '当前绘制任务的状态', nullable: true, default: 3 }),
+    __metadata("design:type", Number)
+], ChatLogEntity.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'mj绘画的动作、绘图、放大、变换、图生图', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "action", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '对图片操作的按钮ID', type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "customId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '绘画的ID每条不一样', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "drawId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '图片比例', nullable: true, type: 'text' }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "drawRatio", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '对话或绘图附带的链接', nullable: true, type: 'text' }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "fileInfo", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '对话转语音的链接', nullable: true, type: 'text' }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "ttsUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '是否推荐0: 默认 1: 推荐', nullable: true, default: 0 }),
+    __metadata("design:type", Number)
+], ChatLogEntity.prototype, "rec", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '分组ID', nullable: true }),
     __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "groupId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '序列化的本次会话参数', nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "conversationOptions", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '序列化的本次提交参数', nullable: true, type: 'text' }),
-    __metadata("design:type", String)
-], ChatLogEntity.prototype, "requestOptions", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: '是否删除', default: false }),
-    __metadata("design:type", Boolean)
-], ChatLogEntity.prototype, "isDelete", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: '使用的应用id', nullable: true }),
     __metadata("design:type", Number)
 ], ChatLogEntity.prototype, "appId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '是否删除', default: false }),
+    __metadata("design:type", Boolean)
+], ChatLogEntity.prototype, "isDelete", void 0);
 ChatLogEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'chatlog' })
 ], ChatLogEntity);

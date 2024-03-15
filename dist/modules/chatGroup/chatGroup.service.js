@@ -53,8 +53,6 @@ let ChatGroupService = class ChatGroupService {
                 params['title'] = name;
             }
             params['appId'] = appId;
-        }
-        if (appId) {
             modelConfig.appId = appId;
         }
         const newGroup = await this.chatGroupEntity.save(Object.assign(Object.assign({}, params), { config: JSON.stringify(modelConfig) }));

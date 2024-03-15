@@ -33,7 +33,6 @@ let MenuService = class MenuService {
             { menuTipText: '应用广场', menuIcon: 'ant-design:appstore-outlined', menuName: 'AppStore', menuPath: '/app-store', menuType: 0, menuPlatform: 1, order: 200 },
             { menuTipText: '专业绘画', menuIcon: 'ri:landscape-line', menuName: 'Midjourney', menuPath: '/midjourney', menuType: 0, menuPlatform: 1, order: 300 },
             { menuTipText: '绘画广场', menuIcon: 'solar:album-line-duotone', menuName: 'Market', menuPath: '/market', menuType: 0, menuPlatform: 1, order: 400 },
-            { menuTipText: '基础绘画', menuIcon: 'fluent:draw-image-24-regular', menuName: 'Draw', menuPath: '/draw', menuType: 0, menuPlatform: 1, order: 500 },
             { menuTipText: '思维导图', menuIcon: 'icon-park-outline:mindmap-map', menuName: 'Mind', menuPath: '/mind', menuType: 0, menuPlatform: 1, order: 600 },
             { menuTipText: '会员中心', menuIcon: 'icon-park-outline:shopping', menuName: 'Pay', menuPath: '/pay', menuType: 0, menuPlatform: 1, order: 700 },
             { menuTipText: '推广计划', menuIcon: 'uiw:share', menuName: 'Share', menuPath: '/share', menuType: 0, menuPlatform: 1, order: 800 },

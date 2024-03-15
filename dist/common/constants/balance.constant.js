@@ -1,15 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RechargeType = exports.DeductionKey = exports.DeductionType = void 0;
-exports.DeductionType = {
-    BALANCE: 'BALANCE_TYPE',
-    CHAT: 'CHAT_TYPE',
-    PAINT: 'PAINT_TYPE',
-};
-exports.DeductionKey = {
-    BALANCE_TYPE: 'balance',
-    CHAT_TYPE: 'usesLeft',
-    PAINT_TYPE: 'paintCount',
+exports.RechargeType = exports.ChatType = void 0;
+exports.ChatType = {
+    NORMAL_CHAT: 1,
+    PAINT: 2,
+    EXTENDED_CHAT: 3,
 };
 exports.RechargeType = {
     REG_GIFT: 1,

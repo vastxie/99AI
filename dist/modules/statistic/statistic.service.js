@@ -83,7 +83,7 @@ let StatisticService = class StatisticService {
         return userCount;
     }
     async countChats() {
-        const chatCount = await this.chatLogEntity.count({ where: { type: balance_constant_1.DeductionKey.CHAT_TYPE } });
+        const chatCount = await this.chatLogEntity.count({ where: { type: balance_constant_1.ChatType.NORMAL_CHAT } });
         return chatCount;
     }
     async countNewChatsToday() {
@@ -92,14 +92,14 @@ let StatisticService = class StatisticService {
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         const queryBuilder = this.chatLogEntity.createQueryBuilder('chatLog');
         const chatCount = await queryBuilder
-            .where('chatLog.type = :type', { type: balance_constant_1.DeductionKey.CHAT_TYPE })
+            .where('chatLog.type = :type', { type: balance_constant_1.ChatType.NORMAL_CHAT })
             .andWhere('chatLog.createdAt >= :today', { today })
             .andWhere('chatLog.createdAt < :tomorrow', { tomorrow })
             .getCount();
         return chatCount;
     }
     async countDraws() {
-        const drawCount = await this.chatLogEntity.count({ where: { type: balance_constant_1.DeductionKey.PAINT_TYPE } });
+        const drawCount = await this.chatLogEntity.count({ where: { type: balance_constant_1.ChatType.PAINT } });
         return drawCount;
     }
     async countNewDrawsToday() {
@@ -108,7 +108,7 @@ let StatisticService = class StatisticService {
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         const queryBuilder = this.chatLogEntity.createQueryBuilder('chatLog');
         const drawCount = await queryBuilder
-            .where('chatLog.type = :type', { type: balance_constant_1.DeductionKey.PAINT_TYPE })
+            .where('chatLog.type = :type', { type: balance_constant_1.ChatType.PAINT })
             .andWhere('chatLog.createdAt >= :today', { today })
             .andWhere('chatLog.createdAt < :tomorrow', { tomorrow })
             .getCount();
@@ -133,7 +133,7 @@ let StatisticService = class StatisticService {
         const queryBuilder = this.chatLogEntity.createQueryBuilder('chatlog');
         const result = await queryBuilder
             .select(`DATE(chatlog.createdAt) as date, COUNT(*) as count`)
-            .where(`chatlog.type = :type`, { type: balance_constant_1.DeductionKey.CHAT_TYPE })
+            .where(`chatlog.type = :type`, { type: balance_constant_1.ChatType.NORMAL_CHAT })
             .andWhere('chatlog.createdAt >= :startDate', { startDate })
             .groupBy('date')
             .orderBy('date')
@@ -161,7 +161,7 @@ let StatisticService = class StatisticService {
         const queryBuilder = this.chatLogEntity.createQueryBuilder('chatlog');
         const result = await queryBuilder
             .select(`DATE(chatlog.createdAt) as date, COUNT(*) as count`)
-            .where(`chatlog.type = :type`, { type: balance_constant_1.DeductionKey.PAINT_TYPE })
+            .where(`chatlog.type = :type`, { type: balance_constant_1.ChatType.PAINT })
             .andWhere('chatlog.createdAt >= :startDate', { startDate })
             .groupBy('date')
             .orderBy('date')

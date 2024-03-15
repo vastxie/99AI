@@ -16,12 +16,11 @@ const user_module_1 = require("./modules/user/user.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const mailer_module_1 = require("./modules/mailer/mailer.module");
 const verification_module_1 = require("./modules/verification/verification.module");
-const chatgpt_module_1 = require("./modules/chatgpt/chatgpt.module");
+const chat_module_1 = require("./modules/chat/chat.module");
 const crami_module_1 = require("./modules/crami/crami.module");
 const userBalance_module_1 = require("./modules/userBalance/userBalance.module");
 const chatLog_module_1 = require("./modules/chatLog/chatLog.module");
 const upload_module_1 = require("./modules/upload/upload.module");
-const draw_module_1 = require("./modules/draw/draw.module");
 const redisCache_module_1 = require("./modules/redisCache/redisCache.module");
 const globalConfig_module_1 = require("./modules/globalConfig/globalConfig.module");
 const statistic_module_1 = require("./modules/statistic/statistic.module");
@@ -30,7 +29,6 @@ const autoreply_module_1 = require("./modules/autoreply/autoreply.module");
 const app_module_1 = require("./modules/app/app.module");
 const pay_module_1 = require("./modules/pay/pay.module");
 const order_module_1 = require("./modules/order/order.module");
-const fanyi_module_1 = require("./modules/fanyi/fanyi.module");
 const official_module_1 = require("./modules/official/official.module");
 const task_module_1 = require("./modules/task/task.module");
 const queue_module_1 = require("./modules/queue/queue.module");
@@ -60,12 +58,11 @@ AppModule = __decorate([
             auth_module_1.AuthModule,
             mailer_module_1.MailerModule,
             verification_module_1.VerificationModule,
-            chatgpt_module_1.ChatgptModule,
+            chat_module_1.ChatModule,
             crami_module_1.CramiModule,
             userBalance_module_1.UserBalanceModule,
             chatLog_module_1.ChatLogModule,
             upload_module_1.UploadModule,
-            draw_module_1.DrawModule,
             redisCache_module_1.RedisCacheModule,
             globalConfig_module_1.GlobalConfigModule,
             statistic_module_1.StatisticModule,
@@ -74,7 +71,6 @@ AppModule = __decorate([
             app_module_1.AppModule,
             pay_module_1.PayModule,
             order_module_1.OrderModule,
-            fanyi_module_1.FanyiModule,
             official_module_1.OfficialModule,
             task_module_1.TaskModule,
             queue_module_1.QueueModule,

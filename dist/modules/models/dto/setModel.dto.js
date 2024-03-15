@@ -22,17 +22,13 @@ __decorate([
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "keyType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '文心一言普通模型', description: '模型中文名称', required: true }),
+    (0, swagger_1.ApiProperty)({ example: '默认', description: '模型中文名称', required: true }),
     __metadata("design:type", String)
 ], SetModelDto.prototype, "modelName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'dsadgadaorjoqm', description: '模型key', required: true }),
+    (0, swagger_1.ApiProperty)({ example: 'sk-', description: '模型key', required: false }),
     __metadata("design:type", Object)
 ], SetModelDto.prototype, "key", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'dasdasdk2n31323k', description: '模型秘钥', required: false }),
-    __metadata("design:type", String)
-], SetModelDto.prototype, "secret", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '是否开启当前key对应的模型', required: true }),
     __metadata("design:type", Boolean)
@@ -50,19 +46,19 @@ __decorate([
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "modelOrder", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 4096, description: '模型支持的最大TOken数量', required: true }),
+    (0, swagger_1.ApiProperty)({ example: 'https://***.png', required: false }),
+    __metadata("design:type", String)
+], SetModelDto.prototype, "modelAvatar", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 4096, description: '模型支持的最大TOken数量', required: false }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "maxModelTokens", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 1000, description: '模型支持的最大回复TOken数量', required: true }),
-    __metadata("design:type", Number)
-], SetModelDto.prototype, "maxResponseTokens", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '模型的代理地址', required: false }),
     __metadata("design:type", String)
 ], SetModelDto.prototype, "proxyUrl", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '模型超时时间', required: false }),
+    (0, swagger_1.ApiProperty)({ example: 300, description: '模型超时时间', required: false }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "timeout", void 0);
 __decorate([
@@ -85,6 +81,10 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '是否设置为绘画Key', required: false }),
     __metadata("design:type", Boolean)
 ], SetModelDto.prototype, "isDraw", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: true, description: '是否支持文件上传', required: false }),
+    __metadata("design:type", Number)
+], SetModelDto.prototype, "isFileUpload", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '是否使用token计费', required: false }),
     __metadata("design:type", Boolean)

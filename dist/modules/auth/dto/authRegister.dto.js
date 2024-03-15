@@ -51,7 +51,7 @@ __decorate([
 ], UserRegisterDto.prototype, "invitedBy", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        example: 'https://public-1300678944.cos.ap-shanghai.myqcloud.com/blog/1682571295452image.png',
+        example: '',
         description: '用户头像',
         required: false,
     }),

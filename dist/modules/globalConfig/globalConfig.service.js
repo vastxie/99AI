@@ -66,7 +66,6 @@ let GlobalConfigService = class GlobalConfigService {
     async initBaiduSensitive(isInit = true) {
         const { baiduTextApiKey, baiduTextSecretKey } = await this.getConfigs(['baiduTextApiKey', 'baiduTextSecretKey']);
         if (!baiduTextApiKey || !baiduTextSecretKey) {
-            common_1.Logger.error('百度敏感词初始化失败，如果需要敏感检测、请前往后台系统配置!', 'GlobalConfigService');
             return;
         }
         const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
@@ -77,7 +76,6 @@ let GlobalConfigService = class GlobalConfigService {
         }
         catch (error) {
             if (isInit) {
-                common_1.Logger.error('百度敏感词配置检测失败，您的参数可能配置的不正确!', 'GlobalConfigService');
             }
             else {
                 throw new common_1.HttpException(error.response.data.error_description, common_1.HttpStatus.BAD_REQUEST);
@@ -145,6 +143,7 @@ let GlobalConfigService = class GlobalConfigService {
             'clientHomePath',
             'clientLogoPath',
             'clientFavoIconPath',
+            'drawingStyles',
             'isUseWxLogin',
             'siteName',
             'robotAvatar',
@@ -159,6 +158,7 @@ let GlobalConfigService = class GlobalConfigService {
             'payHupiStatus',
             'payWechatStatus',
             'payMpayStatus',
+            'payLtzfStatus',
             'isAutoOpenNotice',
             'isShowAppCatIcon',
             'salesBaseRatio',
@@ -247,7 +247,7 @@ let GlobalConfigService = class GlobalConfigService {
                     if (longKeys.includes(item.configKey)) {
                         return (item.configVal = (0, utils_1.hideString)(item.configVal, '隐私内容、非超级管理员无权查看'));
                     }
-                    const whiteListKey = ['payEpayStatus', 'payHupiStatus', 'mjProxy'];
+                    const whiteListKey = ['payEpayStatus', 'payHupiStatus', 'mjProxy', 'payLtzfStatus'];
                     if (!whiteListKey.includes(item.configKey) && !item.configKey.includes('Status')) {
                         item.configVal = (0, utils_1.hideString)(item.configVal);
                     }
@@ -307,8 +307,8 @@ let GlobalConfigService = class GlobalConfigService {
         return await this.getConfigs(['copyrightUrl', 'copyrightTitle']);
     }
     async queryPayType() {
-        const { payHupiStatus = 0, payEpayStatus = 0, payWechatStatus = 0, payMpayStatus = 0, } = await this.getConfigs(['payHupiStatus', 'payEpayStatus', 'payMpayStatus', 'payWechatStatus']);
-        if ([payHupiStatus, payEpayStatus, payWechatStatus, payMpayStatus].every((status) => status === 0)) {
+        const { payHupiStatus = 0, payEpayStatus = 0, payWechatStatus = 0, payMpayStatus = 0, payLtzfStatus = 0, } = await this.getConfigs(['payHupiStatus', 'payEpayStatus', 'payMpayStatus', 'payWechatStatus', 'payLtzfStatus']);
+        if ([payHupiStatus, payEpayStatus, payWechatStatus, payMpayStatus, payLtzfStatus].every((status) => status === 0)) {
             throw new common_1.HttpException('支付功能暂未开放!', common_1.HttpStatus.BAD_REQUEST);
         }
         if (Number(payWechatStatus) === 1) {
@@ -322,6 +322,9 @@ let GlobalConfigService = class GlobalConfigService {
         }
         if (Number(payHupiStatus) === 1) {
             return 'hupi';
+        }
+        if (Number(payLtzfStatus) === 1) {
+            return 'ltzf';
         }
     }
     async getAuthInfo() {
@@ -367,7 +370,7 @@ let GlobalConfigService = class GlobalConfigService {
         };
     }
     async auth() {
-        const api = 'https://api.jiangly.com/api/permission/auth';
+        const api = '';
         const response = await fetch(api, {});
         const responseData = await response.json();
         const { success = true, message } = responseData;
@@ -378,24 +381,15 @@ let GlobalConfigService = class GlobalConfigService {
         common_1.Logger.debug('感谢您使用NineAi、祝您使用愉快~');
     }
     async getSensitiveConfig() {
-        const { baiduTextStatus = 0, baiduTextAccessToken, nineaiBuiltInSensitiveStatus = 0, nineaiBuiltInSensitiveApiBase, nineaiBuiltInSensitiveAuthKey, } = await this.getConfigs([
+        const { baiduTextStatus = 0, baiduTextAccessToken, nineaiBuiltInSensitiveAuthKey, } = await this.getConfigs([
             'baiduTextStatus',
             'baiduTextAccessToken',
-            'nineaiBuiltInSensitiveStatus',
-            'nineaiBuiltInSensitiveApiBase',
             'nineaiBuiltInSensitiveAuthKey',
         ]);
         if (Number(baiduTextStatus) === 1) {
             return {
                 useType: 'baidu',
                 baiduTextAccessToken,
-            };
-        }
-        if (Number(nineaiBuiltInSensitiveStatus) === 1) {
-            return {
-                useType: 'nineai',
-                nineaiBuiltInSensitiveApiBase,
-                nineaiBuiltInSensitiveAuthKey,
             };
         }
         return null;

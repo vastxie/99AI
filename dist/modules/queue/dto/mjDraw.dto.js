@@ -49,6 +49,16 @@ __decorate([
     __metadata("design:type", Number)
 ], MjDrawDto.prototype, "drawId", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: 1, description: 'customId' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], MjDrawDto.prototype, "customId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1, description: 'base64' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], MjDrawDto.prototype, "base64", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ example: 1, description: '任务ID' }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)

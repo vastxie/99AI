@@ -29,12 +29,19 @@ let ChatLogService = class ChatLogService {
         this.chatGroupEntity = chatGroupEntity;
     }
     async saveChatLog(logInfo) {
-        return await this.chatLogEntity.save(logInfo);
+        const savedLog = await this.chatLogEntity.save(logInfo);
+        return savedLog;
+    }
+    async updateChatLog(id, logInfo) {
+        return await this.chatLogEntity.update({ id }, logInfo);
+    }
+    async findOneChatLog(id) {
+        return await this.chatLogEntity.findOne({ where: { id } });
     }
     async querDrawLog(req, query) {
         const { id } = req.user;
         const { model } = query;
-        const where = { userId: id, type: balance_constant_1.DeductionKey.PAINT_TYPE };
+        const where = { userId: id, type: balance_constant_1.ChatType.PAINT };
         if (model) {
             where.model = model;
             if (model === 'DALL-E2') {
@@ -44,7 +51,7 @@ let ChatLogService = class ChatLogService {
         const data = await this.chatLogEntity.find({
             where,
             order: { id: 'DESC' },
-            select: ['id', 'answer', 'prompt', 'message_id', 'group', 'model', 'extend', 'type', 'fileInfo'],
+            select: ['id', 'answer', 'prompt', 'model', 'type', 'fileInfo'],
         });
         data.forEach((r) => {
             if (r.type === 'paintCount') {
@@ -64,7 +71,7 @@ let ChatLogService = class ChatLogService {
     }
     async querAllDrawLog(params) {
         const { page = 1, size = 20, rec, userId, model } = params;
-        const where = { type: balance_constant_1.DeductionKey.PAINT_TYPE, prompt: (0, typeorm_2.Not)(''), answer: (0, typeorm_2.Not)('') };
+        const where = { type: balance_constant_1.ChatType.PAINT, prompt: (0, typeorm_2.Not)(''), answer: (0, typeorm_2.Not)('') };
         rec && Object.assign(where, { rec });
         userId && Object.assign(where, { userId });
         if (model) {
@@ -104,9 +111,14 @@ let ChatLogService = class ChatLogService {
         });
         return { rows, count };
     }
+    async findOneDrawLog(params) {
+        const { id } = params;
+        const record = await this.chatLogEntity.findOne({ where: { id } });
+        return record;
+    }
     async recDrawImg(body) {
         const { id } = body;
-        const l = await this.chatLogEntity.findOne({ where: { id, type: balance_constant_1.DeductionKey.PAINT_TYPE } });
+        const l = await this.chatLogEntity.findOne({ where: { id, type: balance_constant_1.ChatType.PAINT } });
         if (!l) {
             throw new common_1.HttpException('你推荐的图片不存在、请检查！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -118,7 +130,7 @@ let ChatLogService = class ChatLogService {
         throw new common_1.HttpException('你操作的图片不存在、请检查！', common_1.HttpStatus.BAD_REQUEST);
     }
     async exportExcel(body, res) {
-        const where = { type: balance_constant_1.DeductionKey.CHAT_TYPE };
+        const where = { type: balance_constant_1.ChatType.NORMAL_CHAT };
         const { page = 1, size = 30, prompt, email } = body;
         prompt && Object.assign(where, { prompt: (0, typeorm_2.Like)(`%${prompt}%`) });
         if (email) {
@@ -160,7 +172,7 @@ let ChatLogService = class ChatLogService {
     }
     async querAllChatLog(params, req) {
         const { page = 1, size = 20, userId, prompt } = params;
-        const where = { type: balance_constant_1.DeductionKey.CHAT_TYPE, prompt: (0, typeorm_2.Not)('') };
+        const where = { type: balance_constant_1.ChatType.NORMAL_CHAT, prompt: (0, typeorm_2.Not)('') };
         userId && Object.assign(where, { userId });
         prompt && Object.assign(where, { prompt: (0, typeorm_2.Like)(`%${prompt}%`) });
         const [rows, count] = await this.chatLogEntity.findAndCount({
@@ -195,25 +207,40 @@ let ChatLogService = class ChatLogService {
         }
         const list = await this.chatLogEntity.find({ where });
         return list.map((item) => {
-            const { prompt, role, answer, createdAt, model, conversationOptions, requestOptions, id, fileInfo } = item;
-            let parseConversationOptions = null;
-            let parseRequestOptions = null;
-            try {
-                parseConversationOptions = JSON.parse(conversationOptions);
-                parseRequestOptions = JSON.parse(requestOptions);
-            }
-            catch (error) {
-            }
+            const { prompt, role, answer, createdAt, model, modelName, type, status, action, drawId, id, fileInfo, ttsUrl, customId } = item;
             return {
                 chatId: id,
                 dateTime: (0, utils_1.formatDate)(createdAt),
                 text: role === 'user' ? prompt : answer,
+                modelType: type,
+                status: status,
+                action: action,
+                drawId: drawId,
+                customId: customId,
                 inversion: role === 'user',
                 error: false,
-                conversationOptions: parseConversationOptions,
-                requestOptions: parseRequestOptions,
                 fileInfo: fileInfo,
+                ttsUrl: ttsUrl,
                 model: model,
+                modelName: modelName,
+            };
+        });
+    }
+    async chatHistory(groupId, rounds) {
+        const where = { isDelete: false, groupId: groupId };
+        const list = await this.chatLogEntity.find({
+            where,
+            order: {
+                createdAt: 'ASC'
+            },
+            take: rounds * 2
+        });
+        return list.map((item) => {
+            const { role, prompt, answer, fileInfo } = item;
+            return {
+                role: role,
+                text: role === 'user' ? prompt : answer,
+                fileInfo: fileInfo,
             };
         });
     }

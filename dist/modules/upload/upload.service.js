@@ -233,16 +233,6 @@ let UploadService = class UploadService {
             return { key, uploadPath };
         }
     }
-    async test() {
-        const params = {
-            filename: 'mjtest.png',
-            dir: 'mj',
-            url: 'https://cdn.discordapp.com/attachments/1097409128491651135/1169910551275638855/snine_60b5c001b_A_young_girl_smiles_brightly_in_the_pure_blue_f_8a41fe5f-5101-4c1e-b948-a748a0583577.png?ex=65571f1b&is=6544aa1b&hm=b82f2d88224eb7942e24c63a8e519c7693de12a2b96daa0f327dfb8f691b1480&',
-        };
-        const res = await this.uploadFileFromUrl(params);
-        console.log('res: ', res);
-        return res;
-    }
     async getBufferFromUrl(url) {
         const proxyMj = (await this.globalConfigService.getConfigs(['mjProxy'])) || 0;
         const response = await axios_1.default.get(url, { responseType: 'stream' });

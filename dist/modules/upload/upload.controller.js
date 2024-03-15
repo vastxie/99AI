@@ -24,9 +24,6 @@ let UploadController = class UploadController {
     async uploadFile(file) {
         return this.uploadService.uploadFile(file);
     }
-    async test() {
-        return this.uploadService.test();
-    }
 };
 __decorate([
     (0, common_1.Post)('file'),
@@ -37,13 +34,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadFile", null);
-__decorate([
-    (0, common_1.Get)('test'),
-    (0, swagger_1.ApiOperation)({ summary: '测试' }),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], UploadController.prototype, "test", null);
 UploadController = __decorate([
     (0, swagger_1.ApiTags)('upload'),
     (0, common_1.Controller)('upload'),

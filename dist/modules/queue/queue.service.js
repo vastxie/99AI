@@ -13,18 +13,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueueService = void 0;
-const common_1 = require("@nestjs/common");
 const bull_1 = require("@nestjs/bull");
 const utils_1 = require("../../common/utils");
 const midjourney_service_1 = require("../midjourney/midjourney.service");
 const userBalance_service_1 = require("../userBalance/userBalance.service");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const models_service_1 = require("../models/models.service");
 let QueueService = class QueueService {
-    constructor(mjDrawQueue, midjourneyService, userBalanceService, globalConfigService) {
+    constructor(mjDrawQueue, midjourneyService, userBalanceService, globalConfigService, modelsService) {
         this.mjDrawQueue = mjDrawQueue;
         this.midjourneyService = midjourneyService;
         this.userBalanceService = userBalanceService;
         this.globalConfigService = globalConfigService;
+        this.modelsService = modelsService;
         this.jobIds = [];
     }
     async onApplicationBootstrap() {
@@ -32,9 +33,12 @@ let QueueService = class QueueService {
         await this.midjourneyService.cleanQueue();
     }
     async addMjDrawQueue(body, req) {
-        const { imgUrl, orderId, action, drawId } = body;
+        const { orderId, action, drawId } = body;
         await this.midjourneyService.checkLimit(req);
-        await this.userBalanceService.validateBalance(req, 'mjDraw', action === 'UPSCALE' ? 1 : 4);
+        const detailKeyInfo = await this.modelsService.getCurrentModelKeyInfo('midjourney');
+        const keyId = detailKeyInfo === null || detailKeyInfo === void 0 ? void 0 : detailKeyInfo.id;
+        const { key, proxyUrl, deduct, deductType, timeout } = detailKeyInfo;
+        await this.userBalanceService.validateBalance(req, deductType, action === 'UPSCALE' ? deduct : deduct * 4);
         if (action === 'IMAGINE') {
             const randomDrawId = `${(0, utils_1.createRandomUid)()}`;
             const params = Object.assign(Object.assign({}, body), { userId: req.user.id, randomDrawId });
@@ -45,17 +49,18 @@ let QueueService = class QueueService {
             return true;
         }
         else {
-            const { orderId, action, drawId } = body;
-            const actionDetail = await this.midjourneyService.getDrawActionDetail(action, drawId, orderId);
-            const params = Object.assign(Object.assign(Object.assign({}, body), { userId: req.user.id }), actionDetail);
+            const { action, customId, base64 } = body;
+            let { drawId } = body;
+            if (action === 'MODAL') {
+                const result = await this.midjourneyService.getDrawActionDetail(action, drawId, customId);
+                drawId = result.drawId;
+            }
+            const params = Object.assign(Object.assign({}, body), { userId: req.user.id, drawId });
             const res = await this.midjourneyService.addDrawQueue(params);
-            const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 200000;
-            const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id }, { delay: 1000, timeout: +timeout });
+            const timeout = (await this.globalConfigService.getConfigs(['mjTimeoutMs'])) || 300000;
+            const job = await this.mjDrawQueue.add('mjDraw', { id: res.id, action, userId: req.user.id, base64 }, { delay: 1000, timeout: +timeout });
             this.jobIds.push(job.id);
             return;
-        }
-        if (!drawId || !orderId) {
-            throw new common_1.HttpException('缺少必要参数！', common_1.HttpStatus.BAD_REQUEST);
         }
     }
     async getQueue() {
@@ -66,6 +71,7 @@ QueueService = __decorate([
     __param(0, (0, bull_1.InjectQueue)('MJDRAW')),
     __metadata("design:paramtypes", [Object, midjourney_service_1.MidjourneyService,
         userBalance_service_1.UserBalanceService,
-        globalConfig_service_1.GlobalConfigService])
+        globalConfig_service_1.GlobalConfigService,
+        models_service_1.ModelsService])
 ], QueueService);
 exports.QueueService = QueueService;

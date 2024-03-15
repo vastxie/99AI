@@ -24,6 +24,10 @@ let PayController = class PayController {
         console.log('hupi ->body: ', body);
         return this.payService.notify(body);
     }
+    notifyLtzf(body) {
+        console.log('ltzf ->body: ', body);
+        return this.payService.notify(body);
+    }
     notifyEpay(query) {
         console.log('epay ->query: ', query);
         return this.payService.notify(query);
@@ -37,6 +41,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], PayController.prototype, "notifyHupi", null);
+__decorate([
+    (0, common_1.Post)('notify'),
+    (0, swagger_1.ApiOperation)({ summary: 'ltzf支付结果通知' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], PayController.prototype, "notifyLtzf", null);
 __decorate([
     (0, common_1.Get)('notify'),
     (0, swagger_1.ApiOperation)({ summary: 'Epay支付结果通知' }),

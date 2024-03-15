@@ -23,7 +23,7 @@ __decorate([
     __metadata("design:type", String)
 ], OrderEntity.prototype, "tradeId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '支付平台【epay|hupi】）', length: 32, nullable: true }),
+    (0, typeorm_1.Column)({ comment: '支付平台【epay|hupi|ltzf】）', length: 32, nullable: true }),
     __metadata("design:type", String)
 ], OrderEntity.prototype, "payPlatform", void 0);
 __decorate([

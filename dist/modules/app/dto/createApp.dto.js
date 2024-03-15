@@ -34,7 +34,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateAppDto.prototype, "des", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '你现在是一个翻译官。接下来我说的所有话帮我翻译成中文', description: '预设的prompt', required: true }),
+    (0, swagger_1.ApiProperty)({ example: '你现在是一个翻译官。接下来我说的所有话帮我翻译成中文', description: '预设的prompt', required: false }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateAppDto.prototype, "preset", void 0);

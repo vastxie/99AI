@@ -38,6 +38,9 @@ let ModelsController = class ModelsController {
     modelsList() {
         return this.modelsService.modelsList();
     }
+    getMjInfo() {
+        return this.modelsService.getMjInfo();
+    }
     baseConfig() {
         return this.modelsService.getBaseConfig();
     }
@@ -89,6 +92,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ModelsController.prototype, "modelsList", null);
+__decorate([
+    (0, common_1.Get)('mjInfo'),
+    (0, swagger_1.ApiOperation)({ summary: '客户端查询当前所有可以使用的模型' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ModelsController.prototype, "getMjInfo", null);
 __decorate([
     (0, common_1.Get)('baseConfig'),
     (0, swagger_1.ApiOperation)({ summary: '客户端查询当前已经配置模型的基础配置' }),

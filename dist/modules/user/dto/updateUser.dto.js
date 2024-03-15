@@ -23,7 +23,7 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateUserDto.prototype, "username", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'https://file.jiangly.com/images/93971628.jpeg', description: '用户头像', required: false }),
+    (0, swagger_1.ApiProperty)({ example: '', description: '用户头像', required: false }),
     (0, class_validator_1.IsNotEmpty)({ message: '用户头像不能为空！' }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)

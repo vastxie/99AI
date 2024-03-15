@@ -28,7 +28,7 @@ const userBalance_service_1 = require("../userBalance/userBalance.service");
 const utils_1 = require("../../common/utils");
 const balance_constant_1 = require("../../common/constants/balance.constant");
 const config_entity_1 = require("../globalConfig/config.entity");
-const whiteList_entity_1 = require("../chatgpt/whiteList.entity");
+const whiteList_entity_1 = require("../chat/whiteList.entity");
 let UserService = class UserService {
     constructor(userEntity, whiteListEntity, connection, verificationService, mailerService, userBalanceService, globalConfigService, configEntity) {
         this.userEntity = userEntity;
@@ -265,8 +265,9 @@ let UserService = class UserService {
             const { inviteCode } = u;
             if (!inviteCode)
                 return [];
+            const invitedBy = inviteCode;
             const [rows, count] = await this.userEntity.findAndCount({
-                where: { inviteCode },
+                where: { invitedBy },
                 order: { id: 'DESC' },
                 select: ['username', 'email', 'createdAt', 'status', 'avatar'],
                 take: size,
@@ -350,14 +351,8 @@ let UserService = class UserService {
         if (n.role === 'super') {
             throw new common_1.HttpException('超级管理员不可被操作！', common_1.HttpStatus.BAD_REQUEST);
         }
-        if (n.status === user_constant_1.UserStatusEnum.PENDING) {
-            throw new common_1.HttpException('未激活用户不可手动变更状态！', common_1.HttpStatus.BAD_REQUEST);
-        }
         if (n.role === 'super') {
             throw new common_1.HttpException('超级管理员不可被操作！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (status === user_constant_1.UserStatusEnum.PENDING) {
-            throw new common_1.HttpException('不可将用户置为未激活状态！', common_1.HttpStatus.BAD_REQUEST);
         }
         const r = await this.userEntity.update({ id }, { status });
         if (r.affected <= 0) {

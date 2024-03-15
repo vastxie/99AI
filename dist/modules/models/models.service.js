@@ -76,30 +76,41 @@ let ModelsService = class ModelsService {
         this.initCalcKey();
     }
     async getCurrentModelKeyInfo(model) {
-        if (!this.keyPoolMap[model]) {
-            throw new common_1.HttpException('当前调用模型已经被移除、请重新选择模型！', common_1.HttpStatus.BAD_REQUEST);
+        const modelKeyInfo = await this.modelsEntity.findOne({ where: { model: model } });
+        if (!modelKeyInfo) {
+            throw new common_1.HttpException('当前调用模型的key未找到，请重新选择模型！', common_1.HttpStatus.BAD_REQUEST);
         }
-        this.keyPoolIndexMap[model]++;
-        const index = this.keyPoolIndexMap[model];
-        if (index >= this.keyPoolMap[model].length)
-            this.keyPoolIndexMap[model] = 0;
-        const key = this.keyPoolMap[model][this.keyPoolIndexMap[model]];
-        return key;
+        return modelKeyInfo;
+    }
+    async getSpecialModelKeyInfo(modelPrefix) {
+        const matchingModels = await this.modelsEntity.find({
+            where: { model: (0, typeorm_2.Like)(`${modelPrefix}%`) }
+        });
+        if (matchingModels.length === 0) {
+            throw new common_1.HttpException('未找到匹配的模型，请重新选择模型！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        const firstMatchModel = matchingModels[0];
+        const modifiedModelName = firstMatchModel.model.replace(modelPrefix, '');
+        const modifiedModel = Object.assign(Object.assign({}, firstMatchModel), { model: modifiedModelName });
+        return modifiedModel;
     }
     async getBaseConfig(appId) {
         if (!this.modelTypes.length || !Object.keys(this.modelMaps).length)
             return;
-        const modelTypeInfo = appId ? this.modelTypes.find(item => Number(item.val) === 1) : this.modelTypes[0];
+        const modelTypeInfo = this.modelTypes[0];
         if (!modelTypeInfo)
             return;
-        const { keyType, modelName, model, maxModelTokens, maxResponseTokens, deductType, deduct, maxRounds } = this.modelMaps[modelTypeInfo.val][0];
+        const { keyType, modelName, model, deductType, deduct, isFileUpload } = this.modelMaps[modelTypeInfo.val][0];
         return {
             modelTypeInfo,
-            modelInfo: { keyType, modelName, model, maxModelTokens, maxResponseTokens, topN: 0.8, systemMessage: '', deductType, deduct, maxRounds, rounds: 8 }
+            modelInfo: { keyType, modelName, model, deductType, deduct, isFileUpload }
         };
     }
     async setModel(params) {
         try {
+            if (isNaN(params.timeout)) {
+                params.timeout = null;
+            }
             const { id } = params;
             params.status && (params.keyStatus = 1);
             if (id) {
@@ -119,6 +130,9 @@ let ModelsService = class ModelsService {
                         try {
                             const data = JSON.parse(JSON.stringify(params));
                             data.key = k;
+                            if (isNaN(data.timeout)) {
+                                data.timeout = null;
+                            }
                             return data;
                         }
                         catch (error) {
@@ -166,7 +180,6 @@ let ModelsService = class ModelsService {
         if (role !== 'super') {
             rows.forEach(item => {
                 item.key && (item.key = (0, utils_1.hideString)(item.key));
-                item.secret && (item.secret = (0, utils_1.hideString)(item.secret));
             });
         }
         return { rows, count };
@@ -177,8 +190,8 @@ let ModelsService = class ModelsService {
             cloneModelMaps[key] = cloneModelMaps[key].sort((a, b) => a.modelOrder - b.modelOrder);
             cloneModelMaps[key] = Array.from(cloneModelMaps[key]
                 .map(t => {
-                const { modelName, model, deduct, deductType, maxRounds } = t;
-                return { modelName, model, deduct, deductType, maxRounds };
+                const { modelName, keyType, model, deduct, deductType, maxRounds, modelAvatar, isFileUpload } = t;
+                return { modelName, keyType, model, deduct, deductType, maxRounds, modelAvatar, isFileUpload };
             })
                 .reduce((map, obj) => map.set(obj.modelName, obj), new Map()).values());
         });
@@ -187,6 +200,20 @@ let ModelsService = class ModelsService {
             modelMaps: cloneModelMaps
         };
     }
+    async getMjInfo() {
+        const modelInfo = await this.modelsEntity.findOne({ where: { model: "midjourney" } });
+        if (modelInfo) {
+            return {
+                modelName: modelInfo.modelName,
+                model: modelInfo.model,
+                deduct: modelInfo.deduct,
+                deductType: modelInfo.deductType,
+            };
+        }
+        else {
+            return null;
+        }
+    }
     async saveUseLog(id, useToken) {
         await this.modelsEntity
             .createQueryBuilder()
@@ -194,13 +221,6 @@ let ModelsService = class ModelsService {
             .set({ useCount: () => 'useCount + 1', useToken: () => `useToken + ${useToken}` })
             .where('id = :id', { id })
             .execute();
-    }
-    async getRandomDrawKey() {
-        const drawkeys = await this.modelsEntity.find({ where: { isDraw: true, status: true } });
-        if (!drawkeys.length) {
-            throw new common_1.HttpException('当前未指定特殊模型KEY、前往后台模型池设置吧！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        return (0, utils_1.getRandomItemFromArray)(drawkeys);
     }
     async getAllKey() {
         return await this.modelsEntity.find();

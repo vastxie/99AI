@@ -43,6 +43,9 @@ let PayService = class PayService {
         if (params['attach'] == 'hupi') {
             return this.notifyHupi(params);
         }
+        if (params['attach'] == 'ltzf') {
+            return this.notifyLtzf(params);
+        }
         if (typeof params['resource'] == 'object') {
             return this.notifyWeChat(params);
         }
@@ -68,6 +71,9 @@ let PayService = class PayService {
             }
             if (order.payPlatform == 'hupi') {
                 return this.payHupi(userId, orderId, payType);
+            }
+            if (order.payPlatform == 'ltzf') {
+                return this.payLtzf(userId, orderId, payType);
             }
         }
         catch (error) {
@@ -413,6 +419,92 @@ let PayService = class PayService {
             .map((key) => `${key}=${params[key]}`)
             .join('&') + secret;
         return crypto.createHash('md5').update(str).digest('hex');
+    }
+    ltzfSign(params, secret) {
+        const paramsArr = Object.keys(params);
+        paramsArr.sort();
+        const stringArr = [];
+        paramsArr.map(key => {
+            stringArr.push(key + '=' + params[key]);
+        });
+        stringArr.push("key=" + secret);
+        const str = stringArr.join('&');
+        return crypto.createHash('md5').update(str).digest('hex').toUpperCase();
+    }
+    async payLtzf(userId, orderId, payType = 'wxpay') {
+        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        if (!order)
+            throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
+        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        if (!goods)
+            throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
+        const { payLtzfMchId, payLtzfSecret, payLtzfNotifyUrl, payLtzfReturnUrl, } = await this.globalConfigService.getConfigs([
+            'payLtzfMchId',
+            'payLtzfSecret',
+            'payLtzfNotifyUrl',
+            'payLtzfReturnUrl',
+        ]);
+        const params = {};
+        params['mch_id'] = payLtzfMchId;
+        params['timestamp'] = (Date.now() / 1000).toFixed(0);
+        params['out_trade_no'] = orderId;
+        params['body'] = goods.name;
+        params['total_fee'] = order.total;
+        params['notify_url'] = payLtzfNotifyUrl;
+        params['sign'] = this.ltzfSign(params, payLtzfSecret);
+        params['attach'] = 'ltzf';
+        params['return_url'] = payLtzfReturnUrl;
+        const formBody = Object.keys(params).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
+        const config = {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        };
+        const response = await axios_1.default.post('https://api.ltzf.cn/api/wxpay/jsapi_convenient', formBody, config);
+        const { code, data, msg } = response.data;
+        if (code != 0)
+            throw new common_1.HttpException(msg, common_1.HttpStatus.BAD_REQUEST);
+        const url_qrcode = data.QRcode_url;
+        const url = data.order_url;
+        return { url_qrcode, url };
+    }
+    async queryLtzf(orderId) {
+        const { payLtzfMchId, payLtzfSecret } = await this.globalConfigService.getConfigs(['payLtzfMchId', 'payLtzfSecret']);
+        const params = {};
+        params['mch_id'] = payLtzfMchId;
+        params['timestamp'] = (Date.now() / 1000).toFixed(0);
+        params['out_trade_no'] = orderId;
+        params['sign'] = this.ltzfSign(params, payLtzfSecret);
+        const formBody = Object.keys(params).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
+        const config = {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        };
+        const { data: { code, msg, data: result }, } = await axios_1.default.post('https://api.ltzf.cn/api/wxpay/get_pay_order', formBody, config);
+        if (code != 0)
+            throw new common_1.HttpException(msg + JSON.stringify(params), common_1.HttpStatus.BAD_REQUEST);
+        return result;
+    }
+    async notifyLtzf(params) {
+        const payLtzfSecret = await this.globalConfigService.getConfigs(['payLtzfSecret']);
+        const hash = params['sign'];
+        delete params['sign'];
+        delete params['pay_channel'];
+        delete params['trade_type'];
+        delete params['success_time'];
+        delete params['attach'];
+        delete params['openid'];
+        if (this.ltzfSign(params, payLtzfSecret) != hash)
+            return 'FAIL';
+        const order = await this.orderEntity.findOne({ where: { orderId: params['out_trade_no'], status: 0 } });
+        if (!order)
+            return 'FAIL';
+        await this.userBalanceService.addBalanceToOrder(order);
+        const result = await this.orderEntity.update({ orderId: params['out_trade_no'] }, { status: 1, paydAt: new Date() });
+        if (result.affected != 1)
+            return 'FAIL';
+        return 'SUCCESS';
     }
 };
 PayService = __decorate([

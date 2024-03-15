@@ -22,7 +22,7 @@ __decorate([
     __metadata("design:type", Number)
 ], SetModelTypeDto.prototype, "keyType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '文心一言普通模型', description: '模型中文名称', required: true }),
+    (0, swagger_1.ApiProperty)({ example: '普通模型', description: '模型中文名称', required: true }),
     __metadata("design:type", String)
 ], SetModelTypeDto.prototype, "modelName", void 0);
 __decorate([
@@ -34,13 +34,17 @@ __decorate([
     __metadata("design:type", String)
 ], SetModelTypeDto.prototype, "model", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1, description: '温度' }),
+    (0, swagger_1.ApiProperty)({ example: 300, description: '模型超时时间', required: false }),
     __metadata("design:type", Number)
-], SetModelTypeDto.prototype, "temperature", void 0);
+], SetModelTypeDto.prototype, "timeout", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '扣费类型 1： 普通 2： 高级余额', required: false }),
     __metadata("design:type", Number)
 ], SetModelTypeDto.prototype, "deductType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: true, description: '文件上传类型 0 : 不使用 1: ALL类型 2: 4V类型', required: false }),
+    __metadata("design:type", Number)
+], SetModelTypeDto.prototype, "isFileUpload", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: true, description: '单次扣除金额', required: false }),
     __metadata("design:type", Number)
