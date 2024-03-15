@@ -1,20 +1,24 @@
 # NineAI 更新整合版
 
-99AI ———— 基于 NineAI 二开的可商业化 AI Web 应用（免授权，无后门，支持快速部署）
+99AI：基于 NineAI 2.4.2 二开的可商业化 AI Web 应用（免授权，无后门，非盗版，已整合前后端，支持快速部署）。
+
+稳定版完全开源，开发版进度更快一些。
 
 ## 页面预览
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/7e9927a5-b0a7-42e0-8699-c9cd13a6d31a">
+<img width="1226" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/9b6f3e28-1cfa-4c76-8f43-d898c7f72a08">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/232ccf5d-90f6-45b5-8b9b-038959ac03af">
+<img width="1225" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/bea19b79-3c55-47fa-ad7f-e844c63bfd28">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/131b085c-54b9-455f-b62f-8b0baab11740">
+<img width="1227" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/28c59e00-c2c1-49fe-b578-77ec06ed286a">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/5af15484-4762-42ae-b175-6b97638fb7d0">
+<img width="1226" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/9f145377-87a3-4164-a417-79fc071fd07c">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/8e872177-2afc-4cfb-b435-d17ead5dac36">
+<img width="1222" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/8df83601-fb67-47c2-8764-1d01c1a5f76b">
 
-<img width="1229" alt="image" src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/18f32097-1c4d-4b8f-8c2e-2c7c36a51be1">
+<img width="1225" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/36731988-98f1-48ba-9516-2fd6ff5ede7d">
+
+<img width="1220" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/bf71768a-f996-4512-9cc5-d6ef6e39a8c0">
 
 ## 更新日志
 
@@ -48,9 +52,6 @@
 - [x] 对话使用TTS进行语音播报。
 - [x] Dalle绘图支持添加风格参数，支持交互式连续绘画。
 - [ ] ...
-
-
-
 
 
 <details>
@@ -149,6 +150,6 @@
 
 ## 学习交流
 
-完整未编译源码暂未开源，扫码添加微信备注 99，拉交流群
+扫码添加微信备注 99，拉交流群
 
 <img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/ee20578f-063d-48d8-bff6-85ac3e38fe60" width="300">
