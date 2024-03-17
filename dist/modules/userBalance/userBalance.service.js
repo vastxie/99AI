@@ -328,9 +328,9 @@ let UserBalanceService = class UserBalanceService {
                 const { weight } = pkgInfo;
                 if (!userBalanceInfo.packageId) {
                     params = {
-                        memberModel3Count: model3Count + balance.model3Count,
-                        memberModel4Count: model4Count + balance.model4Count,
-                        memberDrawMjCount: drawMjCount + balance.drawMjCount,
+                        memberModel3Count: memberModel3Count + balance.model3Count,
+                        memberModel4Count: memberModel4Count + balance.model4Count,
+                        memberDrawMjCount: memberDrawMjCount + balance.drawMjCount,
                         expirationTime: (0, date_1.default)()
                             .add(days > 0 ? days : 0, 'day')
                             .format('YYYY-MM-DD HH:mm:ss'),
