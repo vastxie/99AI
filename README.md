@@ -120,6 +120,25 @@
 2. **访问项目**
    - 在浏览器中访问`http://localhost:9520`，或者如果配置了 nginx 反向代理，则通过配置的域名访问。
 
+## docker-compose 部署 （推荐）
+
+1. **安装Docker及Docker-compose**
+
+   - 使用[Docker 官网](https://www.docker.com/)提供的一键安装链接安装Docker及Docker-compose。 
+   
+   ```shell
+   curl -fsSL https://get.docker.com | bash -s docker
+   ```
+    
+2. **启动服务**
+   - 执行`docker-compose up -d`命令这将在后台启动服务。
+   - 如果您需要查看日志，可以使用 `docker-compose logs` 命令。
+   - 如果您需要停止服务，可以使用 `docker-compose down` 命令。
+   - 如果您需要重新构建并启动服务，可以使用 `docker-compose up -d --build` 命令。
+
+3. **访问项目**
+   - 在浏览器中访问`http://localhost:9520`，或者如果配置了 nginx 反向代理，则通过配置的域名访问。
+
 ## 管理平台
 
 - **管理端地址**：`/admin`
