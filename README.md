@@ -1,25 +1,38 @@
 # 99 AI 稳定版
 
-99AI：基于 NineAI 2.4.2 二开的可商业化 AI Web 应用（免授权，无后门，非盗版，已整合前后端，支持快速部署）。
+99AI：基于 NineAI 2.4.2 二开的可商业化 AI Web 应用（免授权，无后门，非盗版，已整合前后端整合包，支持 Docker 快速部署）。
 
 未编译源码暂不开源，相比稳定版，开发版进度更快一些。
 
-
 ## 页面预览
 
-<img width="1226" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/9b6f3e28-1cfa-4c76-8f43-d898c7f72a08">
+**应用广场**
 
-<img width="1225" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/bea19b79-3c55-47fa-ad7f-e844c63bfd28">
+![应用广场](https://github.com/vastxie/99AI/assets/24899308/2cbeab33-0b6b-4f56-81a6-1e15e097023f)
 
-<img width="1227" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/28c59e00-c2c1-49fe-b578-77ec06ed286a">
+**AI 绘画**
 
-<img width="1226" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/9f145377-87a3-4164-a417-79fc071fd07c">
+![AI 绘画](https://github.com/vastxie/99AI/assets/24899308/1155d39a-aeed-481e-9f80-127500bf59e7)
 
-<img width="1222" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/8df83601-fb67-47c2-8764-1d01c1a5f76b">
+**AI 音乐**
 
-<img width="1225" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/36731988-98f1-48ba-9516-2fd6ff5ede7d">
+![screenshot-1713627618821](https://github.com/vastxie/99AI/assets/24899308/f6966ae8-8be6-4ba5-8d06-c89b4c864f88)
 
-<img width="1220" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/bf71768a-f996-4512-9cc5-d6ef6e39a8c0">
+**文件分析**（开发版支持）
+
+![文件分析](https://github.com/vastxie/99AI/assets/24899308/68e80920-6b54-4a50-8b76-2c8c946e8717)
+
+**绘画广场**
+
+![绘画广场](https://github.com/vastxie/99AI/assets/24899308/4eb3954e-489d-48f6-9d9d-4de6d2fcce83)
+
+**专业绘图**
+
+![绘画页](https://github.com/vastxie/99AI/assets/24899308/148fb1fa-820c-4fe1-9dbe-e967ee41fd8b)
+
+**分销邀请**
+
+![分销推荐](https://github.com/vastxie/99AI/assets/24899308/cc280beb-d0cb-43d1-984e-4a7b3a61b807)
 
 ## 更新日志
 
