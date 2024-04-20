@@ -10,15 +10,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OfficialService = void 0;
-const chat_service_1 = require("../chat/chat.service");
-const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
-const auth_service_1 = require("./../auth/auth.service");
-const user_service_1 = require("./../user/user.service");
-const autoreply_service_1 = require("./../autoreply/autoreply.service");
-const common_1 = require("@nestjs/common");
-const crypto = require("crypto");
-const axios_1 = require("axios");
 const utils_1 = require("../../common/utils");
+const common_1 = require("@nestjs/common");
+const axios_1 = require("axios");
+const crypto = require("crypto");
+const chat_service_1 = require("../chat/chat.service");
+const auth_service_1 = require("./../auth/auth.service");
+const autoreply_service_1 = require("./../autoreply/autoreply.service");
+const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
+const user_service_1 = require("./../user/user.service");
 let OfficialService = class OfficialService {
     constructor(autoreplyService, userService, authService, globalConfigService, chatgptService) {
         this.autoreplyService = autoreplyService;
@@ -149,15 +149,7 @@ let OfficialService = class OfficialService {
                 reject(new Error('请求超时'));
             }, 4800);
         });
-        let question = '';
-        try {
-            console.log('来自公众号的询问问题 =======> ', msg);
-            question = await this.autoreplyService.checkAutoReply(msg);
-        }
-        catch (error) {
-            console.log('来自公众号的回复问题 =======> 超时导致问题无法回答完整');
-            question = (await this.globalConfigService.getConfigs(['officialAutoReplyText'])) || '由于公众号的回复限制、过长的问题我们可能无法回复、您可以前往我们的官方站点享受更加完善的服务、如果您有更多问题、欢迎像我提问！';
-        }
+        let question = (await this.globalConfigService.getConfigs(['officialAutoReplyText'])) || '由于公众号的回复限制、过长的问题我们可能无法回复、您可以前往我们的官方站点享受更加完善的服务、如果您有更多问题、欢迎像我提问！';
         return question;
     }
 };

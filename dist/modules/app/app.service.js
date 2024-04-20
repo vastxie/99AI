@@ -14,10 +14,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
-const appCats_entity_1 = require("./appCats.entity");
-const typeorm_1 = require("typeorm");
-const typeorm_2 = require("@nestjs/typeorm");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
 const app_entity_1 = require("./app.entity");
+const appCats_entity_1 = require("./appCats.entity");
 const userApps_entity_1 = require("./userApps.entity");
 let AppService = class AppService {
     constructor(appCatsEntity, appEntity, userAppsEntity) {
@@ -50,7 +50,7 @@ let AppService = class AppService {
     }
     async updateAppCats(body) {
         const { id, name } = body;
-        const c = await this.appCatsEntity.findOne({ where: { name, id: (0, typeorm_1.Not)(id) } });
+        const c = await this.appCatsEntity.findOne({ where: { name, id: (0, typeorm_2.Not)(id) } });
         if (c) {
             throw new common_1.HttpException('该分类名称已存在！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -65,18 +65,21 @@ let AppService = class AppService {
             throw new common_1.HttpException('缺失必要参数！', common_1.HttpStatus.BAD_REQUEST);
         }
         const app = await this.appEntity.findOne({ where: { id } });
-        const { demoData: demo, coverImg, des, name } = app;
+        const { demoData: demo, coverImg, des, name, isFixedModel, isGPTs, appModel } = app;
         return {
             demoData: demo ? demo.split('\n') : [],
             coverImg,
             des,
             name,
+            isGPTs,
+            isFixedModel,
+            appModel,
         };
     }
     async appCatsList(query) {
         const { page = 1, size = 10, name, status } = query;
         const where = {};
-        name && (where.name = (0, typeorm_1.Like)(`%${name}%`));
+        name && (where.name = (0, typeorm_2.Like)(`%${name}%`));
         [0, 1, '0', '1'].includes(status) && (where.status = status);
         const [rows, count] = await this.appCatsEntity.findAndCount({
             where,
@@ -85,7 +88,7 @@ let AppService = class AppService {
             take: size,
         });
         const catIds = rows.map((item) => item.id);
-        const apps = await this.appEntity.find({ where: { catId: (0, typeorm_1.In)(catIds) } });
+        const apps = await this.appEntity.find({ where: { catId: (0, typeorm_2.In)(catIds) } });
         const appCountMap = {};
         apps.forEach((item) => {
             if (appCountMap[item.catId]) {
@@ -101,8 +104,8 @@ let AppService = class AppService {
     async appList(req, query, orderKey = 'id') {
         var _a;
         const { page = 1, size = 10, name, status, catId, role } = query;
-        const where = {};
-        name && (where.name = (0, typeorm_1.Like)(`%${name}%`));
+        const where = { isSystemReserved: 0 };
+        name && (where.name = (0, typeorm_2.Like)(`%${name}%`));
         catId && (where.catId = catId);
         role && (where.role = role);
         status && (where.status = status);
@@ -113,7 +116,7 @@ let AppService = class AppService {
             take: size,
         });
         const catIds = rows.map((item) => item.catId);
-        const cats = await this.appCatsEntity.find({ where: { id: (0, typeorm_1.In)(catIds) } });
+        const cats = await this.appCatsEntity.find({ where: { id: (0, typeorm_2.In)(catIds) } });
         rows.forEach((item) => {
             const cat = cats.find((c) => c.id === item.catId);
             item.catName = cat ? cat.name : '';
@@ -125,12 +128,20 @@ let AppService = class AppService {
         }
         return { rows, count };
     }
+    async appSystemList() {
+        const where = { isSystemReserved: 1 };
+        const [rows, count] = await this.appEntity.findAndCount({
+            where,
+            order: { id: 'DESC' },
+        });
+        return { rows, count };
+    }
     async frontAppList(req, query, orderKey = 'id') {
         var _a;
         const { page = 1, size = 1000, name, catId, role } = query;
         const where = [
-            { status: (0, typeorm_1.In)([1, 4]), userId: (0, typeorm_1.IsNull)(), public: false },
-            { userId: (0, typeorm_1.MoreThan)(0), public: true },
+            { status: (0, typeorm_2.In)([1, 4]), userId: (0, typeorm_2.IsNull)(), public: false, isSystemReserved: 0 },
+            { userId: (0, typeorm_2.MoreThan)(0), public: true },
         ];
         const [rows, count] = await this.appEntity.findAndCount({
             where,
@@ -139,7 +150,7 @@ let AppService = class AppService {
             take: size,
         });
         const catIds = rows.map((item) => item.catId);
-        const cats = await this.appCatsEntity.find({ where: { id: (0, typeorm_1.In)(catIds) } });
+        const cats = await this.appCatsEntity.find({ where: { id: (0, typeorm_2.In)(catIds) } });
         rows.forEach((item) => {
             const cat = cats.find((c) => c.id === item.catId);
             item.catName = cat ? cat.name : '';
@@ -198,7 +209,7 @@ let AppService = class AppService {
     }
     async updateApp(body) {
         const { id, name, catId, status } = body;
-        const a = await this.appEntity.findOne({ where: { name, id: (0, typeorm_1.Not)(id) } });
+        const a = await this.appEntity.findOne({ where: { name, id: (0, typeorm_2.Not)(id) } });
         if (a) {
             throw new common_1.HttpException('该应用名称已存在！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -214,6 +225,22 @@ let AppService = class AppService {
         if (res.affected > 0)
             return '修改App信息成功';
         throw new common_1.HttpException('修改App信息失败！', common_1.HttpStatus.BAD_REQUEST);
+    }
+    async updateSystemApp(body) {
+        const { id, name } = body;
+        common_1.Logger.log(`尝试更新应用: ${name} (ID: ${id})`);
+        const existingApp = await this.appEntity.findOne({ where: { name, id: (0, typeorm_2.Not)(id) } });
+        if (existingApp) {
+            common_1.Logger.warn(`应用名称已存在：${name}`);
+            throw new common_1.HttpException('该应用名称已存在！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        const res = await this.appEntity.update({ id }, body);
+        if (res.affected > 0) {
+            common_1.Logger.log(`修改系统应用信息成功: ${name}`);
+            return '修改系统应用信息成功';
+        }
+        common_1.Logger.error(`修改系统应用信息失败：${name}`);
+        throw new common_1.HttpException('修改系统应用信息失败！', common_1.HttpStatus.BAD_REQUEST);
     }
     async delApp(body) {
         const { id } = body;
@@ -277,38 +304,45 @@ let AppService = class AppService {
         const { id, role: appRole, catId } = app;
         const collectInfo = { userId, appId: id, catId, appRole, public: true, status: 1 };
         await this.userAppsEntity.save(collectInfo);
-        return '已将应用加入到我的个人工作台！';
+        return '已将应用加入到我的收藏！';
     }
     async mineApps(req, query = { page: 1, size: 30 }) {
         const { id } = req.user;
         const { page = 1, size = 30 } = query;
-        const [rows, count] = await this.userAppsEntity.findAndCount({
-            where: { userId: id, status: (0, typeorm_1.In)([1, 3, 4, 5]) },
-            order: { id: 'DESC' },
-            skip: (page - 1) * size,
-            take: size,
-        });
-        const appIds = rows.map((item) => item.appId);
-        const appsInfo = await this.appEntity.find({ where: { id: (0, typeorm_1.In)(appIds) } });
-        rows.forEach((item) => {
-            const app = appsInfo.find((c) => c.id === item.appId);
-            item.appName = app ? app.name : '';
-            item.appRole = app ? app.role : '';
-            item.appDes = app ? app.des : '';
-            item.coverImg = app ? app.coverImg : '';
-            item.demoData = app ? app.demoData : '';
-            item.preset = app.userId === id ? app.preset : '******';
-        });
+        let rows, count;
+        try {
+            [rows, count] = await this.userAppsEntity.findAndCount({
+                where: { userId: id, status: (0, typeorm_2.In)([1, 3, 4, 5]) },
+                order: { id: 'DESC' },
+                skip: (page - 1) * size,
+                take: size,
+            });
+            const appIds = rows.map((item) => item.appId);
+            const appsInfo = await this.appEntity.find({ where: { id: (0, typeorm_2.In)(appIds) } });
+            rows.forEach((item) => {
+                const app = appsInfo.find((c) => c.id === item.appId);
+                item.appName = app ? app.name : '未知';
+                item.appRole = app ? app.role : '未知';
+                item.appDes = app ? app.des : '未知';
+                item.coverImg = app ? app.coverImg : '未知';
+                item.demoData = app ? app.demoData : '未知';
+                item.preset = app.userId === id ? app.preset : '******';
+            });
+        }
+        catch (error) {
+            console.error(`处理用户ID: ${id} 的mineApps请求时发生错误`, error);
+            throw error;
+        }
         return { rows, count };
     }
 };
 AppService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_2.InjectRepository)(appCats_entity_1.AppCatsEntity)),
-    __param(1, (0, typeorm_2.InjectRepository)(app_entity_1.AppEntity)),
-    __param(2, (0, typeorm_2.InjectRepository)(userApps_entity_1.UserAppsEntity)),
-    __metadata("design:paramtypes", [typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository])
+    __param(0, (0, typeorm_1.InjectRepository)(appCats_entity_1.AppCatsEntity)),
+    __param(1, (0, typeorm_1.InjectRepository)(app_entity_1.AppEntity)),
+    __param(2, (0, typeorm_1.InjectRepository)(userApps_entity_1.UserAppsEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository])
 ], AppService);
 exports.AppService = AppService;

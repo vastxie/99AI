@@ -13,16 +13,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadController = void 0;
-const upload_service_1 = require("./upload.service");
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const platform_express_1 = require("@nestjs/platform-express");
+const swagger_1 = require("@nestjs/swagger");
+const upload_service_1 = require("./upload.service");
 let UploadController = class UploadController {
     constructor(uploadService) {
         this.uploadService = uploadService;
     }
     async uploadFile(file) {
         return this.uploadService.uploadFile(file);
+    }
+    async uploadFileFromUrl({ filename, url, dir = 'ai' }) {
+        return this.uploadService.uploadFileFromUrl({ filename, url, dir });
     }
 };
 __decorate([
@@ -34,6 +37,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadFile", null);
+__decorate([
+    (0, common_1.Post)('fileFromUrl'),
+    (0, swagger_1.ApiOperation)({ summary: '从URL上传文件' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UploadController.prototype, "uploadFileFromUrl", null);
 UploadController = __decorate([
     (0, swagger_1.ApiTags)('upload'),
     (0, common_1.Controller)('upload'),

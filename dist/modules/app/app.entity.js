@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let AppEntity = class AppEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([
@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", String)
 ], AppEntity.prototype, "preset", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: 'App应用封面图片', nullable: true }),
+    (0, typeorm_1.Column)({ comment: 'App应用封面图片', nullable: true, type: 'text' }),
     __metadata("design:type", String)
 ], AppEntity.prototype, "coverImg", void 0);
 __decorate([
@@ -51,6 +51,22 @@ __decorate([
     __metadata("design:type", String)
 ], AppEntity.prototype, "role", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ comment: 'App应用是否是GPTs', default: '0' }),
+    __metadata("design:type", Number)
+], AppEntity.prototype, "isGPTs", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'App应用是否是固定使用模型', default: '0' }),
+    __metadata("design:type", Number)
+], AppEntity.prototype, "isFixedModel", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'App应用使用的模型', type: 'text' }),
+    __metadata("design:type", String)
+], AppEntity.prototype, "appModel", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'GPTs 的调用ID', default: '' }),
+    __metadata("design:type", String)
+], AppEntity.prototype, "gizmoID", void 0);
+__decorate([
     (0, typeorm_1.Column)({ comment: 'App是否共享到应用广场', default: false }),
     __metadata("design:type", Boolean)
 ], AppEntity.prototype, "public", void 0);
@@ -58,6 +74,10 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '用户Id', nullable: true }),
     __metadata("design:type", Number)
 ], AppEntity.prototype, "userId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '是否系统预留', default: false, nullable: true }),
+    __metadata("design:type", Boolean)
+], AppEntity.prototype, "isSystemReserved", void 0);
 AppEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'app' })
 ], AppEntity);

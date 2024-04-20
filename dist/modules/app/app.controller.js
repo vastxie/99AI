@@ -55,6 +55,9 @@ let AppController = class AppController {
     appList(req, query) {
         return this.appService.appList(req, query);
     }
+    appSystemList() {
+        return this.appService.appSystemList();
+    }
     list(req, query) {
         return this.appService.frontAppList(req, query);
     }
@@ -66,6 +69,9 @@ let AppController = class AppController {
     }
     updateApp(body) {
         return this.appService.updateApp(body);
+    }
+    updateSystemApp(body) {
+        return this.appService.updateSystemApp(body);
     }
     delApp(body) {
         return this.appService.delApp(body);
@@ -153,6 +159,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "appList", null);
 __decorate([
+    (0, common_1.Get)('querySystemApp'),
+    (0, swagger_1.ApiOperation)({ summary: '获取系统App列表' }),
+    (0, common_1.UseGuards)(adminAuth_guard_1.AdminAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "appSystemList", null);
+__decorate([
     (0, common_1.Get)('list'),
     (0, swagger_1.ApiOperation)({ summary: '客户端获取App' }),
     __param(0, (0, common_1.Req)()),
@@ -192,6 +207,16 @@ __decorate([
     __metadata("design:paramtypes", [updateApp_dto_1.UpdateAppDto]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "updateApp", null);
+__decorate([
+    (0, common_1.Post)('updateSystemApp'),
+    (0, swagger_1.ApiOperation)({ summary: '修改系统App' }),
+    (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "updateSystemApp", null);
 __decorate([
     (0, common_1.Post)('delApp'),
     (0, swagger_1.ApiOperation)({ summary: '删除App' }),

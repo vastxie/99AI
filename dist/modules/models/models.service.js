@@ -13,17 +13,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ModelsService = void 0;
+const status_constant_1 = require("../../common/constants/status.constant");
+const utils_1 = require("../../common/utils");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const models_entity_1 = require("./models.entity");
-const status_constant_1 = require("../../common/constants/status.constant");
-const utils_1 = require("../../common/utils");
-const modelType_entity_1 = require("./modelType.entity");
 let ModelsService = class ModelsService {
-    constructor(modelsEntity, modelsTypeEntity) {
+    constructor(modelsEntity) {
         this.modelsEntity = modelsEntity;
-        this.modelsTypeEntity = modelsTypeEntity;
         this.modelTypes = [];
         this.modelMaps = {};
         this.keyList = {};
@@ -97,12 +95,8 @@ let ModelsService = class ModelsService {
     async getBaseConfig(appId) {
         if (!this.modelTypes.length || !Object.keys(this.modelMaps).length)
             return;
-        const modelTypeInfo = this.modelTypes[0];
-        if (!modelTypeInfo)
-            return;
-        const { keyType, modelName, model, deductType, deduct, isFileUpload } = this.modelMaps[modelTypeInfo.val][0];
+        const { keyType, modelName, model, deductType, deduct, isFileUpload } = this.modelMaps[1][0];
         return {
-            modelTypeInfo,
             modelInfo: { keyType, modelName, model, deductType, deduct, isFileUpload }
         };
     }
@@ -238,8 +232,6 @@ let ModelsService = class ModelsService {
 ModelsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(models_entity_1.ModelsEntity)),
-    __param(1, (0, typeorm_1.InjectRepository)(modelType_entity_1.ModelsTypeEntity)),
-    __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], ModelsService);
 exports.ModelsService = ModelsService;

@@ -13,23 +13,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
+const user_constant_1 = require("../../common/constants/user.constant");
+const utils_1 = require("../../common/utils");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
-const verification_constant_1 = require("../../common/constants/verification.constant");
-const verification_service_1 = require("./../verification/verification.service");
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const user_service_1 = require("../user/user.service");
-const mailer_service_1 = require("../mailer/mailer.service");
-const user_constant_1 = require("../../common/constants/user.constant");
-const userBalance_service_1 = require("../userBalance/userBalance.service");
-const config_entity_1 = require("../globalConfig/config.entity");
-const typeorm_1 = require("typeorm");
-const typeorm_2 = require("@nestjs/typeorm");
-const utils_1 = require("../../common/utils");
-const os = require("os");
-const redisCache_service_1 = require("../redisCache/redisCache.service");
-const svgCaptcha = require("svg-captcha");
+const typeorm_1 = require("@nestjs/typeorm");
 const bcrypt = require("bcryptjs");
+const os = require("os");
+const svgCaptcha = require("svg-captcha");
+const typeorm_2 = require("typeorm");
+const config_entity_1 = require("../globalConfig/config.entity");
+const mailer_service_1 = require("../mailer/mailer.service");
+const redisCache_service_1 = require("../redisCache/redisCache.service");
+const user_service_1 = require("../user/user.service");
+const userBalance_service_1 = require("../userBalance/userBalance.service");
+const verification_service_1 = require("./../verification/verification.service");
 let AuthService = class AuthService {
     constructor(configEntity, userService, jwtService, mailerService, verificationService, userBalanceService, redisCacheService, globalConfigService) {
         this.configEntity = configEntity;
@@ -45,56 +44,75 @@ let AuthService = class AuthService {
         this.getIp();
     }
     async register(body, req) {
-        await this.verificationService.verifyCaptcha(body);
-        const user = await this.userService.createUserAndVerifycation(body, req);
-        const { username, email, client, id } = user;
-        const res = { username, email, id };
-        client && (res.client = client);
-        return res;
-    }
-    async registerByPhone(body, req) {
-        const { username, password, phone, phoneCode, invitedBy } = body;
-        await this.userService.verifyUserRegisterByPhone(body);
+        const { username, password, contact, code, invitedBy } = body;
+        let email = '', phone = '';
+        const isEmail = /\S+@\S+\.\S+/.test(contact);
+        const isPhone = /^\d{10,}$/.test(contact);
+        if (isEmail) {
+            email = contact;
+            await this.userService.verifyUserRegister({ username, email });
+        }
+        else if (isPhone) {
+            phone = contact;
+            await this.userService.verifyUserRegister({ username, phone });
+        }
+        else {
+            throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
+        }
         const nameSpace = await this.globalConfigService.getNamespace();
-        const key = `${nameSpace}:PHONECODE:${phone}`;
-        const redisPhoneCode = await this.redisCacheService.get({ key });
-        if (!redisPhoneCode) {
-            throw new common_1.HttpException('验证码已过期、请重新发送！', common_1.HttpStatus.BAD_REQUEST);
+        const key = `${nameSpace}:CODE:${contact}`;
+        const redisCode = await this.redisCacheService.get({ key });
+        if (!redisCode) {
+            common_1.Logger.log(`验证码过期: ${contact}`);
+            throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
         }
-        if (phoneCode !== redisPhoneCode) {
-            throw new common_1.HttpException('验证码填写错误、请重新输入！', common_1.HttpStatus.BAD_REQUEST);
+        if (code !== redisCode) {
+            common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`);
+            throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
         }
-        const email = `${(0, utils_1.createRandomUid)()}@nine.com`;
-        const newUser = { username, password, phone, invitedBy, email, status: user_constant_1.UserStatusEnum.ACTIVE };
+        console.log('开始创建用户...');
+        let newUser;
+        if (isEmail) {
+            newUser = { username, password, email: contact, invitedBy, status: user_constant_1.UserStatusEnum.ACTIVE };
+        }
+        else {
+            const email = `${(0, utils_1.createRandomUid)()}@aiweb.com`;
+            newUser = { username, password, email, phone: contact, invitedBy, status: user_constant_1.UserStatusEnum.ACTIVE };
+        }
+        ;
+        console.log('获取默认用户头像...');
         const userDefautlAvatar = await this.globalConfigService.getConfigs(['userDefautlAvatar']);
+        console.log(`使用默认用户头像: ${userDefautlAvatar}`);
         newUser.avatar = userDefautlAvatar;
+        console.log('加密用户密码...');
         const hashedPassword = bcrypt.hashSync(password, 10);
         newUser.password = hashedPassword;
+        console.log('保存新用户到数据库...');
         const u = await this.userService.createUser(newUser);
+        console.log(`用户创建成功，用户ID: ${u.id}`);
         let inviteUser;
         if (invitedBy) {
             inviteUser = await this.userService.qureyUserInfoByInviteCode(invitedBy);
         }
         await this.userBalanceService.addBalanceToNewUser(u.id, inviteUser === null || inviteUser === void 0 ? void 0 : inviteUser.id);
-        return;
+        return { success: true, message: '注册成功' };
     }
     async login(user, req) {
+        console.log(`开始用户登录流程，用户名: ${user.username}`);
         const u = await this.userService.verifyUserCredentials(user);
-        const { username, id, email, role, openId, client } = u;
+        if (!u) {
+            console.error(`登录失败: 用户凭证无效 - 用户名: ${user.username}`);
+            throw new common_1.HttpException('登录失败，用户凭证无效。', common_1.HttpStatus.UNAUTHORIZED);
+        }
+        const { username, id, email, role, openId, client, phone } = u;
+        console.log(`用户凭证验证成功，用户ID: ${id}, 用户名: ${username}`);
         const ip = (0, utils_1.getClientIp)(req);
         await this.userService.savaLoginIp(id, ip);
-        const token = await this.jwtService.sign({ username, id, email, role, openId, client });
-        await this.redisCacheService.saveToken(id, token);
-        return token;
-    }
-    async loginByPhone(body, req) {
-        const u = await this.userService.verifyUserCredentials(body);
-        const { username, id, email, role, openId, client } = u;
-        const ip = (0, utils_1.getClientIp)(req);
-        await this.userService.savaLoginIp(id, ip);
-        const { phone } = body;
+        console.log(`保存登录IP: ${ip} - 用户ID: ${id}`);
         const token = await this.jwtService.sign({ username, id, email, role, openId, client, phone });
+        console.log(`JWT令牌生成成功 - 用户ID: ${id}`);
         await this.redisCacheService.saveToken(id, token);
+        console.log(`令牌已保存到Redis - 用户ID: ${id}`);
         return token;
     }
     async loginByOpenId(user, req) {
@@ -112,48 +130,6 @@ let AuthService = class AuthService {
     async getInfo(req) {
         const { id } = req.user;
         return await this.userService.getUserInfo(id);
-    }
-    async activateAccount(params, res) {
-        const emailConfigs = await this.configEntity.find({
-            where: {
-                configKey: (0, typeorm_1.In)([
-                    'registerSuccessEmailTitle',
-                    'registerSuccessEmailTeamName',
-                    'registerSuccessEmaileAppend',
-                    'registerFailEmailTitle',
-                    'registerFailEmailTeamName',
-                ]),
-            },
-        });
-        const configMap = emailConfigs.reduce((pre, cur) => {
-            pre[cur.configKey] = cur.configVal;
-            return pre;
-        }, {});
-        try {
-            const v = await this.verificationService.verifyCode(params, verification_constant_1.VerificationEnum.Registration);
-            const { type, userId } = v;
-            if (type !== verification_constant_1.VerificationEnum.Registration) {
-                throw new common_1.HttpException('验证码类型错误', common_1.HttpStatus.BAD_REQUEST);
-            }
-            const status = await this.userService.getUserStatus(userId);
-            if (status === user_constant_1.UserStatusEnum.ACTIVE) {
-                throw new common_1.HttpException('账户已被激活过', common_1.HttpStatus.BAD_REQUEST);
-            }
-            await this.userService.updateUserStatus(v.userId, user_constant_1.UserStatusEnum.ACTIVE);
-            const u = await this.userService.queryUserInfoById(v.userId);
-            const { username, email, id, invitedBy } = u;
-            let inviteUser;
-            if (invitedBy) {
-                inviteUser = await this.userService.qureyUserInfoByInviteCode(invitedBy);
-            }
-            await this.userBalanceService.addBalanceToNewUser(id, inviteUser === null || inviteUser === void 0 ? void 0 : inviteUser.id);
-            res.redirect(`/api/auth/registerSuccess?id=${id.toString().padStart(4, '0')}&username=${username}&email=${email}&registerSuccessEmailTitle=${configMap.registerSuccessEmailTitle}&registerSuccessEmailTeamName=${configMap.registerSuccessEmailTeamName}&registerSuccessEmaileAppend=${configMap.registerSuccessEmaileAppend}`);
-        }
-        catch (error) {
-            console.log('error: ', error);
-            const message = error.response;
-            res.redirect(`/api/auth/registerError?message=${message}&registerFailEmailTitle=${configMap.registerFailEmailTitle}&registerFailEmailTeamName=${configMap.registerFailEmailTeamName}`);
-        }
     }
     async updatePassword(req, body) {
         const { id, client, role } = req.user;
@@ -196,7 +172,7 @@ let AuthService = class AuthService {
     async captcha(parmas) {
         const nameSpace = await this.globalConfigService.getNamespace();
         const { color = '#fff' } = parmas;
-        const captcha = svgCaptcha.createMathExpr({ background: color, height: 34, width: 120, noise: 3 });
+        const captcha = svgCaptcha.createMathExpr({ background: color, height: 30, width: 120, noise: 5 });
         const text = captcha.text;
         const randomId = (0, utils_1.createRandomUid)();
         const key = `${nameSpace}:CAPTCHA:${randomId}`;
@@ -206,20 +182,64 @@ let AuthService = class AuthService {
             code: randomId,
         };
     }
-    async sendPhoneCode(body) {
+    async sendCode(body) {
         await this.verificationService.verifyCaptcha(body);
-        const { phone } = body;
-        const nameSpace = await this.globalConfigService.getNamespace();
-        const key = `${nameSpace}:PHONECODE:${phone}`;
-        const ttl = await this.redisCacheService.ttl(key);
-        if (ttl && ttl > 0) {
-            throw new common_1.HttpException(`${ttl}秒内不得重复发送短信！`, common_1.HttpStatus.BAD_REQUEST);
-        }
+        const { contact, username } = body;
+        let email = '', phone = '';
         const code = (0, utils_1.createRandomCode)();
-        const messageInfo = { phone, code };
-        await this.verificationService.sendPhoneCode(messageInfo);
-        await this.redisCacheService.set({ key, val: code }, 1 * 60);
-        return '验证码发送成功、请填写验证码完成注册！';
+        const isEmail = /\S+@\S+\.\S+/.test(contact);
+        const isPhone = /^\d{10,}$/.test(contact);
+        if (isEmail) {
+            email = contact;
+            await this.userService.verifyUserRegister({ username, email });
+        }
+        else if (isPhone) {
+            phone = contact;
+            await this.userService.verifyUserRegister({ username, phone });
+        }
+        else {
+            throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
+        }
+        const nameSpace = await this.globalConfigService.getNamespace();
+        const key = `${nameSpace}:CODE:${contact}`;
+        const ttl = await this.redisCacheService.ttl(key);
+        if (ttl && ttl > 0 && isPhone) {
+            throw new common_1.HttpException(`${ttl}秒内不得重复发送验证码！`, common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (isEmail) {
+            const existingCode = await this.redisCacheService.get({ key });
+            if (existingCode) {
+                await this.mailerService.sendMail({
+                    to: email,
+                    context: {
+                        code: existingCode,
+                    },
+                });
+                return `验证码发送成功、请填写验证码完成注册！`;
+            }
+            else {
+                try {
+                    await this.mailerService.sendMail({
+                        to: email,
+                        context: {
+                            code: code,
+                        },
+                    });
+                    console.log('邮件发送成功');
+                }
+                catch (error) {
+                    console.error('邮件发送失败', error);
+                }
+                await this.redisCacheService.set({ key, val: code }, 10 * 60);
+                return `验证码发送成功、请填写验证码完成注册！`;
+            }
+        }
+        else if (isPhone) {
+            const messageInfo = { phone, code };
+            await this.verificationService.sendPhoneCode(messageInfo);
+            await this.redisCacheService.set({ key, val: code }, 10 * 60);
+            return `验证码发送成功、请填写验证码完成注册！`;
+        }
     }
     createTokenFromFingerprint(fingerprint) {
         const token = this.jwtService.sign({
@@ -235,8 +255,8 @@ let AuthService = class AuthService {
 };
 AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_2.InjectRepository)(config_entity_1.ConfigEntity)),
-    __metadata("design:paramtypes", [typeorm_1.Repository,
+    __param(0, (0, typeorm_1.InjectRepository)(config_entity_1.ConfigEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
         user_service_1.UserService,
         jwt_1.JwtService,
         mailer_service_1.MailerService,

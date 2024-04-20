@@ -13,19 +13,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
-const user_service_1 = require("./user.service");
+const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
+const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
+const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const updateUser_dto_1 = require("./dto/updateUser.dto");
-const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
-const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
-const userRecharge_dto_1 = require("./dto/userRecharge.dto");
 const queryAllUser_dto_1 = require("./dto/queryAllUser.dto");
-const queryOne_dto_1 = require("./dto/queryOne.dto");
-const updateUserStatus_dto_1 = require("./dto/updateUserStatus.dto");
-const resetUserPass_dto_1 = require("./dto/resetUserPass.dto");
-const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const queryInviteRecord_dto_1 = require("./dto/queryInviteRecord.dto");
+const queryOne_dto_1 = require("./dto/queryOne.dto");
+const resetUserPass_dto_1 = require("./dto/resetUserPass.dto");
+const updateUser_dto_1 = require("./dto/updateUser.dto");
+const updateUserStatus_dto_1 = require("./dto/updateUserStatus.dto");
+const userRecharge_dto_1 = require("./dto/userRecharge.dto");
+const user_service_1 = require("./user.service");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;

@@ -12,32 +12,33 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover" />
   <title>AI Web</title>
-  <script type="module" crossorigin src="/assets/index-d574bfe0.js"></script>
-  <link rel="stylesheet" href="/assets/index-266f7dcf.css">
+  <script type="module" crossorigin src="/assets/index-2efe4620.js"></script>
+  <link rel="stylesheet" href="/assets/index-50ff748c.css">
 </head>
 
-<body class="dark:bg-black">
+<body>
   <div id="app">
-    <style>
+    <!-- <style>
       * {
         box-sizing: border-box;
       }
 
 
-      .main-container {
+      /* .main-container {
         width: 100vw;
         height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-      }
+      } */
 
 
 
-      body {
-        background: #fff;
-      }
+      /* body {
+        background: red;
+      } */
 
+      /*
       .loading {
         position: fixed;
         top: 0;
@@ -46,9 +47,9 @@
         height: 100%;
         background: transparent;
         z-index: 9999;
-      }
+      } */
 
-      .loading-text {
+      /* .loading-text {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -61,47 +62,64 @@
         line-height: 100px;
         color: #fff;
 
-      }
+      } */
 
-      .loading-text span {
+      /* .loading-text span {
         display: inline-block;
         margin: 0 5px;
         font-family: "Quattrocento Sans", sans-serif;
-      }
+      } */
 
-      .loading-text span:nth-child(1) {
+      /* .loading-text span:nth-child(1) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 0s infinite linear alternate;
         animation: blur-text 1.5s 0s infinite linear alternate;
-      }
+      } */
 
-      .loading-text span:nth-child(2) {
+      /* .loading-text span:nth-child(2) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 0.2s infinite linear alternate;
         animation: blur-text 1.5s 0.2s infinite linear alternate;
-      }
+      } */
 
-      .loading-text span:nth-child(3) {
+      /* .loading-text span:nth-child(3) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 0.4s infinite linear alternate;
         animation: blur-text 1.5s 0.4s infinite linear alternate;
-      }
+      } */
 
-      .loading-text span:nth-child(4) {
+      /* .loading-text span:nth-child(4) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 0.6s infinite linear alternate;
         animation: blur-text 1.5s 0.6s infinite linear alternate;
-      }
+      } */
 
-      .loading-text span:nth-child(5) {
+      /* .loading-text span:nth-child(5) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 0.8s infinite linear alternate;
         animation: blur-text 1.5s 0.8s infinite linear alternate;
       }
 
       .loading-text span:nth-child(6) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 1s infinite linear alternate;
         animation: blur-text 1.5s 1s infinite linear alternate;
       }
 
       .loading-text span:nth-child(7) {
         filter: blur(0px);
+        -webkit-animation: blur-text 1.5s 1.2s infinite linear alternate;
         animation: blur-text 1.5s 1.2s infinite linear alternate;
+      } */
+
+      /* @-webkit-keyframes blur-text {
+        0% {
+          filter: blur(0px);
+        }
+
+        100% {
+          filter: blur(4px);
+        }
       }
 
       @keyframes blur-text {
@@ -118,8 +136,8 @@
         body {
           background: #121212;
         }
-      }
-    </style>
+      } */
+    </style> -->
     <!-- <div class="main-container ">
       <div class="loading">
         <div class="loading-text" id="loading-text">
@@ -136,49 +154,65 @@
 
     
     <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
-    <script>
+    <!-- <script>
+      const now = new Date()
+      const hour = now.getHours()
+      const theme = localStorage.getItem('theme') // Ensure to use getItem for accessing localStorage
+
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode') // Example class, ensure your actual implementation here
+      } else if (theme === 'light') {
+        document.body.classList.remove('dark-mode') // Toggle dark mode class accordingly
+      } else if (!theme && hour >= 6 && hour < 18) {
+        document.body.classList.remove('dark-mode') // Default to light mode in daytime if no preference set
+      } else {
+        document.body.classList.add('dark-mode') // Default to dark mode in nighttime if no preference set
+      }
+    </script> -->
+    <!-- <script>
       const now = new Date()
       const hour = now.getHours()
       const words = document.querySelectorAll('.loading-text-words')
       const theme = localStorage.theme
 
-      if (theme) {
-        if (theme === 'dark') {
-          document.body.style.backgroundColor = '#111827'
-          for (let i = 0; i < words.length; i++) {
-            const word = words[i]
-            word.style.color = '#9ca3af'
-          }
-        }
 
-        if (theme === 'light') {
-          document.body.style.backgroundColor = '#fff'
-          for (let i = 0; i < words.length; i++) {
-            const word = words[i]
-            word.style.color = '#111827'
-          }
-        }
-      }
-      else {
-        if (!theme && hour >= 6 && hour <= 20) {
-          document.body.style.backgroundColor = '#fff'
-          for (let i = 0; i < words.length; i++) {
-            const word = words[i]
-            word.style.color = '#111827'
-          }
-        }
-        else {
-          document.body.style.backgroundColor = '#111827'
-          for (let i = 0; i < words.length; i++) {
-            const word = words[i]
-            word.style.color = '#111827'
-          }
-        }
-      }
-    </script>
+      // if (theme) {
+      //   if (theme === 'dark') {
+      //     document.body.style.backgroundColor = '#111827'
+      //     for (let i = 0; i < words.length; i++) {
+      //       const word = words[i]
+      //       word.style.color = '#9ca3af'
+      //     }
+      //   }
+
+      //   if (theme === 'light') {
+      //     document.body.style.backgroundColor = '#fff'
+      //     for (let i = 0; i < words.length; i++) {
+      //       const word = words[i]
+      //       word.style.color = '#111827'
+      //     }
+      //   }
+      // }
+      // else {
+      //   if (!theme && hour >= 6 && hour <= 20) {
+      //     document.body.style.backgroundColor = '#fff'
+      //     for (let i = 0; i < words.length; i++) {
+      //       const word = words[i]
+      //       word.style.color = '#111827'
+      //     }
+      //   }
+      //   else {
+      //     document.body.style.backgroundColor = '#111827'
+      //     for (let i = 0; i < words.length; i++) {
+      //       const word = words[i]
+      //       word.style.color = '#111827'
+      //     }
+      //   }
+      // }
+    </script> -->
 </body>
 
 </html>
 
-<script>document.querySelector('html').classList.toggle('loading')
-</script>
+<!-- <script>document.querySelector('html').classList.toggle('loading')
+</script> -->

@@ -10,14 +10,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadService = void 0;
+const utils_1 = require("../../common/utils");
 const common_1 = require("@nestjs/common");
-const TENCENTCOS = require("cos-nodejs-sdk-v5");
 const ALIOSS = require("ali-oss");
 const axios_1 = require("axios");
-const streamToBuffer = require("stream-to-buffer");
-const utils_1 = require("../../common/utils");
-const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const TENCENTCOS = require("cos-nodejs-sdk-v5");
 const FormData = require("form-data");
+const fs = require("fs");
+const path_1 = require("path");
+const streamToBuffer = require("stream-to-buffer");
+const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 let UploadService = class UploadService {
     constructor(globalConfigService) {
         this.globalConfigService = globalConfigService;
@@ -65,7 +67,7 @@ let UploadService = class UploadService {
             return 'chevereto';
         }
     }
-    async uploadFileFromUrl({ filename, url, dir = 'mj' }) {
+    async uploadFileFromUrl({ filename, url, dir = 'ai' }) {
         dir = process.env.ISDEV ? 'mjdev' : dir;
         const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs(['tencentCosStatus', 'aliOssStatus', 'cheveretoStatus']);
         if (!Number(tencentCosStatus) && !Number(aliOssStatus) && !Number(cheveretoStatus)) {
@@ -118,7 +120,6 @@ let UploadService = class UploadService {
         const { Bucket, Region, SecretId, SecretKey } = await this.getUploadConfig('tencent');
         this.tencentCos = new TENCENTCOS({ SecretId, SecretKey, FileParallelLimit: 10 });
         try {
-            const proxyMj = (await this.globalConfigService.getConfigs(['mjProxy'])) || 0;
             const buffer = await this.getBufferFromUrl(url);
             return await this.uploadFileByTencentCos({ filename, buffer, dir, fileTyle: '' });
         }
@@ -147,23 +148,40 @@ let UploadService = class UploadService {
             throw new common_1.HttpException('上传图片失败[ali]', common_1.HttpStatus.BAD_REQUEST);
         }
     }
+    async uploadFileToLocalFromUrl({ filename, url, dir }) {
+        try {
+            const buffer = await this.getBufferFromUrl(url);
+            return await this.uploadFileToLocal({ filename, buffer, dir });
+        }
+        catch (error) {
+            console.log('TODO->error:  ', error);
+            throw new common_1.HttpException('上传图片失败[ten][url]', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async uploadFileToLocal({ filename, buffer, dir = 'ai' }) {
+        if (!filename || !buffer) {
+            throw new Error("必须提供文件名和文件内容");
+        }
+        const appRoot = require('app-root-path');
+        const uploadDir = path_1.default.join(appRoot.path, 'service', 'public', 'file');
+        const filePath = path_1.default.join(uploadDir, filename);
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+            common_1.Logger.log(`创建目录: ${uploadDir}`);
+        }
+        fs.writeFileSync(filePath, buffer);
+        common_1.Logger.log(`文件已保存: ${filePath}`);
+        const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:9520';
+        const fileUrl = `${baseUrl}/file/${filename}`;
+        common_1.Logger.log(`文件可访问于: ${fileUrl}`);
+        return fileUrl;
+    }
     async uploadFileByAliOssFromUrl({ filename, url, dir }) {
         const { region, bucket, accessKeyId, accessKeySecret } = await this.getUploadConfig('ali');
         const client = new ALIOSS({ region, accessKeyId, accessKeySecret, bucket });
         try {
-            const proxyMj = (await this.globalConfigService.getConfigs(['mjProxy'])) || 0;
-            if (Number(proxyMj) === 1) {
-                const data = { url, cosParams: { region, bucket, accessKeyId, accessKeySecret }, cosType: 'aliyun' };
-                const mjProxyUrl = (await this.globalConfigService.getConfigs(['mjProxyUrl'])) || 'http://172.247.48.137:8000';
-                const res = await axios_1.default.post(`${mjProxyUrl}/mj/replaceUpload`, data);
-                if (!(res === null || res === void 0 ? void 0 : res.data))
-                    throw new common_1.HttpException('上传图片失败[ALI][url]', common_1.HttpStatus.BAD_REQUEST);
-                return res.data;
-            }
-            else {
-                const buffer = await this.getBufferFromUrl(url);
-                return await this.uploadFileByAliOss({ filename, buffer, dir });
-            }
+            const buffer = await this.getBufferFromUrl(url);
+            return await this.uploadFileByAliOss({ filename, buffer, dir });
         }
         catch (error) {
             throw new common_1.HttpException('上传图片失败[ALI][url]', common_1.HttpStatus.BAD_REQUEST);
@@ -174,8 +192,10 @@ let UploadService = class UploadService {
         const { key, uploadPath } = await this.getUploadConfig('chevereto');
         let url = uploadPath.endsWith('/') ? uploadPath.slice(0, -1) : uploadPath;
         const formData = new FormData();
-        formData.append('source', buffer);
+        const fromBuffer = buffer.toString('base64');
+        formData.append('source', fromBuffer);
         formData.append('key', key);
+        formData.append('title', filename);
         try {
             const res = await axios_1.default.post(url, formData, {
                 headers: { 'X-API-Key': key },
@@ -195,21 +215,8 @@ let UploadService = class UploadService {
     }
     async uploadFileByCheveretoFromUrl({ filename, url, dir }) {
         try {
-            const proxyMj = (await this.globalConfigService.getConfigs(['mjProxy'])) || 0;
-            if (Number(proxyMj) === 1) {
-                const { key, uploadPath } = await this.getUploadConfig('chevereto');
-                let formatUploadPath = uploadPath.endsWith('/') ? uploadPath.slice(0, -1) : uploadPath;
-                const data = { cosType: 'chevereto', url, cosParams: { key, uploadPath: formatUploadPath } };
-                const mjProxyUrl = (await this.globalConfigService.getConfigs(['mjProxyUrl'])) || 'http://172.247.48.137:8000';
-                const res = await axios_1.default.post(`${mjProxyUrl}/mj/replaceUpload`, data);
-                if (!res.data)
-                    throw new common_1.HttpException('上传图片失败[Chevereto][url]', common_1.HttpStatus.BAD_REQUEST);
-                return res.data;
-            }
-            else {
-                const buffer = await this.getBufferFromUrl(url);
-                return await this.uploadFileByChevereto({ filename, buffer, dir });
-            }
+            const buffer = await this.getBufferFromUrl(url);
+            return await this.uploadFileByChevereto({ filename, buffer, dir });
         }
         catch (error) {
             console.log('error: ', error);
@@ -234,7 +241,6 @@ let UploadService = class UploadService {
         }
     }
     async getBufferFromUrl(url) {
-        const proxyMj = (await this.globalConfigService.getConfigs(['mjProxy'])) || 0;
         const response = await axios_1.default.get(url, { responseType: 'stream' });
         return new Promise((resolve, reject) => {
             streamToBuffer(response.data, (err, buffer) => {

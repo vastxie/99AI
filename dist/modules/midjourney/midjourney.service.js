@@ -13,22 +13,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MidjourneyService = void 0;
-const user_entity_1 = require("./../user/user.entity");
+const midjourney_constant_1 = require("../../common/constants/midjourney.constant");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const midjourney_entity_1 = require("./midjourney.entity");
-const typeorm_2 = require("typeorm");
 const axios_1 = require("axios");
+const typeorm_2 = require("typeorm");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 const models_service_1 = require("../models/models.service");
-const midjourney_constant_1 = require("../../common/constants/midjourney.constant");
 const upload_service_1 = require("../upload/upload.service");
-const userBalance_service_1 = require("../userBalance/userBalance.service");
+const user_entity_1 = require("./../user/user.entity");
+const midjourney_entity_1 = require("./midjourney.entity");
 const utils_1 = require("../../common/utils");
-const redisCache_service_1 = require("../redisCache/redisCache.service");
-const prompt_entity_1 = require("./prompt.entity");
+const userBalance_service_1 = require("../userBalance/userBalance.service");
 const image_size_1 = require("image-size");
 const uuid = require("uuid");
+const redisCache_service_1 = require("../redisCache/redisCache.service");
+const prompt_entity_1 = require("./prompt.entity");
 let MidjourneyService = class MidjourneyService {
     constructor(midjourneyEntity, userEntity, mjPromptsEntity, globalConfigService, uploadService, userBalanceService, redisCacheService, modelsService) {
         this.midjourneyEntity = midjourneyEntity;
@@ -118,38 +118,42 @@ let MidjourneyService = class MidjourneyService {
             let cosUrl = '';
             let isSaveImg = true;
             common_1.Logger.log(`绘制成功, 获取到的URL: ${imageUrl}`, 'MidjourneyService');
-            if (mjNotSaveImg == 1 && mjNotUseProxy == 0) {
+            let processedUrl = imageUrl;
+            const shouldReplaceUrl = mjNotUseProxy === '0' && mjProxyImgUrl;
+            let logMessage = '';
+            if (shouldReplaceUrl) {
                 const newUrlBase = new URL(mjProxyImgUrl);
                 const parsedUrl = new URL(imageUrl);
                 parsedUrl.protocol = newUrlBase.protocol;
                 parsedUrl.hostname = newUrlBase.hostname;
-                cosUrl = parsedUrl.toString();
-                common_1.Logger.log(`替换后的 URL: ${cosUrl}`, 'MidjourneyService');
+                parsedUrl.port = newUrlBase.port ? newUrlBase.port : '';
+                processedUrl = parsedUrl.toString();
+                logMessage = `使用代理替换后的 URL: ${processedUrl}`;
+                common_1.Logger.log(logMessage, 'MidjourneyService');
             }
-            else if (mjNotSaveImg == 1 && mjNotUseProxy == 1) {
-                cosUrl = imageUrl;
-                isSaveImg = false;
-                common_1.Logger.log('使用原始图片链接', 'MidjourneyService');
-            }
-            else {
+            if (mjNotSaveImg !== '1') {
                 try {
+                    common_1.Logger.debug(`------> 开始上传图片！！！`);
                     const filename = `${Date.now()}-${uuid.v4().slice(0, 4)}.png`;
-                    common_1.Logger.debug(`------> 开始上传图片！！！`, 'MidjourneyService');
-                    cosUrl = await this.uploadService.uploadFileFromUrl({ filename, url: imageUrl });
-                    common_1.Logger.log(`上传成功 URL: ${cosUrl}`, 'MidjourneyService');
+                    processedUrl = await this.uploadService.uploadFileFromUrl({ filename, url: processedUrl });
+                    logMessage = `上传成功 URL: ${processedUrl}`;
                 }
                 catch (uploadError) {
-                    common_1.Logger.error('存储图片失败，使用原始图片链接', 'MidjourneyService');
-                    isSaveImg = false;
-                    cosUrl = imageUrl;
+                    common_1.Logger.error('存储图片失败，使用原始/代理图片链接');
+                    logMessage = `存储图片失败，使用原始/代理图片链接 ${processedUrl}`;
                 }
+                common_1.Logger.log(logMessage, 'MidjourneyService');
             }
-            const { width, height } = await this.getImageSizeFromUrl(imageUrl);
+            else {
+                logMessage = `不保存图片，使用 URL: ${processedUrl}`;
+                common_1.Logger.log(logMessage, 'MidjourneyService');
+            }
+            const { width, height } = await this.getImageSizeFromUrl(processedUrl);
             const drawInfo = {
                 status: midjourney_constant_1.MidjourneyStatusEnum.DRAWED,
                 drawId: id,
                 action: action,
-                drawUrl: cosUrl,
+                drawUrl: processedUrl,
                 drawRatio: `${width}x${height}`,
                 progress: 100,
                 extend: JSON.stringify(drawRes),
@@ -213,13 +217,15 @@ let MidjourneyService = class MidjourneyService {
     }
     async pollComparisonResultDraw(id, modelInfo, drawInfo) {
         const { key, proxyUrl, timeout } = modelInfo;
-        const { openaiTimeout, } = await this.globalConfigService.getConfigs([
+        const { openaiTimeout, openaiBaseUrl, openaiBaseKey, } = await this.globalConfigService.getConfigs([
             'openaiTimeout',
+            'openaiBaseUrl',
+            'openaiBaseKey',
         ]);
         const effectiveTimeout = Math.max(timeout || openaiTimeout || 300, 300);
         const TIMEOUT = effectiveTimeout * 1000;
-        const mjProxyUrl = proxyUrl;
-        const mjKey = key;
+        const mjProxyUrl = proxyUrl || openaiBaseUrl;
+        const mjKey = key || openaiBaseKey;
         const startTime = Date.now();
         const POLL_INTERVAL = 5000;
         let pollingCount = 0;

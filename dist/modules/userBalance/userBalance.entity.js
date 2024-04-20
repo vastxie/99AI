@@ -71,7 +71,7 @@ __decorate([
     __metadata("design:type", String)
 ], UserBalanceEntity.prototype, "extent", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '会员到期时间 0：不是 1：是', nullable: true }),
+    (0, typeorm_1.Column)({ comment: '会员到期时间', nullable: true }),
     __metadata("design:type", Date)
 ], UserBalanceEntity.prototype, "expirationTime", void 0);
 UserBalanceEntity = __decorate([

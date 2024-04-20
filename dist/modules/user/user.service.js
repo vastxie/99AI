@@ -13,22 +13,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
-const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
-const user_constant_1 = require("./../../common/constants/user.constant");
-const mailer_1 = require("@nestjs-modules/mailer");
-const verification_service_1 = require("./../verification/verification.service");
+const balance_constant_1 = require("../../common/constants/balance.constant");
+const verification_constant_1 = require("../../common/constants/verification.constant");
+const utils_1 = require("../../common/utils");
+const mailer_service_1 = require("../mailer/mailer.service");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
-const user_entity_1 = require("./user.entity");
 const bcrypt = require("bcryptjs");
 const _ = require("lodash");
-const verification_constant_1 = require("../../common/constants/verification.constant");
-const userBalance_service_1 = require("../userBalance/userBalance.service");
-const utils_1 = require("../../common/utils");
-const balance_constant_1 = require("../../common/constants/balance.constant");
-const config_entity_1 = require("../globalConfig/config.entity");
+const typeorm_2 = require("typeorm");
 const whiteList_entity_1 = require("../chat/whiteList.entity");
+const config_entity_1 = require("../globalConfig/config.entity");
+const userBalance_service_1 = require("../userBalance/userBalance.service");
+const user_constant_1 = require("./../../common/constants/user.constant");
+const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
+const verification_service_1 = require("./../verification/verification.service");
+const user_entity_1 = require("./user.entity");
 let UserService = class UserService {
     constructor(userEntity, whiteListEntity, connection, verificationService, mailerService, userBalanceService, globalConfigService, configEntity) {
         this.userEntity = userEntity;
@@ -92,13 +92,7 @@ let UserService = class UserService {
                 const { code, email, id } = v;
                 const { registerVerifyEmailFrom } = configMap;
                 console.log('configMap: ', configMap);
-                const res = await this.mailerService.sendMail({
-                    to: email,
-                    subject: `来自${registerVerifyEmailFrom}的账号激活`,
-                    template: 'register',
-                    context: Object.assign({ baseUrl: configMap['registerBaseUrl'], code, id }, configMap),
-                });
-                console.log('email response  -> : ', res);
+                console.log(`尝试发送邮件到: ${email}`);
             }
             else {
                 const { username, email, id, invitedBy } = n;
@@ -133,17 +127,7 @@ let UserService = class UserService {
             }
         }
         if (username && password) {
-            const where = [{ username }, { email: username }];
-            u = await this.userEntity.findOne({ where: where });
-            if (!u) {
-                throw new common_1.HttpException('当前账户不存在！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            if (!bcrypt.compareSync(password, u.password)) {
-                throw new common_1.HttpException('当前密码错误！', common_1.HttpStatus.BAD_REQUEST);
-            }
-        }
-        if (phone && password) {
-            const where = [{ phone }];
+            const where = [{ username }, { email: username }, { phone: username }];
             u = await this.userEntity.findOne({ where: where });
             if (!u) {
                 throw new common_1.HttpException('当前账户不存在！', common_1.HttpStatus.BAD_REQUEST);
@@ -269,7 +253,7 @@ let UserService = class UserService {
             const [rows, count] = await this.userEntity.findAndCount({
                 where: { invitedBy },
                 order: { id: 'DESC' },
-                select: ['username', 'email', 'createdAt', 'status', 'avatar'],
+                select: ['username', 'email', 'createdAt', 'status', 'avatar', 'updatedAt'],
                 take: size,
                 skip: (page - 1) * size,
             });
@@ -423,6 +407,25 @@ let UserService = class UserService {
         const user = await this.userEntity.findOne({ where: { id: userId } });
         return user === null || user === void 0 ? void 0 : user.openId;
     }
+    async verifyUserRegister(params) {
+        const { username, phone, email } = params;
+        if (phone) {
+            const userByPhone = await this.userEntity.findOne({ where: { phone } });
+            if (userByPhone) {
+                throw new common_1.HttpException('当前手机号已注册、请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+            }
+        }
+        if (email) {
+            const userByEmail = await this.userEntity.findOne({ where: { email } });
+            if (userByEmail) {
+                throw new common_1.HttpException('当前邮箱已注册、请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+            }
+        }
+        const userByUsername = await this.userEntity.findOne({ where: { username } });
+        if (userByUsername) {
+            throw new common_1.HttpException('用户名已存在、请更换用户名！', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
     async verifyUserRegisterByPhone(params) {
         const { username, password, phone, phoneCode } = params;
         const user = await this.userEntity.findOne({ where: [{ username }, { phone }] });
@@ -432,6 +435,20 @@ let UserService = class UserService {
         if (user && user.phone === phone) {
             throw new common_1.HttpException('当前手机号已注册、请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
         }
+    }
+    async verifyUserRegisterByEmail(params) {
+        const { username, email } = params;
+        console.log(`校验邮箱注册: 开始 - 用户名: ${username}, 邮箱: ${email}`);
+        const user = await this.userEntity.findOne({ where: [{ username }, { email }] });
+        if (user && user.username === username) {
+            console.error(`校验失败: 用户名 "${username}" 已存在`);
+            throw new common_1.HttpException('用户名已存在、请更换用户名！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (user && user.email === email) {
+            console.error(`校验失败: 邮箱 "${email}" 已被注册`);
+            throw new common_1.HttpException('当前邮箱已注册、请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        console.log(`校验邮箱注册: 成功 - 用户名: ${username}, 邮箱: ${email} 未被占用`);
     }
     async createUser(userInfo) {
         return await this.userEntity.save(userInfo);
@@ -446,7 +463,7 @@ UserService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Connection,
         verification_service_1.VerificationService,
-        mailer_1.MailerService,
+        mailer_service_1.MailerService,
         userBalance_service_1.UserBalanceService,
         globalConfig_service_1.GlobalConfigService,
         typeorm_2.Repository])

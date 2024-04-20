@@ -13,17 +13,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PayService = void 0;
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
-const common_1 = require("@nestjs/common");
-const crypto = require("crypto");
-const axios_1 = require("axios");
-const order_entity_1 = require("../order/order.entity");
-const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
-const userBalance_service_1 = require("../userBalance/userBalance.service");
-const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 const utils_1 = require("../../common/utils");
+const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const axios_1 = require("axios");
+const crypto = require("crypto");
+const typeorm_2 = require("typeorm");
+const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
+const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const order_entity_1 = require("../order/order.entity");
 const user_service_1 = require("../user/user.service");
+const userBalance_service_1 = require("../userBalance/userBalance.service");
 let PayService = class PayService {
     constructor(cramiPackageEntity, orderEntity, userBalanceService, globalConfigService, userService) {
         this.cramiPackageEntity = cramiPackageEntity;
@@ -331,7 +331,7 @@ let PayService = class PayService {
         }
     }
     async payWeChat(userId, orderId, payType = 'native') {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f, _g;
         console.log('payType: ', payType);
         const order = await this.orderEntity.findOne({ where: { userId, orderId } });
         if (!order)
@@ -361,46 +361,60 @@ let PayService = class PayService {
             out_trade_no: orderId,
             notify_url: payWeChatNotifyUrl,
             amount: {
-                total: Number(order.total * 100),
-            },
-            scene_info: {
-                payer_client_ip: '192.168.1.100',
+                total: Math.round(order.total * 100),
             },
         };
         console.log('wechat-pay: ', params);
-        if (payType == 'h5') {
-            params.scene_info.h5_info = {
-                type: 'Wap',
-                app_name: payWeChatH5Name,
-                app_url: payWeChatH5Url,
-            };
-            const res = await pay.transactions_h5(params);
-            if (res.status === 403) {
-                const errmsg = (_c = (_b = (_a = res === null || res === void 0 ? void 0 : res.errRaw) === null || _a === void 0 ? void 0 : _a.response) === null || _b === void 0 ? void 0 : _b.text) === null || _c === void 0 ? void 0 : _c.message;
-                throw new common_1.HttpException((res === null || res === void 0 ? void 0 : res.message) || '微信H5支付失败！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            const { h5_url } = res;
-            return { url: h5_url };
-        }
         if (payType == 'jsapi') {
+            console.log(`[WeChat Pay JSAPI] 开始JSAPI支付流程，用户ID: ${userId}, 订单ID: ${orderId}`);
             const openid = await this.userService.getOpenIdByUserId(userId);
-            console.log('用户openId: ', openid);
-            params['payer'] = {
-                openid: openid,
-            };
-            const result = await pay.transactions_jsapi(params);
-            console.log('jsapi支付结果返回值: ', result);
-            return result;
+            console.log(`[WeChat Pay JSAPI] 用户OpenID: ${openid}`);
+            params['payer'] = { openid: openid };
+            console.log(`[WeChat Pay JSAPI] 发送支付请求参数: `, JSON.stringify(params, null, 2));
+            try {
+                const response = await pay.transactions_jsapi(params);
+                const result = response.data ? response.data : response;
+                console.log(`[WeChat Pay JSAPI] 支付请求成功，返回结果: `, JSON.stringify(result, null, 2));
+                return {
+                    status: response.status || 'unknown',
+                    appId: result.appId || ((_a = result.data) === null || _a === void 0 ? void 0 : _a.appId),
+                    timeStamp: result.timeStamp || ((_b = result.data) === null || _b === void 0 ? void 0 : _b.timeStamp),
+                    nonceStr: result.nonceStr || ((_c = result.data) === null || _c === void 0 ? void 0 : _c.nonceStr),
+                    package: result.package || ((_d = result.data) === null || _d === void 0 ? void 0 : _d.package),
+                    signType: result.signType || ((_e = result.data) === null || _e === void 0 ? void 0 : _e.signType),
+                    paySign: result.paySign || ((_f = result.data) === null || _f === void 0 ? void 0 : _f.paySign)
+                };
+            }
+            catch (error) {
+                console.error(`[WeChat Pay JSAPI] 支付请求过程中发生错误: ${error.message}`, error);
+                console.error('[WeChat Pay JSAPI] 完整的错误对象：', error);
+                throw new common_1.HttpException('JSAPI支付失败', common_1.HttpStatus.BAD_REQUEST);
+            }
         }
         if (payType == 'native') {
-            const res = await pay.transactions_native(params);
-            const { code_url: url_qrcode } = res;
-            if (!url_qrcode) {
-                console.log('wx-native', res);
+            console.log(`开始进行微信Native支付流程，订单ID: ${orderId}, 用户ID: ${userId}`);
+            try {
+                const res = await pay.transactions_native(params);
+                console.log(`微信Native支付响应数据: `, JSON.stringify(res, null, 2));
+                let url_qrcode = res.code_url || ((_g = res.data) === null || _g === void 0 ? void 0 : _g.code_url);
+                if (!url_qrcode) {
+                    console.error(`微信Native支付请求成功，但未返回code_url，响应数据: `, JSON.stringify(res, null, 2));
+                }
+                else {
+                    console.log(`微信Native支付请求成功，code_url: ${url_qrcode}`);
+                }
+                return { url_qrcode, isRedirect: false };
             }
-            return { url_qrcode, isRedirect: false };
+            catch (error) {
+                console.error(`微信Native支付过程中发生错误，错误信息: ${error.message}`, error);
+                console.error('完整的错误对象：', error);
+                throw new common_1.HttpException('微信Native支付失败', common_1.HttpStatus.BAD_REQUEST);
+            }
         }
-        throw new common_1.HttpException('unsupported pay type', common_1.HttpStatus.BAD_REQUEST);
+        else {
+            console.warn(`支付请求使用了不支持的支付类型: ${payType}`);
+            throw new common_1.HttpException('unsupported pay type', common_1.HttpStatus.BAD_REQUEST);
+        }
     }
     async queryWeChat(orderId) {
         const { payWeChatAppId, payWeChatMchId, payWeChatPublicKey, payWeChatPrivateKey, payWeChatNotifyUrl, payWeChatH5Name, payWeChatH5Url } = await this.globalConfigService.getConfigs(['payWeChatAppId', 'payWeChatMchId', 'payWeChatPublicKey', 'payWeChatPrivateKey']);

@@ -13,39 +13,41 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
+const common_1 = require("@nestjs/common");
+const nestjs_config_1 = require("nestjs-config");
 const upload_service_1 = require("../upload/upload.service");
 const user_service_1 = require("../user/user.service");
-const nestjs_config_1 = require("nestjs-config");
-const common_1 = require("@nestjs/common");
 const errorMessage_constant_1 = require("../../common/constants/errorMessage.constant");
 const utils_1 = require("../../common/utils");
+const typeorm_1 = require("@nestjs/typeorm");
 const axios_1 = require("axios");
-const userBalance_service_1 = require("../userBalance/userBalance.service");
-const chatLog_service_1 = require("../chatLog/chatLog.service");
+const typeorm_2 = require("typeorm");
 const uuid = require("uuid");
-const config_entity_1 = require("../globalConfig/config.entity");
-const typeorm_1 = require("typeorm");
-const typeorm_2 = require("@nestjs/typeorm");
-const badwords_service_1 = require("../badwords/badwords.service");
 const autoreply_service_1 = require("../autoreply/autoreply.service");
+const badwords_service_1 = require("../badwords/badwords.service");
+const chatLog_service_1 = require("../chatLog/chatLog.service");
+const config_entity_1 = require("../globalConfig/config.entity");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const userBalance_service_1 = require("../userBalance/userBalance.service");
+const apiDataService_service_1 = require("./apiDataService.service");
+const tiktoken_1 = require("@dqbd/tiktoken");
 const app_entity_1 = require("../app/app.entity");
 const chatGroup_service_1 = require("../chatGroup/chatGroup.service");
 const models_service_1 = require("../models/models.service");
-const store_1 = require("./store");
-const chatBoxType_entity_1 = require("./chatBoxType.entity");
 const chatBox_entity_1 = require("./chatBox.entity");
+const chatBoxType_entity_1 = require("./chatBoxType.entity");
 const chatPre_entity_1 = require("./chatPre.entity");
 const chatPreType_entity_1 = require("./chatPreType.entity");
-const tiktoken_1 = require("@dqbd/tiktoken");
+const store_1 = require("./store");
 let ChatService = class ChatService {
-    constructor(configEntity, chatBoxTypeEntity, chatBoxEntity, appEntity, chatPreTypeEntity, chatPreEntity, chatLogService, configService, userBalanceService, userService, uploadService, badwordsService, autoreplyService, globalConfigService, chatGroupService, modelsService) {
+    constructor(configEntity, chatBoxTypeEntity, chatBoxEntity, appEntity, chatPreTypeEntity, chatPreEntity, apiDataService, chatLogService, configService, userBalanceService, userService, uploadService, badwordsService, autoreplyService, globalConfigService, chatGroupService, modelsService) {
         this.configEntity = configEntity;
         this.chatBoxTypeEntity = chatBoxTypeEntity;
         this.chatBoxEntity = chatBoxEntity;
         this.appEntity = appEntity;
         this.chatPreTypeEntity = chatPreTypeEntity;
         this.chatPreEntity = chatPreEntity;
+        this.apiDataService = apiDataService;
         this.chatLogService = chatLogService;
         this.configService = configService;
         this.userBalanceService = userBalanceService;
@@ -72,51 +74,6 @@ let ChatService = class ChatService {
         const messageStore = new Keyv({ store, namespace: 'ai-web' });
         this.nineStore = new store_1.NineStore({ store: messageStore, namespace: 'chat' });
     }
-    async chatFree(prompt, systemMessage, messagesHistory) {
-        const { openaiBaseUrl, openaiBaseKey, openaiBaseModel, } = await this.globalConfigService.getConfigs([
-            'openaiBaseKey',
-            'openaiBaseUrl',
-            'openaiBaseModel',
-        ]);
-        const key = openaiBaseKey;
-        const proxyUrl = openaiBaseUrl;
-        let requestData = [];
-        if (systemMessage) {
-            requestData.push({
-                "role": "system",
-                "content": systemMessage
-            });
-        }
-        if (messagesHistory && messagesHistory.length > 0) {
-            requestData = requestData.concat(messagesHistory);
-        }
-        else {
-            requestData.push({
-                "role": "user",
-                "content": prompt
-            });
-        }
-        const options = {
-            method: 'POST',
-            url: `${proxyUrl}/v1/chat/completions`,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${key}`,
-            },
-            data: {
-                model: openaiBaseModel || 'gpt-3.5-turbo-0125',
-                messages: requestData,
-            },
-        };
-        try {
-            const response = await (0, axios_1.default)(options);
-            common_1.Logger.log(`全局模型调用成功, 返回结果: ${response === null || response === void 0 ? void 0 : response.data.choices[0].message.content}`);
-            return response === null || response === void 0 ? void 0 : response.data.choices[0].message.content;
-        }
-        catch (error) {
-            console.log('error: ', error);
-        }
-    }
     async ttsProcess(body, req, res) {
         const { id } = req.user;
         const { chatId, prompt } = body;
@@ -126,18 +83,21 @@ let ChatService = class ChatService {
             'openaiBaseUrl',
             'openaiBaseKey',
         ]);
-        const { key = openaiBaseKey, proxyUrl = openaiBaseUrl, deduct, deductType, timeout = openaiTimeout } = detailKeyInfo;
+        const { key, proxyUrl, deduct, deductType, timeout } = detailKeyInfo;
+        let useKey = key || openaiBaseKey;
+        let useUrl = proxyUrl || openaiBaseUrl;
+        let useTimeout = (timeout || openaiTimeout) * 1000;
         await this.userBalanceService.validateBalance(req, deductType, deduct);
         console.log('开始 TTS 请求:', prompt, 'TTSService');
         const options = {
             method: 'POST',
-            url: `${proxyUrl}/v1/audio/speech`,
+            url: `${useUrl}/v1/audio/speech`,
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${key}`,
+                "Authorization": `Bearer ${useKey}`,
             },
             responseType: 'arraybuffer',
-            timeout: timeout * 1000,
+            timeout: useTimeout,
             data: {
                 model: 'tts-1',
                 input: prompt,
@@ -170,9 +130,19 @@ let ChatService = class ChatService {
         }
     }
     async chatProcess(body, req, res) {
-        var _a, _b, _c, _d;
-        const { options = {}, appId = null, specialModel, prompt, fileInfo, modelType, extraParam, model, drawId, customId, action, systemMessage } = body;
-        const { groupId, usingNetwork } = options;
+        var _a, _b, _c;
+        const { options = {}, appId = null, specialModel, prompt, fileInfo, modelType, extraParam, model, drawId, customId, action } = body;
+        let appInfo;
+        if (specialModel) {
+            appInfo = await this.appEntity.findOne({ where: { des: specialModel, isSystemReserved: true } });
+        }
+        else if (appId) {
+            appInfo = await this.appEntity.findOne({ where: { id: appId, status: (0, typeorm_2.In)([1, 3, 4, 5]) } });
+            if (!appInfo) {
+                throw new common_1.HttpException('你当前使用的应用已被下架、请删除当前对话开启新的对话吧！', common_1.HttpStatus.BAD_REQUEST);
+            }
+        }
+        const { groupId, usingNetwork, fileParsing, usingMindMap } = options;
         const abortController = req.abortController;
         const { openaiTimeout, openaiBaseUrl, openaiBaseKey, systemPreMessage, isMjTranslate, mjTranslatePrompt, isDalleChat, } = await this.globalConfigService.getConfigs([
             'openaiTimeout',
@@ -186,14 +156,8 @@ let ChatService = class ChatService {
         await this.userService.checkUserStatus(req.user);
         res && res.setHeader('Content-type', 'application/octet-stream; charset=utf-8');
         await this.badwordsService.checkBadWords(prompt, req.user.id);
-        const autoReplyRes = await this.autoreplyService.checkAutoReply(prompt);
-        if (autoReplyRes && res) {
-            const msg = { message: autoReplyRes, code: 500 };
-            res.write(JSON.stringify(msg));
-            return res.end();
-        }
         let currentRequestModelKey = null;
-        let gptsName = '';
+        let appName = '';
         let setSystemMessage = '';
         res && res.status(200);
         let response = null;
@@ -201,46 +165,51 @@ let ChatService = class ChatService {
         let isStop = true;
         let usePrompt;
         let isSuccess = false;
-        if (appId) {
-            const appInfo = await this.appEntity.findOne({ where: { id: appId, status: (0, typeorm_1.In)([1, 3, 4, 5]) } });
-            if (!appInfo) {
-                throw new common_1.HttpException('你当前使用的应用已被下架、请删除当前对话开启新的对话吧！', common_1.HttpStatus.BAD_REQUEST);
+        if (appInfo) {
+            const { isGPTs, gizmoID, name, isFixedModel, appModel } = appInfo;
+            appName = name;
+            if (isGPTs) {
+                currentRequestModelKey = await this.modelsService.getCurrentModelKeyInfo('gpts');
+                await this.chatLogService.checkModelLimits(req.user, 'gpts');
+                currentRequestModelKey.model = `gpt-4-gizmo-${gizmoID}`;
             }
-            appInfo.preset && (setSystemMessage = appInfo.preset);
-            currentRequestModelKey = await this.modelsService.getCurrentModelKeyInfo(model);
-            common_1.Logger.log(`使用应用预设: ${setSystemMessage}`);
-        }
-        else {
-            if (specialModel) {
-                currentRequestModelKey = await this.modelsService.getSpecialModelKeyInfo(model);
-                setSystemMessage = systemMessage;
-                common_1.Logger.log(`使用特殊预设: ${setSystemMessage}`);
-            }
-            else if (usingNetwork) {
-                const netWorkPrompt = await (0, utils_1.compileNetwork)(prompt);
-                const currentDate = new Date().toISOString().split('T')[0];
-                setSystemMessage = netWorkPrompt + `\n Current date: ${currentDate}`;
-                common_1.Logger.log(`使用联网预设: ${setSystemMessage}`);
+            else if (!isGPTs && isFixedModel && appModel) {
+                appInfo.preset && (setSystemMessage = appInfo.preset);
+                currentRequestModelKey = await this.modelsService.getCurrentModelKeyInfo(appModel);
+                await this.chatLogService.checkModelLimits(req.user, appModel);
+                currentRequestModelKey.model = appModel;
+                if (fileParsing) {
+                    setSystemMessage = `${setSystemMessage}以下是我提供给你的知识库：【${fileParsing}】，在回答问题之前，先检索知识库内有没有相关的内容，尽量使用知识库中获取到的信息来回答我的问题，以知识库中的为准。`;
+                }
+                common_1.Logger.log(`固定模型、使用应用预设: ${setSystemMessage}`);
             }
             else {
-                const currentDate = new Date().toISOString().split('T')[0];
-                setSystemMessage = systemPreMessage + `\n Current date: ${currentDate}`;
+                appInfo.preset && (setSystemMessage = appInfo.preset);
                 currentRequestModelKey = await this.modelsService.getCurrentModelKeyInfo(model);
-                common_1.Logger.log(`使用全局预设: ${setSystemMessage}`);
+                await this.chatLogService.checkModelLimits(req.user, model);
+                if (fileParsing) {
+                    setSystemMessage = `${setSystemMessage}以下是我提供给你的知识库：【${fileParsing}】，在回答问题之前，先检索知识库内有没有相关的内容，尽量使用知识库中获取到的信息来回答我的问题，以知识库中的为准。`;
+                }
+                common_1.Logger.log(`使用应用预设: ${setSystemMessage}`);
             }
         }
+        else {
+            const currentDate = new Date().toISOString().split('T')[0];
+            setSystemMessage = systemPreMessage + `\n Current date: ${currentDate}`;
+            currentRequestModelKey = await this.modelsService.getCurrentModelKeyInfo(model);
+            await this.chatLogService.checkModelLimits(req.user, model);
+            common_1.Logger.log(`使用全局预设: ${setSystemMessage}`);
+        }
         const { deduct, isTokenBased, tokenFeeRatio, deductType, key, modelName, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel, isFileUpload } = currentRequestModelKey;
-        if (isMjTranslate === '1' && mjTranslatePrompt && (model === 'midjourney' && action === 'IMAGINE')) {
-            const translatePrompt = await this.chatFree(prompt, mjTranslatePrompt);
+        if (isMjTranslate === '1' && mjTranslatePrompt && model === 'midjourney') {
+            const translatePrompt = await this.apiDataService.chatFree(prompt, mjTranslatePrompt);
             usePrompt = (isFileUpload === '1' && fileInfo) ? fileInfo + " " + translatePrompt : translatePrompt;
-            common_1.Logger.debug(`翻译后的用户提问: ${translatePrompt}, 最终使用的提示: ${usePrompt}`);
         }
         else {
             usePrompt = (isFileUpload === '1' && fileInfo) ? fileInfo + " " + prompt : prompt;
-            common_1.Logger.debug(`未进行翻译，最终使用的提示: ${usePrompt}`);
         }
         await this.userBalanceService.validateBalance(req, deductType, deduct);
-        const useModeName = gptsName || modelName;
+        const useModeName = appName || modelName;
         const proxyResUrl = proxyUrl || openaiBaseUrl || 'https://api.openai.com';
         const modelKey = key || openaiBaseKey;
         const modelTimeout = (timeout || openaiTimeout || 300) * 1000;
@@ -251,14 +220,17 @@ let ChatService = class ChatService {
         if (!currentRequestModelKey) {
             throw new common_1.HttpException('当前流程所需要的模型已被管理员下架、请联系管理员上架专属模型！', common_1.HttpStatus.BAD_REQUEST);
         }
-        const groupInfo = await this.chatGroupService.getGroupInfoFromId(groupId);
+        let groupInfo;
+        if (groupId) {
+            groupInfo = await this.chatGroupService.getGroupInfoFromId(groupId);
+        }
         if ((groupInfo === null || groupInfo === void 0 ? void 0 : groupInfo.title) === '新对话') {
             let chatTitle;
             if (modelType === 1) {
-                chatTitle = await this.chatFree(`根据用户提问{${prompt}}，给这个对话取一个名字，不超过10个字`);
+                chatTitle = await this.apiDataService.chatFree(`根据用户提问{${prompt}}，给这个对话取一个名字，不超过10个字`);
             }
             else {
-                chatTitle = 'AI 绘画';
+                chatTitle = '创意 AI';
             }
             await this.chatGroupService.update({
                 groupId,
@@ -268,11 +240,14 @@ let ChatService = class ChatService {
             }, req);
             common_1.Logger.log(`更新标题名称为: ${chatTitle}`);
         }
+        if (groupId) {
+            await this.chatGroupService.updateTime(groupId);
+        }
         const { messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(prompt, {
             groupId,
             systemMessage: setSystemMessage,
             maxModelTokens,
-            maxRounds,
+            maxRounds: usingNetwork || useModel.includes('suno') ? 0 : maxRounds,
             fileInfo: fileInfo,
             model: useModel,
             isFileUpload,
@@ -288,10 +263,14 @@ let ChatService = class ChatService {
             promptTokens: 0,
             completionTokens: 0,
             totalTokens: 0,
-            model: model,
+            model: useModel,
             modelName: '我',
             role: 'user',
             groupId,
+        });
+        const pluginsUsed = JSON.stringify({
+            usingNetwork: !!usingNetwork,
+            usingMindMap: !!usingMindMap,
         });
         const assistantSaveLog = await this.chatLogService.saveChatLog({
             appId,
@@ -305,27 +284,49 @@ let ChatService = class ChatService {
             promptTokens: 0,
             completionTokens: 0,
             totalTokens: 0,
-            model: model,
+            model: useModel,
             modelName: useModeName,
             role: 'assistant',
             groupId,
             status: 2,
+            pluginParam: pluginsUsed,
         });
         const userLogId = userSaveLog.id;
         const assistantLogId = assistantSaveLog.id;
+        const autoReplyRes = await this.autoreplyService.checkAutoReply(prompt);
+        if (autoReplyRes && res) {
+            const msg = { text: autoReplyRes };
+            const chars = autoReplyRes.split('');
+            const sendCharByChar = (index) => {
+                if (index < chars.length) {
+                    const msg = { text: chars[index] };
+                    res.write(`${JSON.stringify(msg)}\n`);
+                    setTimeout(() => sendCharByChar(index + 1), 20);
+                }
+                else {
+                    res.end();
+                }
+            };
+            sendCharByChar(0);
+            await this.chatLogService.updateChatLog(assistantLogId, {
+                answer: autoReplyRes,
+            });
+            return;
+        }
         common_1.Logger.log('开始处理对话！');
         let charge = (action !== "UPSCALE" && useModel === 'midjourney') ? deduct * 4 : deduct;
         ;
+        let isClientClosed = false;
         try {
             if (res) {
-                let lastChat = null;
+                let lastChat;
                 res.on('close', async () => {
                     if (isSuccess) {
                         return;
                     }
-                    abortController.abort();
+                    isClientClosed = true;
                     const prompt_tokens = (await this.getTokenCount(prompt)) || 1;
-                    const completion_tokens = (await this.getTokenCount(lastChat === null || lastChat === void 0 ? void 0 : lastChat.text)) || 1;
+                    const completion_tokens = (await this.getTokenCount(lastChat === null || lastChat === void 0 ? void 0 : lastChat.answer)) || 1;
                     const total_tokens = prompt_tokens + completion_tokens;
                     await this.chatLogService.updateChatLog(userLogId, {
                         fileInfo: fileInfo,
@@ -335,7 +336,7 @@ let ChatService = class ChatService {
                         status: 4,
                     });
                     await this.chatLogService.updateChatLog(assistantLogId, {
-                        answer: lastChat === null || lastChat === void 0 ? void 0 : lastChat.text,
+                        answer: lastChat === null || lastChat === void 0 ? void 0 : lastChat.answer,
                         promptTokens: prompt_tokens,
                         completionTokens: completion_tokens,
                         totalTokens: total_tokens,
@@ -349,18 +350,40 @@ let ChatService = class ChatService {
                         await this.userBalanceService.deductFromBalance(req.user.id, deductType, charge, total_tokens);
                     }
                 });
+                let response;
                 let firstChunk = true;
                 try {
-                    if (model === 'dall-e-3' || model === 'midjourney') {
-                        if (model === 'dall-e-3') {
+                    if (useModel === 'dall-e-3' || useModel === 'midjourney' || useModel.includes('suno') || useModel.includes('stable-diffusion')) {
+                        if (useModel === 'dall-e-3') {
                             let drawPrompt;
-                            drawPrompt = prompt;
-                            response = this.dalleDraw(({
+                            if (isDalleChat === '1') {
+                                try {
+                                    common_1.Logger.log('已开启连续绘画模式');
+                                    const { messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(`${prompt},不用包含任何礼貌性的寒暄,只需要场景的描述,可以适当联想`, {
+                                        groupId,
+                                        systemMessage: "总结我的绘画需求,然后生成绘画场景的描述",
+                                        maxModelTokens,
+                                        maxRounds,
+                                        fileInfo: fileInfo,
+                                        model: useModel,
+                                        isFileUpload,
+                                    }, this.chatLogService);
+                                    drawPrompt = await this.apiDataService.chatFree(prompt, undefined, messagesHistory);
+                                }
+                                catch (error) {
+                                    console.error("调用chatFree失败：", error);
+                                    drawPrompt = prompt;
+                                }
+                            }
+                            else {
+                                drawPrompt = prompt;
+                            }
+                            response = this.apiDataService.dalleDraw(({
                                 prompt: drawPrompt,
                                 extraParam: extraParam,
                                 apiKey: modelKey,
                                 proxyUrl: proxyResUrl,
-                                model,
+                                model: useModel,
                                 timeout: modelTimeout,
                                 modelName: useModeName,
                                 onSuccess: async (data) => {
@@ -374,20 +397,96 @@ let ChatService = class ChatService {
                                 },
                                 onFailure: async (data) => {
                                     await this.chatLogService.updateChatLog(assistantLogId, {
-                                        answer: '绘图失败 ... ...',
+                                        answer: '绘图失败',
                                         status: data.status,
                                     });
                                     common_1.Logger.log('绘图失败', 'DrawService');
                                 }
                             }), messagesHistory);
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '绘制中',
+                            });
+                        }
+                        else if (useModel.includes('suno')) {
+                            response = this.suno(messagesHistory, {
+                                chatId: assistantLogId,
+                                maxModelTokens,
+                                apiKey: modelKey,
+                                model: useModel,
+                                modelName: useModeName,
+                                modelType,
+                                prompt,
+                                fileInfo,
+                                isFileUpload,
+                                timeout: modelTimeout,
+                                proxyUrl: proxyResUrl,
+                                onGenerate: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        fileInfo: data === null || data === void 0 ? void 0 : data.fileInfo,
+                                        answer: (data === null || data === void 0 ? void 0 : data.answer) || prompt,
+                                        status: 2,
+                                    });
+                                    common_1.Logger.log('歌曲生成中');
+                                },
+                                onSuccess: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        fileInfo: data === null || data === void 0 ? void 0 : data.fileInfo,
+                                        answer: (data === null || data === void 0 ? void 0 : data.answer) || prompt,
+                                        progress: '100%',
+                                        status: 3,
+                                    });
+                                    common_1.Logger.log('生成歌曲成功');
+                                },
+                                onFailure: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        answer: data.errMsg,
+                                        status: 4,
+                                    });
+                                }
+                            });
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '提交成功，歌曲生成中',
+                            });
+                        }
+                        else if (useModel.includes('stable-diffusion')) {
+                            response = this.sdxl(messagesHistory, {
+                                chatId: assistantLogId,
+                                maxModelTokens,
+                                apiKey: modelKey,
+                                model: useModel,
+                                modelName: useModeName,
+                                modelType,
+                                prompt,
+                                fileInfo,
+                                isFileUpload,
+                                timeout: modelTimeout,
+                                proxyUrl: proxyResUrl,
+                                onSuccess: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        fileInfo: data === null || data === void 0 ? void 0 : data.fileInfo,
+                                        answer: (data === null || data === void 0 ? void 0 : data.answer) || prompt,
+                                        progress: '100%',
+                                        status: 3,
+                                    });
+                                },
+                                onFailure: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        answer: '生成失败',
+                                        status: 4,
+                                    });
+                                }
+                            });
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '绘制中',
+                            });
                         }
                         else {
-                            response = await this.mjDraw({
+                            response = this.mjDraw({
                                 usePrompt: usePrompt,
                                 prompt: prompt,
                                 apiKey: modelKey,
                                 proxyUrl: proxyResUrl,
-                                model,
+                                model: useModel,
                                 modelName: useModeName,
                                 drawId,
                                 customId,
@@ -395,20 +494,21 @@ let ChatService = class ChatService {
                                 timeout: modelTimeout,
                                 assistantLogId,
                             });
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '绘制中',
+                            });
                         }
-                        await this.chatLogService.updateChatLog(assistantLogId, {
-                            answer: '任务提交成功，绘制中 ... ... ',
-                            status: 2
-                        });
-                        await this.userBalanceService.deductFromBalance(req.user.id, deductType, charge);
                         await this.modelsService.saveUseLog(keyId, 1);
-                        response.text = '任务提交成功，绘制中 ... ... ';
-                        response.modelName = useModeName;
-                        response.model = model;
-                        response.status = 2;
+                        await this.userBalanceService.deductFromBalance(req.user.id, deductType, charge);
+                        const userBalance = await this.userBalanceService.queryUserBalance(req.user.id);
+                        response.userBalance = Object.assign({}, userBalance);
+                        response.text = '提交成功';
                         isStop = false;
                         isSuccess = true;
-                        common_1.Logger.log(`用户ID: ${req.user.id} 模型名称: ${useModeName} 模型: ${model} , 消耗积分： ${charge}`, 'DrawService');
+                        response.status = 2;
+                        response.model = model;
+                        response.modelName = modelName;
+                        return res.write(`\n${JSON.stringify(response)}`);
                     }
                     else {
                         response = await this.sendMessageFromAi(messagesHistory, {
@@ -427,31 +527,50 @@ let ChatService = class ChatService {
                                 res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`);
                                 lastChat = chat;
                                 firstChunk = false;
+                            },
+                            onFailure: async (data) => {
+                                await this.chatLogService.updateChatLog(assistantLogId, {
+                                    answer: data.errMsg,
+                                    status: 4,
+                                });
                             }
+                        }, isClientClosed);
+                        if (response.errMsg) {
+                            isStop = false;
+                            isSuccess = true;
+                            common_1.Logger.error(`用户ID: ${req.user.id} 模型名称: ${useModeName} 模型: ${model} 回复出错，本次不扣除积分`, 'ChatService');
+                            return res.write(`\n${JSON.stringify(response)}`);
+                        }
+                        let totalText = '';
+                        messagesHistory.forEach(messagesHistory => {
+                            totalText += messagesHistory.content + ' ';
                         });
-                        const usage = ((_a = response.detail) === null || _a === void 0 ? void 0 : _a.usage) || { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 };
-                        let { prompt_tokens, completion_tokens, total_tokens } = usage;
+                        const promptTokens = await this.getTokenCount(totalText);
+                        const completionTokens = await this.getTokenCount(response.answer);
                         await this.chatLogService.updateChatLog(userLogId, {
-                            promptTokens: prompt_tokens,
-                            completionTokens: completion_tokens,
-                            totalTokens: total_tokens,
+                            promptTokens: promptTokens,
+                            completionTokens: completionTokens,
+                            totalTokens: promptTokens + completionTokens,
                         });
                         await this.chatLogService.updateChatLog(assistantLogId, {
                             fileInfo: response === null || response === void 0 ? void 0 : response.fileInfo,
-                            answer: response.text,
-                            promptTokens: prompt_tokens,
-                            completionTokens: completion_tokens,
-                            totalTokens: total_tokens,
+                            answer: response.answer,
+                            promptTokens: promptTokens,
+                            completionTokens: completionTokens,
+                            totalTokens: promptTokens + completionTokens,
                             status: 3
                         });
                         if (isTokenBased === true) {
-                            charge = Math.ceil((deduct * total_tokens) / tokenFeeRatio);
+                            charge = Math.ceil((deduct * (promptTokens + completionTokens)) / tokenFeeRatio);
                         }
-                        await this.userBalanceService.deductFromBalance(req.user.id, deductType, charge, total_tokens);
-                        await this.modelsService.saveUseLog(keyId, total_tokens);
+                        await this.userBalanceService.deductFromBalance(req.user.id, deductType, charge, (promptTokens + completionTokens));
+                        await this.modelsService.saveUseLog(keyId, (promptTokens + completionTokens));
+                        common_1.Logger.log(`用户ID: ${req.user.id} 模型名称: ${useModeName} 模型: ${model} 消耗token: ${(promptTokens + completionTokens)}, 消耗积分： ${charge}`, 'ChatService');
+                        const userBalance = await this.userBalanceService.queryUserBalance(req.user.id);
+                        response.userBalance = Object.assign({}, userBalance);
                         isStop = false;
                         isSuccess = true;
-                        common_1.Logger.log(`用户ID: ${req.user.id} 模型名称: ${useModeName} 模型: ${model} 消耗token: ${total_tokens}, 消耗积分： ${charge}`, 'ChatService');
+                        return res.write(`\n${JSON.stringify(response)}`);
                     }
                 }
                 catch (error) {
@@ -464,36 +583,28 @@ let ChatService = class ChatService {
                 }
             }
             else {
-                const { messagesHistory } = await this.nineStore.buildMessageFromParentMessageId(prompt, {
-                    groupId: groupId,
-                    systemMessage: setSystemMessage,
-                    maxRounds,
-                    maxModelTokens,
-                }, this.chatLogService);
                 response = await this.sendMessageFromAi(messagesHistory, {
+                    chatId: assistantLogId,
+                    maxModelTokens,
                     apiKey: modelKey,
                     model: useModel,
-                    proxyUrl: proxyResUrl,
-                    onProgress: null,
+                    modelName: useModeName,
+                    modelType,
                     prompt,
-                });
-            }
-            response.result && (response.result = '');
-            response.is_end = true;
-            const userBalance = await this.userBalanceService.queryUserBalance(req.user.id);
-            response.userBalance = Object.assign({}, userBalance);
-            if (res) {
-                return res.write(`\n${JSON.stringify(response)}`);
-            }
-            else {
-                return response.text;
+                    fileInfo,
+                    isFileUpload,
+                    timeout: modelTimeout,
+                    proxyUrl: proxyResUrl,
+                }, isClientClosed);
+                await this.userBalanceService.deductFromBalance(req.user.id, deductType, charge);
+                return response.answer;
             }
         }
         catch (error) {
             common_1.Logger.error('chat-error <----------------------------------------->', modelKey, error);
             const code = (error === null || error === void 0 ? void 0 : error.statusCode) || 400;
-            const status = ((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.status) || (error === null || error === void 0 ? void 0 : error.statusCode) || 400;
-            common_1.Logger.error('chat-error-detail  <----------------------------------------->', 'code: ', code, 'message', error === null || error === void 0 ? void 0 : error.message, 'statusText:', (_c = error === null || error === void 0 ? void 0 : error.response) === null || _c === void 0 ? void 0 : _c.statusText, 'status', (_d = error === null || error === void 0 ? void 0 : error.response) === null || _d === void 0 ? void 0 : _d.status);
+            const status = ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.status) || (error === null || error === void 0 ? void 0 : error.statusCode) || 400;
+            common_1.Logger.error('chat-error-detail  <----------------------------------------->', 'code: ', code, 'message', error === null || error === void 0 ? void 0 : error.message, 'statusText:', (_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.statusText, 'status', (_c = error === null || error === void 0 ? void 0 : error.response) === null || _c === void 0 ? void 0 : _c.status);
             if (error.status && error.status === 402) {
                 const errMsg = { message: `Catch Error ${error.message}`, code: 402 };
                 if (res) {
@@ -544,89 +655,6 @@ let ChatService = class ChatService {
         }
         finally {
             res && res.end();
-        }
-    }
-    async draw(body, req) {
-        var _a, _b, _c, _d;
-        await this.badwordsService.checkBadWords(body.prompt, req.user.id);
-        await this.userService.checkUserStatus(req.user);
-        let images = [];
-        const detailKeyInfo = await this.modelsService.getCurrentModelKeyInfo('dall-e-3');
-        const keyId = detailKeyInfo === null || detailKeyInfo === void 0 ? void 0 : detailKeyInfo.id;
-        const { key, proxyUrl, deduct, deductType, timeout } = detailKeyInfo;
-        const money = (body === null || body === void 0 ? void 0 : body.quality) === 'hd' ? deduct * 2 : deduct;
-        await this.userBalanceService.validateBalance(req, deductType, money);
-        const { openaiTimeout, openaiBaseUrl, openaiBaseKey, } = await this.globalConfigService.getConfigs([
-            'openaiTimeout',
-            'openaiBaseUrl',
-            'openaiBaseKey',
-        ]);
-        const modelKey = key || openaiBaseKey;
-        const modelTimeout = (timeout || openaiTimeout || 300) * 1000;
-        const proxyResUrl = proxyUrl || openaiBaseUrl || 'https://api.openai.com';
-        common_1.Logger.log(`开始绘画 Prompt: ${body.prompt}`, 'DrawService');
-        common_1.Logger.log(`draw paompt info <==**==> ${body.prompt}, key ===> ${key}`, 'DrawService');
-        try {
-            const api = `${proxyResUrl}/v1/images/generations`;
-            const params = Object.assign(Object.assign({}, body), { model: 'dall-e-3' });
-            console.log('dall-e draw params: ', params);
-            const res = await axios_1.default.post(api, Object.assign(Object.assign({}, params), { response_format: 'b64_json' }), { headers: { Authorization: `Bearer ${modelKey}` }, timeout: modelTimeout });
-            images = res.data.data;
-            const task = [];
-            for (const item of images) {
-                const filename = `${Date.now()}-${uuid.v4().slice(0, 4)}.png`;
-                const buffer = Buffer.from(item.b64_json, 'base64');
-                task.push(this.uploadService.uploadFile({ filename, buffer }));
-            }
-            const urls = await Promise.all(task);
-            await this.userBalanceService.deductFromBalance(req.user.id, 3, deduct, money);
-            const curIp = (0, utils_1.getClientIp)(req);
-            const taskLog = [];
-            const cosType = await this.uploadService.getUploadType();
-            const [width, height] = body.size.split('x');
-            urls.forEach((url) => {
-                taskLog.push(this.chatLogService.saveChatLog({
-                    curIp,
-                    userId: req.user.id,
-                    type: 3,
-                    prompt: body.prompt,
-                    answer: url,
-                    fileInfo: JSON.stringify({
-                        cosType,
-                        width,
-                        height,
-                        cosUrl: url,
-                    }),
-                    promptTokens: 0,
-                    completionTokens: 0,
-                    totalTokens: 0,
-                    model: 'dall-e-3',
-                }));
-            });
-            await Promise.all(taskLog);
-            return urls;
-        }
-        catch (error) {
-            const status = ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.status) || 500;
-            console.log('openai-draw error: ', JSON.stringify(error), key, status);
-            const message = (_d = (_c = (_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.error) === null || _d === void 0 ? void 0 : _d.message;
-            if (status === 429) {
-                throw new common_1.HttpException('当前请求已过载、请稍等会儿再试试吧！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            if (status === 400 && message.includes('This request has been blocked by our content filters')) {
-                throw new common_1.HttpException('您的请求已被系统拒绝。您的提示可能存在一些非法的文本。', common_1.HttpStatus.BAD_REQUEST);
-            }
-            if (status === 400 && message.includes('Billing hard limit has been reached')) {
-                await this.modelsService.lockKey(keyId, '当前模型key已被封禁、已冻结当前调用Key、尝试重新对话试试吧！', -1);
-                throw new common_1.HttpException('当前Key余额已不足、请重新再试一次吧！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            if (status === 500) {
-                throw new common_1.HttpException('绘制图片失败，请检查你的提示词是否有非法描述！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            if (status === 401) {
-                throw new common_1.HttpException('绘制图片失败，此次绘画被拒绝了！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            throw new common_1.HttpException('绘制图片失败，请稍后试试吧！', common_1.HttpStatus.BAD_REQUEST);
         }
     }
     async setChatBoxType(req, body) {
@@ -692,8 +720,8 @@ let ChatService = class ChatService {
         });
         const typeIds = [...new Set(data.map((t) => t.typeId))];
         const appIds = [...new Set(data.map((t) => t.appId))];
-        const typeRes = await this.chatBoxTypeEntity.find({ where: { id: (0, typeorm_1.In)(typeIds) } });
-        const appRes = await this.appEntity.find({ where: { id: (0, typeorm_1.In)(appIds) } });
+        const typeRes = await this.chatBoxTypeEntity.find({ where: { id: (0, typeorm_2.In)(typeIds) } });
+        const appRes = await this.appEntity.find({ where: { id: (0, typeorm_2.In)(appIds) } });
         return data.map((item) => {
             const { typeId, appId } = item;
             item.typeInfo = typeRes.find((t) => t.id === typeId);
@@ -705,7 +733,7 @@ let ChatService = class ChatService {
         const typeRes = await this.chatBoxTypeEntity.find({ order: { order: 'DESC' }, where: { status: true } });
         const boxinfos = await this.chatBoxEntity.find({ where: { status: true } });
         const appIds = [...new Set(boxinfos.map((t) => t.appId))];
-        const appInfos = await this.appEntity.find({ where: { id: (0, typeorm_1.In)(appIds) } });
+        const appInfos = await this.appEntity.find({ where: { id: (0, typeorm_2.In)(appIds) } });
         boxinfos.forEach((item) => {
             const app = appInfos.find((k) => k.id === item.appId);
             item.coverImg = app === null || app === void 0 ? void 0 : app.coverImg;
@@ -776,7 +804,7 @@ let ChatService = class ChatService {
             order: { order: 'DESC' },
         });
         const typeIds = [...new Set(data.map((t) => t.typeId))];
-        const typeRes = await this.chatPreTypeEntity.find({ where: { id: (0, typeorm_1.In)(typeIds) } });
+        const typeRes = await this.chatPreTypeEntity.find({ where: { id: (0, typeorm_2.In)(typeIds) } });
         return data.map((item) => {
             const { typeId, appId } = item;
             item.typeInfo = typeRes.find((t) => t.id === typeId);
@@ -791,9 +819,62 @@ let ChatService = class ChatService {
             return t;
         });
     }
-    async sendMessageFromAi(messagesHistory, inputs) {
-        const { onProgress, apiKey, model, proxyUrl, modelName, timeout, chatId, isFileUpload } = inputs;
-        let result = { text: '', model: '', modelName: modelName, chatId: chatId };
+    async sdxl(messagesHistory, inputs) {
+        const { onGenerate, onSuccess, onFailure, apiKey, model, proxyUrl, modelName, timeout, chatId, isFileUpload, prompt } = inputs;
+        let result = { answer: '', model: model, modelName: modelName, chatId: chatId, fileInfo: '', status: 2 };
+        console.log('开始处理', { model, modelName, prompt });
+        const options = {
+            method: 'POST',
+            url: `${proxyUrl}/v1/chat/completions`,
+            timeout: timeout,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+            },
+            data: {
+                model,
+                messages: [{ "role": "user", "content": prompt }],
+            },
+        };
+        try {
+            const response = await (0, axios_1.default)(options);
+            console.log('API响应接收', response.data);
+            if (response.data.choices && response.data.choices.length > 0) {
+                const choice = response.data.choices[0];
+                const content = choice.message.content;
+                console.log('处理内容', content);
+                const regex = /\]\((https?:\/\/[^\)]+)\)/;
+                const match = content.match(regex);
+                if (match && match[1]) {
+                    result.fileInfo = match[1];
+                    console.log('找到链接', match[1]);
+                }
+                else {
+                    console.log('没有找到链接');
+                }
+                let revised_prompt_cn;
+                result.answer = `${prompt} 绘制成功`;
+                if (result.fileInfo) {
+                    onSuccess(result);
+                    return;
+                }
+                else {
+                    onFailure("No link found.");
+                }
+            }
+            else {
+                onFailure("No choices returned.");
+            }
+        }
+        catch (error) {
+            common_1.Logger.error('服务器错误，请求失败：', error);
+        }
+    }
+    async suno(messagesHistory, inputs) {
+        common_1.Logger.log('开始生成歌曲');
+        const { onGenerate, onFailure, onSuccess, apiKey, model, proxyUrl, timeout, prompt } = inputs;
+        let result = { answer: '', fileInfo: '', errMsg: '' };
+        let fullText = '';
         const options = {
             method: 'POST',
             url: `${proxyUrl}/v1/chat/completions`,
@@ -806,155 +887,190 @@ let ChatService = class ChatService {
             data: {
                 stream: true,
                 model,
-                messages: messagesHistory,
+                messages: [{
+                        "role": "user",
+                        "content": prompt
+                    }],
             },
         };
-        if (isFileUpload === 2) {
-            options.data.max_tokens = 2048;
-        }
-        return new Promise(async (resolve, reject) => {
-            try {
-                const response = await (0, axios_1.default)(options);
-                const stream = response.data;
+        try {
+            const response = await (0, axios_1.default)(options);
+            const stream = response.data;
+            await new Promise((resolve, reject) => {
                 stream.on('data', (chunk) => {
-                    var _a;
-                    const splitArr = chunk.toString().split('\n\n').filter((line) => line.trim() !== '');
-                    for (const line of splitArr) {
-                        const data = line.replace('data:', '');
-                        let ISEND = false;
-                        try {
-                            ISEND = JSON.parse(data).choices[0].finish_reason === 'stop';
-                        }
-                        catch (error) {
-                            ISEND = false;
-                        }
-                        if (ISEND) {
-                            result.text = result.text.trim();
-                            return result;
+                    common_1.Logger.log('生成进度: ', fullText);
+                    const splitArr = chunk.toString().split('\n\n').filter(line => line.trim());
+                    splitArr.forEach(line => {
+                        var _a, _b;
+                        const videoLinkMatch = fullText.match(/\((https?:\/\/[^\)]+\.mp4)\)/);
+                        if (line.trim() === "data: [DONE]" || videoLinkMatch) {
+                            if (videoLinkMatch) {
+                                result.fileInfo = videoLinkMatch[1];
+                                onSuccess(result);
+                                return;
+                            }
+                            return;
                         }
                         try {
-                            if (data !== " [DONE]" && data !== "[DONE]" && data != "[DONE] ") {
-                                const parsedData = JSON.parse(data);
-                                if (parsedData.id) {
-                                    result.id = parsedData.id;
+                            const jsonLine = JSON.parse(line.replace(/^data: /, '').trim());
+                            const content = ((_b = (_a = jsonLine.choices[0]) === null || _a === void 0 ? void 0 : _a.delta) === null || _b === void 0 ? void 0 : _b.content) || '';
+                            fullText += content;
+                            if (!fullText.includes('### 🎵')) {
+                                if (fullText.includes('生成中..')) {
+                                    result.answer = '歌曲生成中';
+                                    onGenerate(result);
                                 }
-                                if ((_a = parsedData.choices) === null || _a === void 0 ? void 0 : _a.length) {
-                                    const delta = parsedData.choices[0].delta;
-                                    result.delta = delta.content;
-                                    if (delta === null || delta === void 0 ? void 0 : delta.content)
-                                        result.text += delta.content;
-                                    if (delta.role) {
-                                        result.role = delta.role;
-                                    }
-                                    result.detail = parsedData;
+                                else if (fullText.includes('排队中.')) {
+                                    result.answer = '排队中';
+                                    onGenerate(result);
                                 }
-                                onProgress && onProgress({ text: result.text });
+                                else {
+                                    result.answer = '提交成功，歌曲生成中';
+                                    onGenerate(result);
+                                }
+                            }
+                            else if (!fullText.includes('**风格：**')) {
+                                const startLyricsIndex = fullText.indexOf('### 🎵');
+                                result.answer = fullText.substring(startLyricsIndex);
+                                onGenerate(result);
+                            }
+                            else {
+                                const startLyricsIndex = fullText.indexOf('### 🎵');
+                                const endStyleIndex = fullText.indexOf('**风格：**');
+                                result.answer = fullText.substring(startLyricsIndex, endStyleIndex);
+                                onGenerate(result);
+                            }
+                            const videoLinkMatch = fullText.match(/\((https?:\/\/[^\)]+\.mp4)\)/);
+                            if (videoLinkMatch) {
+                                result.fileInfo = videoLinkMatch[1];
+                                onSuccess(result);
+                                return;
                             }
                         }
                         catch (error) {
-                            console.log('parse Error', data);
+                            console.error('Parse error', error, line);
                         }
-                    }
+                    });
                 });
-                let totalText = '';
-                messagesHistory.forEach(messagesHistory => {
-                    totalText += messagesHistory.content + ' ';
+                stream.on('end', () => {
+                    common_1.Logger.log('Stream ended');
+                    resolve(result);
                 });
-                stream.on('end', async () => {
-                    if (result.detail && result.text) {
-                        const promptTokens = this.getTokenCount(totalText);
-                        const completionTokens = this.getTokenCount(result.text);
-                        result.detail.usage = {
-                            prompt_tokens: await promptTokens,
-                            completion_tokens: await completionTokens,
-                            total_tokens: await promptTokens + await completionTokens,
-                            estimated: true
-                        };
-                    }
-                    return resolve(result);
+                stream.on('error', (error) => {
+                    common_1.Logger.error('Stream error:', error);
+                    reject(error);
                 });
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
-    }
-    async dalleDraw(inputs, messagesHistory) {
-        var _a, _b, _c, _d;
-        common_1.Logger.log('开始提交 Dalle 绘图任务 ', 'DrawService');
-        const { apiKey, model, proxyUrl, prompt, extraParam, timeout, onSuccess, onFailure } = inputs;
-        const size = (extraParam === null || extraParam === void 0 ? void 0 : extraParam.size) || '1024x1024';
-        let result = { answer: '', fileInfo: '', status: 2 };
-        try {
-            const options = {
-                method: 'POST',
-                url: `${proxyUrl}/v1/images/generations`,
-                timeout: timeout,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${apiKey}`,
-                },
-                data: {
-                    model: model,
-                    prompt: prompt,
-                    size,
-                    response_format: 'b64_json'
-                },
-            };
-            const response = await (0, axios_1.default)(options);
-            common_1.Logger.debug(`请求状态${JSON.stringify(response.status)}`);
-            const buffer = Buffer.from(response.data.data[0].b64_json, 'base64');
-            try {
-                const filename = `${Date.now()}-${uuid.v4().slice(0, 4)}.png`;
-                common_1.Logger.debug(`------> 开始上传图片！！！`, 'DrawService');
-                result.fileInfo = await this.uploadService.uploadFile({ filename, buffer });
-                common_1.Logger.debug(`图片上传成功，URL: ${result.fileInfo}`, 'DrawService');
-            }
-            catch (error) {
-                common_1.Logger.error(`上传图片过程中出现错误: ${error}`, 'DrawService');
-            }
-            let revised_prompt_cn;
-            try {
-                revised_prompt_cn = await this.chatFree(`根据提示词{${response.data.data[0].revised_prompt}}, 模拟AI绘画机器人的语气，用中文回复，告诉用户已经画好了`);
-            }
-            catch (error) {
-                revised_prompt_cn = `${prompt} 绘制成功`;
-                common_1.Logger.error("翻译失败: ", error);
-            }
-            result.answer = revised_prompt_cn;
-            result.status = 3;
-            onSuccess(result);
-            return;
-        }
-        catch (error) {
-            result.status = 5;
-            onFailure(result);
-            const status = ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.status) || 500;
-            console.log('draw error: ', JSON.stringify(error), status);
-            const message = (_d = (_c = (_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.error) === null || _d === void 0 ? void 0 : _d.message;
-            if (status === 429) {
-                result.text = '当前请求已过载、请稍等会儿再试试吧！';
-                return result;
-            }
-            if (status === 400 && message.includes('This request has been blocked by our content filters')) {
-                result.text = '您的请求已被系统拒绝。您的提示可能存在一些非法的文本。';
-                return result;
-            }
-            if (status === 400 && message.includes('Billing hard limit has been reached')) {
-                result.text = '当前模型key已被封禁、已冻结当前调用Key、尝试重新对话试试吧！';
-                return result;
-            }
-            if (status === 500) {
-                result.text = '绘制图片失败，请检查你的提示词是否有非法描述！';
-                return result;
-            }
-            if (status === 401) {
-                result.text = '绘制图片失败，此次绘画被拒绝了！';
-                return result;
-            }
-            result.text = '绘制图片失败，请稍后试试吧！';
+            });
             return result;
         }
+        catch (error) {
+            result.errMsg = await this.handleError(error);
+            common_1.Logger.error(result.errMsg);
+            onFailure(result);
+            return;
+        }
+    }
+    async sendMessageFromAi(messagesHistory, inputs, isClientClosed) {
+        if (isClientClosed) {
+            console.log("操作终止，因为客户端已关闭连接");
+            return;
+        }
+        const { onFailure, onProgress, apiKey, model, proxyUrl, modelName, timeout, chatId, isFileUpload } = inputs;
+        let result = { text: '', model: '', modelName: modelName, chatId: chatId, answer: '', errMsg: '' };
+        const options = {
+            method: 'POST',
+            url: `${proxyUrl}/v1/chat/completions`,
+            responseType: "stream",
+            timeout: timeout,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+            },
+            data: Object.assign({ stream: true, model, messages: messagesHistory }, (isFileUpload === 2 && { max_tokens: 2048 })),
+        };
+        try {
+            const response = await (0, axios_1.default)(options);
+            const stream = response.data;
+            await new Promise((resolve, reject) => {
+                stream.on('data', (chunk) => {
+                    const splitArr = chunk.toString().split('\n\n').filter(line => line.trim());
+                    splitArr.forEach(line => {
+                        var _a, _b;
+                        if (line.trim() === "data: [DONE]") {
+                            console.log("处理结束信号 [DONE]");
+                            resolve(result);
+                            return;
+                        }
+                        if (isClientClosed) {
+                            console.log("操作终止，因为客户端已关闭连接");
+                            resolve(result);
+                            return;
+                        }
+                        try {
+                            const cleanedLine = line.replace(/^data: /, '').trim();
+                            if (!cleanedLine)
+                                return;
+                            const jsonLine = JSON.parse(cleanedLine);
+                            if (jsonLine) {
+                                const content = ((_b = (_a = jsonLine.choices[0]) === null || _a === void 0 ? void 0 : _a.delta) === null || _b === void 0 ? void 0 : _b.content) || '';
+                                result.answer += content;
+                                onProgress === null || onProgress === void 0 ? void 0 : onProgress({ text: content, answer: result.answer });
+                            }
+                        }
+                        catch (error) {
+                            common_1.Logger.error('返回格式错误,重新提取回答', error, line);
+                            const contentMatch = line.match(/"content":"([^"]+)"/);
+                            if (contentMatch && contentMatch[1]) {
+                                result.answer += contentMatch[1];
+                                onProgress === null || onProgress === void 0 ? void 0 : onProgress({ text: contentMatch[1], answer: result.answer });
+                            }
+                        }
+                    });
+                });
+                stream.on('error', reject);
+            });
+            return result;
+        }
+        catch (error) {
+            result.errMsg = await this.handleError(error);
+            common_1.Logger.error(result.errMsg);
+            onFailure(result);
+            return result;
+        }
+    }
+    async handleError(error) {
+        let message = '发生未知错误，请稍后再试';
+        if (axios_1.default.isAxiosError(error) && error.response) {
+            switch (error.response.status) {
+                case 400:
+                    message = '发生错误：400 Bad Request - 请求因格式错误无法被服务器处理。';
+                    break;
+                case 401:
+                    message = '发生错误：401 Unauthorized - 请求要求进行身份验证。';
+                    break;
+                case 403:
+                    message = '发生错误：403 Forbidden - 服务器拒绝执行请求。';
+                    break;
+                case 404:
+                    message = '发生错误：404 Not Found - 请求的资源无法在服务器上找到。';
+                    break;
+                case 500:
+                    message = '发生错误：500 Internal Server Error - 服务器内部错误，无法完成请求。';
+                    break;
+                case 502:
+                    message = '发生错误：502 Bad Gateway - 作为网关或代理工作的服务器从上游服务器收到无效响应。';
+                    break;
+                case 503:
+                    message = '发生错误：503 Service Unavailable - 服务器暂时处于超负载或维护状态，无法处理请求。';
+                    break;
+                default:
+                    break;
+            }
+        }
+        else {
+            message = error.message || message;
+        }
+        return message;
     }
     async getTokenCount(text) {
         if (!text)
@@ -1022,7 +1138,7 @@ let ChatService = class ChatService {
             },
             onDrawing: async (data) => {
                 await this.chatLogService.updateChatLog(assistantLogId, {
-                    answer: (data === null || data === void 0 ? void 0 : data.answer) || '绘制中 ... ...',
+                    answer: (data === null || data === void 0 ? void 0 : data.answer) || '绘制中',
                     progress: data === null || data === void 0 ? void 0 : data.progress,
                     status: 2,
                 });
@@ -1030,7 +1146,7 @@ let ChatService = class ChatService {
             },
             onFailure: async (data) => {
                 await this.chatLogService.updateChatLog(assistantLogId, {
-                    answer: '绘图失败 ... ...',
+                    answer: '绘图失败',
                     status: data.status,
                 });
                 common_1.Logger.log('绘图失败');
@@ -1043,7 +1159,7 @@ let ChatService = class ChatService {
     }
     async pollMjDrawingResult(inputs) {
         const { proxyUrl, apiKey, drawId, timeout, onSuccess, prompt, onFailure, onDrawing } = inputs;
-        const { mjNotSaveImg = 1, mjProxyImgUrl = '', mjNotUseProxy = 1, } = await this.globalConfigService.getConfigs([
+        const { mjNotSaveImg, mjProxyImgUrl, mjNotUseProxy, } = await this.globalConfigService.getConfigs([
             'mjNotSaveImg',
             'mjProxyImgUrl',
             'mjNotUseProxy',
@@ -1066,39 +1182,39 @@ let ChatService = class ChatService {
                     const url = `${proxyUrl}/mj/task/${drawId}/fetch`;
                     const res = await axios_1.default.get(url, { headers });
                     const responses = res.data;
-                    let cosUrl;
                     if (responses.status === 'SUCCESS') {
                         common_1.Logger.log(`绘制成功, 获取到的URL: ${responses.imageUrl}`, 'MidjourneyService');
-                        const shouldUseProxy = mjNotSaveImg === '1' && mjNotUseProxy === '0';
-                        const shouldUseOriginalUrl = mjNotSaveImg === '1' && mjNotUseProxy === '1';
+                        let processedUrl = responses.imageUrl;
+                        const shouldReplaceUrl = mjNotUseProxy === '0' && mjProxyImgUrl;
                         let logMessage = '';
-                        if (shouldUseProxy) {
+                        if (shouldReplaceUrl) {
                             const newUrlBase = new URL(mjProxyImgUrl);
                             const parsedUrl = new URL(responses.imageUrl);
                             parsedUrl.protocol = newUrlBase.protocol;
                             parsedUrl.hostname = newUrlBase.hostname;
-                            cosUrl = parsedUrl.toString();
-                            logMessage = `使用代理替换后的 URL: ${cosUrl}`;
+                            parsedUrl.port = newUrlBase.port ? newUrlBase.port : '';
+                            processedUrl = parsedUrl.toString();
+                            logMessage = `使用代理替换后的 URL: ${processedUrl}`;
+                            common_1.Logger.log(logMessage, 'MidjourneyService');
                         }
-                        else if (shouldUseOriginalUrl) {
-                            cosUrl = responses.imageUrl;
-                            logMessage = `使用原始图片链接 ${cosUrl}`;
-                        }
-                        else {
+                        if (mjNotSaveImg !== '1') {
                             try {
                                 common_1.Logger.debug(`------> 开始上传图片！！！`);
                                 const filename = `${Date.now()}-${uuid.v4().slice(0, 4)}.png`;
-                                cosUrl = await this.uploadService.uploadFileFromUrl({ filename, url: responses.imageUrl });
-                                logMessage = `上传成功 URL: ${cosUrl}`;
+                                processedUrl = await this.uploadService.uploadFileFromUrl({ filename, url: processedUrl });
+                                logMessage = `上传成功 URL: ${processedUrl}`;
                             }
                             catch (uploadError) {
-                                common_1.Logger.error('存储图片失败，使用原始图片链接');
-                                cosUrl = responses.imageUrl;
-                                logMessage = `存储图片失败，使用原始图片链接 ${cosUrl}`;
+                                common_1.Logger.error('存储图片失败，使用原始/代理图片链接');
+                                logMessage = `存储图片失败，使用原始/代理图片链接 ${processedUrl}`;
                             }
+                            common_1.Logger.log(logMessage, 'MidjourneyService');
                         }
-                        common_1.Logger.log(logMessage, 'MidjourneyService');
-                        result.fileInfo = cosUrl;
+                        else {
+                            logMessage = `不保存图片，使用 URL: ${processedUrl}`;
+                            common_1.Logger.log(logMessage, 'MidjourneyService');
+                        }
+                        result.fileInfo = processedUrl;
                         result.drawId = responses.id;
                         result.customId = JSON.stringify(responses.buttons);
                         result.answer = `${prompt}\n${responses.finalPrompt || responses.properties.finalPrompt || ''}`;
@@ -1130,18 +1246,19 @@ let ChatService = class ChatService {
 };
 ChatService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_2.InjectRepository)(config_entity_1.ConfigEntity)),
-    __param(1, (0, typeorm_2.InjectRepository)(chatBoxType_entity_1.ChatBoxTypeEntity)),
-    __param(2, (0, typeorm_2.InjectRepository)(chatBox_entity_1.ChatBoxEntity)),
-    __param(3, (0, typeorm_2.InjectRepository)(app_entity_1.AppEntity)),
-    __param(4, (0, typeorm_2.InjectRepository)(chatPreType_entity_1.ChatPreTypeEntity)),
-    __param(5, (0, typeorm_2.InjectRepository)(chatPre_entity_1.ChatPreEntity)),
-    __metadata("design:paramtypes", [typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository,
+    __param(0, (0, typeorm_1.InjectRepository)(config_entity_1.ConfigEntity)),
+    __param(1, (0, typeorm_1.InjectRepository)(chatBoxType_entity_1.ChatBoxTypeEntity)),
+    __param(2, (0, typeorm_1.InjectRepository)(chatBox_entity_1.ChatBoxEntity)),
+    __param(3, (0, typeorm_1.InjectRepository)(app_entity_1.AppEntity)),
+    __param(4, (0, typeorm_1.InjectRepository)(chatPreType_entity_1.ChatPreTypeEntity)),
+    __param(5, (0, typeorm_1.InjectRepository)(chatPre_entity_1.ChatPreEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        apiDataService_service_1.ApiDataService,
         chatLog_service_1.ChatLogService,
         nestjs_config_1.ConfigService,
         userBalance_service_1.UserBalanceService,

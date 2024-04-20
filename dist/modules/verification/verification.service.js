@@ -13,14 +13,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VerificationService = void 0;
+const utils_1 = require("../../common/utils");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
-const status_constant_1 = require("./../../common/constants/status.constant");
+const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const verifycation_entity_1 = require("./verifycation.entity");
-const common_1 = require("@nestjs/common");
-const utils_1 = require("../../common/utils");
 const redisCache_service_1 = require("../redisCache/redisCache.service");
+const status_constant_1 = require("./../../common/constants/status.constant");
+const verifycation_entity_1 = require("./verifycation.entity");
 const Core = require("@alicloud/pop-core");
 let VerificationService = class VerificationService {
     constructor(verifycationEntity, globalConfigService, redisCacheService) {
@@ -76,6 +76,7 @@ let VerificationService = class VerificationService {
     async sendPhoneCode(messageInfo) {
         var _a;
         const { accessKeyId, accessKeySecret, SignName, TemplateCode } = await this.globalConfigService.getPhoneVerifyConfig();
+        console.log("Received messageInfo:", messageInfo);
         const { phone, code } = messageInfo;
         if (!phone || !code) {
             throw new common_1.HttpException('确实必要参数错误！', common_1.HttpStatus.BAD_REQUEST);

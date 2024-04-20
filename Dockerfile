@@ -4,6 +4,9 @@ FROM node:18-alpine AS build
 WORKDIR /app
 COPY . .
 
+# 使用腾讯源（国内服务器可取消下方注释以提升安装速度）
+# RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
+
 # 使用 pnpm 安装项目依赖
 RUN npm install -g pnpm
 RUN pnpm install

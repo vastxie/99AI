@@ -13,15 +13,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GlobalConfigService = void 0;
-const models_service_1 = require("./../models/models.service");
-const chatLog_entity_1 = require("./../chatLog/chatLog.entity");
-const common_1 = require("@nestjs/common");
-const config_entity_1 = require("./config.entity");
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
 const utils_1 = require("../../common/utils");
+const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const axios_1 = require("axios");
 const fs = require("fs");
+const typeorm_2 = require("typeorm");
+const chatLog_entity_1 = require("./../chatLog/chatLog.entity");
+const models_service_1 = require("./../models/models.service");
+const config_entity_1 = require("./config.entity");
 const packageJsonContent = fs.readFileSync('package.json', 'utf-8');
 const packageJson = JSON.parse(packageJsonContent);
 const version = packageJson.version;
@@ -356,7 +356,7 @@ let GlobalConfigService = class GlobalConfigService {
         };
     }
     getNamespace() {
-        return process.env.NAMESPACE || 'NINEAI';
+        return process.env.NAMESPACE || 'AIWeb';
     }
     async getSignatureGiftConfig() {
         const { signInStatus = 0, signInModel3Count = 0, signInModel4Count = 0, signInMjDrawToken = 0, } = await this.getConfigs(['signInStatus', 'signInModel3Count', 'signInModel4Count', 'signInMjDrawToken']);

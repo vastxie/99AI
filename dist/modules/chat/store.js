@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NineStore = void 0;
-const uuid_1 = require("uuid");
 const tiktoken_1 = require("@dqbd/tiktoken");
+const uuid_1 = require("uuid");
 const tokenizer = (0, tiktoken_1.get_encoding)('cl100k_base');
 class NineStore {
     constructor(options) {
@@ -29,10 +29,14 @@ class NineStore {
         let { systemMessage = '', fileInfo, model, groupId, maxRounds = 5, maxModelTokens = 4000, isFileUpload = 0 } = options;
         let messages = [];
         if (systemMessage) {
+            console.log('Adding system message:', systemMessage);
             messages.push({ role: 'system', content: systemMessage });
         }
         if (groupId) {
+            console.log('Querying chat history for groupId:', groupId, 'with maxRounds:', maxRounds);
             const history = await chatLogService.chatHistory(groupId, maxRounds);
+            console.log('Received history records:', history.length);
+            let tempUserMessage = null;
             history.forEach((record) => {
                 let content;
                 if (isFileUpload === 2 && record.fileInfo) {
@@ -47,7 +51,14 @@ class NineStore {
                 else {
                     content = record.text;
                 }
-                messages.push({ role: record.role, content });
+                if (record.role === 'user') {
+                    tempUserMessage = { role: record.role, content };
+                }
+                else if (record.role === 'assistant' && tempUserMessage && content.trim() !== '') {
+                    messages.push(tempUserMessage);
+                    messages.push({ role: record.role, content });
+                    tempUserMessage = null;
+                }
             });
         }
         let currentMessageContent;
@@ -66,18 +77,29 @@ class NineStore {
         messages.push({ role: 'user', content: currentMessageContent });
         let totalTokens = await this._getTokenCount(messages);
         while (totalTokens > maxModelTokens / 2) {
-            let foundNonSystemMessage = false;
+            if (messages.length === 2 && messages[0].role === 'system' && messages[1].role === 'user') {
+                break;
+            }
+            let foundPairToDelete = false;
             for (let i = 0; i < messages.length; i++) {
-                if (messages[i].role !== 'system') {
+                if (messages[i].role !== 'system' && messages[i + 1] && messages[i + 1].role === 'assistant') {
                     messages.splice(i, 2);
-                    foundNonSystemMessage = true;
+                    foundPairToDelete = true;
                     break;
                 }
             }
-            if (!foundNonSystemMessage) {
-                break;
+            if (!foundPairToDelete) {
+                for (let i = 0; i < messages.length; i++) {
+                    if (messages[i].role === 'user') {
+                        messages.splice(i, 1);
+                        break;
+                    }
+                }
             }
             totalTokens = await this._getTokenCount(messages);
+            if (messages.length <= 2) {
+                break;
+            }
         }
         return {
             messagesHistory: messages,

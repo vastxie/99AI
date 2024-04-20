@@ -8,8 +8,8 @@ services:
     volumes:
       - ./data/mysql/:/var/lib/mysql/
       - ./sql/:/docker-entrypoint-initdb.d/ #数据库文件放此目录可自动导入
-#    ports:
-#     - "3306:3306"
+    # ports:
+    #   - "3306:3306"
     environment:
       TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: "123456"
@@ -17,23 +17,20 @@ services:
       MYSQL_USER: "chatgpt"
       MYSQL_PASSWORD: "123456"
 
-
   redis:
     image: redis
     # command: --requirepass "12345678" # redis库密码,不需要密码注释本行
     restart: always
-#    ports:
-#      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
     environment:
       TZ: Asia/Shanghai # 指定时区
     volumes:
       - ./data/redis/:/data/
 
-
-  nineai-open:
-#    image: buqian/99ai
+  99ai:
     build: ./
-    container_name: nineai-open
+    container_name: 99ai
     restart: always
     ports:
       - "9520:9520"
@@ -44,6 +41,3 @@ services:
     depends_on:
       - mysql
       - redis
-
-
-

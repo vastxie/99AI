@@ -39,6 +39,16 @@ __decorate([
     __metadata("design:type", String)
 ], CreateAppDto.prototype, "preset", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: 'GPTs 的调用ID', description: 'GPTs 使用的 ID', required: false }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateAppDto.prototype, "gizmoID", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '是否GPTs', required: false }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateAppDto.prototype, "isGPTs", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ example: 'https://xxxx.png', description: '套餐封面图片', required: false }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)

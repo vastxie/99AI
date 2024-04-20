@@ -13,20 +13,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatLogService = void 0;
+const balance_constant_1 = require("../../common/constants/balance.constant");
+const utils_1 = require("../../common/utils");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const chatLog_entity_1 = require("./chatLog.entity");
-const typeorm_2 = require("typeorm");
-const balance_constant_1 = require("../../common/constants/balance.constant");
-const user_entity_1 = require("../user/user.entity");
-const utils_1 = require("../../common/utils");
 const exceljs_1 = require("exceljs");
+const typeorm_2 = require("typeorm");
 const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
+const user_entity_1 = require("../user/user.entity");
+const chatLog_entity_1 = require("./chatLog.entity");
+const models_service_1 = require("../models/models.service");
 let ChatLogService = class ChatLogService {
-    constructor(chatLogEntity, userEntity, chatGroupEntity) {
+    constructor(chatLogEntity, userEntity, chatGroupEntity, modelsService) {
         this.chatLogEntity = chatLogEntity;
         this.userEntity = userEntity;
         this.chatGroupEntity = chatGroupEntity;
+        this.modelsService = modelsService;
     }
     async saveChatLog(logInfo) {
         const savedLog = await this.chatLogEntity.save(logInfo);
@@ -71,14 +73,11 @@ let ChatLogService = class ChatLogService {
     }
     async querAllDrawLog(params) {
         const { page = 1, size = 20, rec, userId, model } = params;
-        const where = { type: balance_constant_1.ChatType.PAINT, prompt: (0, typeorm_2.Not)(''), answer: (0, typeorm_2.Not)('') };
+        const where = { type: 2, prompt: (0, typeorm_2.Not)(''), answer: (0, typeorm_2.Not)(''), fileInfo: (0, typeorm_2.Not)(''), };
         rec && Object.assign(where, { rec });
         userId && Object.assign(where, { userId });
         if (model) {
             where.model = model;
-            if (model === 'DALL-E2') {
-                where.model = (0, typeorm_2.In)(['DALL-E2', 'dall-e-3']);
-            }
         }
         const [rows, count] = await this.chatLogEntity.findAndCount({
             order: { id: 'DESC' },
@@ -88,25 +87,23 @@ let ChatLogService = class ChatLogService {
         });
         rows.forEach((r) => {
             var _a;
-            if (r.type === 'paintCount') {
-                const w = r.model === 'mj' ? 310 : 160;
-                const imgType = r.answer.includes('cos') ? 'tencent' : 'ali';
-                const compress = imgType === 'tencent' ? `?imageView2/1/w/${w}/q/55` : `?x-oss-process=image/resize,w_${w}`;
-                r.thumbImg = r.answer + compress;
-                try {
-                    const detailInfo = r.extend ? JSON.parse(r.extend) : null;
+            const w = r.model === 'midjourney' ? 310 : 160;
+            const imgType = r.answer.includes('cos') ? 'tencent' : 'ali';
+            const compress = imgType === 'tencent' ? `?imageView2/1/w/${w}/q/55` : `?x-oss-process=image/resize,w_${w}`;
+            r.thumbImg = r.answer + compress;
+            try {
+                const detailInfo = r.extend ? JSON.parse(r.extend) : null;
+                if (detailInfo) {
                     if (detailInfo) {
-                        if (detailInfo) {
-                            r.isGroup = ((_a = detailInfo === null || detailInfo === void 0 ? void 0 : detailInfo.components[0]) === null || _a === void 0 ? void 0 : _a.components.length) === 5;
-                        }
-                        else {
-                            r.isGroup = false;
-                        }
+                        r.isGroup = ((_a = detailInfo === null || detailInfo === void 0 ? void 0 : detailInfo.components[0]) === null || _a === void 0 ? void 0 : _a.components.length) === 5;
+                    }
+                    else {
+                        r.isGroup = false;
                     }
                 }
-                catch (error) {
-                    console.log('querAllDrawLog Json parse error', error);
-                }
+            }
+            catch (error) {
+                console.log('querAllDrawLog Json parse error', error);
             }
         });
         return { rows, count };
@@ -207,7 +204,7 @@ let ChatLogService = class ChatLogService {
         }
         const list = await this.chatLogEntity.find({ where });
         return list.map((item) => {
-            const { prompt, role, answer, createdAt, model, modelName, type, status, action, drawId, id, fileInfo, ttsUrl, customId } = item;
+            const { prompt, role, answer, createdAt, model, modelName, type, status, action, drawId, id, fileInfo, ttsUrl, customId, pluginParam } = item;
             return {
                 chatId: id,
                 dateTime: (0, utils_1.formatDate)(createdAt),
@@ -223,15 +220,19 @@ let ChatLogService = class ChatLogService {
                 ttsUrl: ttsUrl,
                 model: model,
                 modelName: modelName,
+                pluginParam: pluginParam,
             };
         });
     }
     async chatHistory(groupId, rounds) {
+        if (rounds === 0) {
+            return [];
+        }
         const where = { isDelete: false, groupId: groupId };
         const list = await this.chatLogEntity.find({
             where,
             order: {
-                createdAt: 'ASC'
+                createdAt: 'DESC'
             },
             take: rounds * 2
         });
@@ -242,7 +243,7 @@ let ChatLogService = class ChatLogService {
                 text: role === 'user' ? prompt : answer,
                 fileInfo: fileInfo,
             };
-        });
+        }).reverse();
     }
     async deleteChatLog(req, body) {
         const { id: userId } = req.user;
@@ -285,6 +286,28 @@ let ChatLogService = class ChatLogService {
         });
         return { rows, count };
     }
+    async checkModelLimits(userId, model) {
+        const oneHourAgo = new Date(Date.now() - 3600 * 1000);
+        let adjustedUsageCount;
+        try {
+            const usageCount = await this.chatLogEntity.count({
+                where: {
+                    userId: userId.id,
+                    model,
+                    createdAt: (0, typeorm_2.MoreThan)(oneHourAgo),
+                }
+            });
+            adjustedUsageCount = Math.ceil(usageCount / 2);
+            common_1.Logger.debug(`用户ID: ${userId.id} 模型: ${model} 一小时内已调用: ${adjustedUsageCount} 次`);
+        }
+        catch (error) {
+            common_1.Logger.error(`查询数据库出错 - 用户ID: ${userId}, 模型: ${model}, 错误信息: ${error.message}`);
+        }
+        const modelInfo = await this.modelsService.getCurrentModelKeyInfo(model);
+        if (adjustedUsageCount > modelInfo.modelLimits) {
+            throw new common_1.HttpException('1 小时内请求次数过多，请稍后再试！', common_1.HttpStatus.TOO_MANY_REQUESTS);
+        }
+    }
 };
 ChatLogService = __decorate([
     (0, common_1.Injectable)(),
@@ -293,6 +316,7 @@ ChatLogService = __decorate([
     __param(2, (0, typeorm_1.InjectRepository)(chatGroup_entity_1.ChatGroupEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        models_service_1.ModelsService])
 ], ChatLogService);
 exports.ChatLogService = ChatLogService;

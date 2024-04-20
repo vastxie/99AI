@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
 const swagger_1 = require("@nestjs/swagger");
 const userBalance_service_1 = require("./userBalance.service");
-const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 let UserBalanceController = class UserBalanceController {
     constructor(userBalanceService) {
@@ -31,9 +30,6 @@ let UserBalanceController = class UserBalanceController {
     }
     async getBalance(req) {
         return this.userBalanceService.queryUserBalance(req.user.id);
-    }
-    async upgradeBalance() {
-        return this.userBalanceService.upgradeBalance();
     }
     async inheritVisitorData(req) {
         return this.userBalanceService.inheritVisitorData(req);
@@ -74,15 +70,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserBalanceController.prototype, "getBalance", null);
-__decorate([
-    (0, common_1.Post)('upgradeBalance'),
-    (0, swagger_1.ApiOperation)({ summary: '升级V1.5 数据迁移job' }),
-    (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], UserBalanceController.prototype, "upgradeBalance", null);
 __decorate([
     (0, common_1.Post)('inheritVisitorData'),
     (0, swagger_1.ApiOperation)({ summary: '继承当前设备数据' }),

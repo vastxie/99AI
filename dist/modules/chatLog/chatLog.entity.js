@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatLogEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let ChatLogEntity = class ChatLogEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([
@@ -42,6 +42,10 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '附加参数', nullable: true }),
     __metadata("design:type", String)
 ], ChatLogEntity.prototype, "extraParam", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '插件参数', nullable: true }),
+    __metadata("design:type", String)
+], ChatLogEntity.prototype, "pluginParam", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: '回答的答案', type: 'text', nullable: true }),
     __metadata("design:type", String)

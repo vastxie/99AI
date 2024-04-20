@@ -13,12 +13,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueueService = void 0;
-const bull_1 = require("@nestjs/bull");
 const utils_1 = require("../../common/utils");
-const midjourney_service_1 = require("../midjourney/midjourney.service");
-const userBalance_service_1 = require("../userBalance/userBalance.service");
+const bull_1 = require("@nestjs/bull");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const midjourney_service_1 = require("../midjourney/midjourney.service");
 const models_service_1 = require("../models/models.service");
+const userBalance_service_1 = require("../userBalance/userBalance.service");
 let QueueService = class QueueService {
     constructor(mjDrawQueue, midjourneyService, userBalanceService, globalConfigService, modelsService) {
         this.mjDrawQueue = mjDrawQueue;

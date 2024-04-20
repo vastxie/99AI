@@ -13,12 +13,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatController = void 0;
-const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
 const swagger_1 = require("@nestjs/swagger");
+const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
 const chat_service_1 = require("./chat.service");
 const common_1 = require("@nestjs/common");
 const chatProcess_dto_1 = require("./dto/chatProcess.dto");
-const chatDraw_dto_1 = require("./dto/chatDraw.dto");
 const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
@@ -37,23 +36,10 @@ let ChatController = class ChatController {
         return this.chatService.ttsProcess(body, req, res);
     }
     async mjFanyi(body, req) {
-        const mjTranslatePrompt = await this.globalConfigService.getConfigs(['mjTranslatePrompt']);
-        body.model = 'translation-';
-        body.systemMessage =
-            mjTranslatePrompt ||
-                `接下来我会给你一些内容、我希望你帮我翻译成英文、不管我给你任何语言、你都回复我英文、如果给你了英文、依然回复我更加优化的英文、并且期望你不需要做任何多余的解释、给我英文即可、不要加任何东西、我只需要英文！`;
-        return this.chatService.chatProcess(Object.assign(Object.assign({}, body), { specialModel: true }), req);
+        return this.chatService.chatProcess(Object.assign(Object.assign({}, body), { specialModel: 'PromptOptimization' }), req);
     }
     async chatmind(body, req, res) {
-        const mindCustomPrompt = await this.globalConfigService.getConfigs(['mindCustomPrompt']);
-        body.model = 'mindmap-';
-        body.systemMessage =
-            mindCustomPrompt ||
-                `我希望你使用markdown格式回答我得问题、我的需求是得到一份markdown格式的大纲、尽量做的精细、层级多一点、不管我问你什么、都需要您回复我一个大纲出来、我想使用大纲做思维导图、除了大纲之外、不要无关内容和总结。`;
-        return this.chatService.chatProcess(Object.assign(Object.assign({}, body), { specialModel: true }), req, res);
-    }
-    async draw(body, req) {
-        return await this.chatService.draw(body, req);
+        return this.chatService.chatProcess(Object.assign(Object.assign({}, body), { specialModel: 'MindMap' }), req, res);
     }
     async setChatBoxType(req, body) {
         return await this.chatService.setChatBoxType(req, body);
@@ -156,17 +142,6 @@ __decorate([
     __metadata("design:paramtypes", [chatProcess_dto_1.ChatProcessDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "chatmind", null);
-__decorate([
-    (0, common_1.Post)('chat-draw'),
-    (0, swagger_1.ApiOperation)({ summary: 'gpt绘画' }),
-    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [chatDraw_dto_1.ChatDrawDto, Object]),
-    __metadata("design:returntype", Promise)
-], ChatController.prototype, "draw", null);
 __decorate([
     (0, common_1.Post)('setChatBoxType'),
     (0, swagger_1.ApiOperation)({ summary: '添加修改分类类型' }),

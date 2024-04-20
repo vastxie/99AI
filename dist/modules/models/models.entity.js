@@ -98,6 +98,10 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '当前模型的代理地址', nullable: true }),
     __metadata("design:type", String)
 ], ModelsEntity.prototype, "proxyUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '模型频率限制 次/小时', default: 999 }),
+    __metadata("design:type", Number)
+], ModelsEntity.prototype, "modelLimits", void 0);
 ModelsEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'models' })
 ], ModelsEntity);

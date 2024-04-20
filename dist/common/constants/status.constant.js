@@ -7,7 +7,7 @@ var VerificationUseStatusEnum;
     VerificationUseStatusEnum[VerificationUseStatusEnum["USED"] = 1] = "USED";
 })(VerificationUseStatusEnum = exports.VerificationUseStatusEnum || (exports.VerificationUseStatusEnum = {}));
 exports.ModelsMapCn = {
-    1: 'AI 模型',
-    2: '百度千帆大模型',
-    3: '清华智谱大模型'
+    1: '普通模型',
+    2: '绘画模型',
+    3: '特殊模型'
 };

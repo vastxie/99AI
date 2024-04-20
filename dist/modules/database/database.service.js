@@ -11,8 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseService = void 0;
 const common_1 = require("@nestjs/common");
-const typeorm_1 = require("typeorm");
 const bcrypt = require("bcryptjs");
+const typeorm_1 = require("typeorm");
 let DatabaseService = class DatabaseService {
     constructor(connection) {
         this.connection = connection;
@@ -20,6 +20,7 @@ let DatabaseService = class DatabaseService {
     async onModuleInit() {
         await this.checkSuperAdmin();
         await this.checkSiteBaseConfig();
+        await this.createSystemReservedApps();
     }
     async checkSuperAdmin() {
         const user = await this.connection.query(`SELECT * FROM users WHERE role = 'super'`);
@@ -91,25 +92,6 @@ let DatabaseService = class DatabaseService {
                 { configKey: 'openaiBaseKey', configVal: 'sk-', public: 0, encry: 0 },
                 { configKey: 'mjTranslatePrompt', configVal: `Translate any given phrase from any language into English. For instance, when I input '{可爱的熊猫}', you should output '{cute panda}', with no period at the end.`, public: 0, encry: 0 },
                 { configKey: 'noticeInfo', configVal: noticeInfo, public: 1, encry: 0 },
-                { configKey: 'registerVerifyEmailTitle', configVal: 'AIWeb账号验证', public: 0, encry: 0 },
-                {
-                    configKey: 'registerVerifyEmailDesc',
-                    configVal: '欢迎使用AI Web团队的产品服务,请在五分钟内完成你的账号激活,点击以下按钮激活您的账号，',
-                    public: 0,
-                    encry: 0,
-                },
-                { configKey: 'registerVerifyEmailFrom', configVal: 'AI Web团队', public: 0, encry: 0 },
-                { configKey: 'registerVerifyExpir', configVal: '1800', public: 0, encry: 0 },
-                { configKey: 'registerSuccessEmailTitle', configVal: 'AIWeb账号激活成功', public: 0, encry: 0 },
-                { configKey: 'registerSuccessEmailTeamName', configVal: 'AIWeb', public: 0, encry: 0 },
-                {
-                    configKey: 'registerSuccessEmaileAppend',
-                    configVal: ',请妥善保管您的账号，祝您使用愉快',
-                    public: 0,
-                    encry: 0,
-                },
-                { configKey: 'registerFailEmailTitle', configVal: 'AIWeb账号激活失败', public: 0, encry: 0 },
-                { configKey: 'registerFailEmailTeamName', configVal: 'AIWeb团队', public: 0, encry: 0 },
                 { configKey: 'registerSendStatus', configVal: '1', public: 1, encry: 0 },
                 { configKey: 'registerSendModel3Count', configVal: '30', public: 1, encry: 0 },
                 { configKey: 'registerSendModel4Count', configVal: '3', public: 1, encry: 0 },
@@ -136,6 +118,26 @@ let DatabaseService = class DatabaseService {
         catch (error) {
             console.log('error: ', error);
             throw new common_1.HttpException('创建默认网站配置失败！', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async createSystemReservedApps() {
+        const systemApps = [
+            { name: "提示词优化PromptOptimization", catId: 9900, des: "PromptOptimization", preset: "Translate any given phrase from any language into English. For instance, when I input '{可爱的熊猫}', you should output '{cute panda}', with no period at the end.", appModel: "gpt-3.5-turbo", isFixedModel: 1, isSystemReserved: 1 },
+            { name: "思维导图MindMap", catId: 9900, des: "MindMap", preset: "我希望你使用markdown格式回答我得问题、我的需求是得到一份markdown格式的大纲、尽量做的精细、层级多一点、不管我问你什么、都需要您回复我一个大纲出来、我想使用大纲做思维导图、除了大纲之外、不要无关内容和总结。", appModel: "gpt-3.5-turbo", isFixedModel: 1, isSystemReserved: 1 },
+        ];
+        try {
+            for (const app of systemApps) {
+                const result = await this.connection.query(`SELECT COUNT(*) AS count FROM app WHERE name = ? AND des = ? AND isSystemReserved = ?`, [app.name, app.des, app.isSystemReserved]);
+                const count = parseInt(result[0].count, 10);
+                if (count === 0) {
+                    await this.connection.query(`INSERT INTO app (name, catId, des, preset, appModel, isFixedModel, isSystemReserved) VALUES (?, ?, ?, ?, ?, ?, ?)`, [app.name, app.catId, app.des, app.preset, app.appModel, app.isFixedModel, app.isSystemReserved]);
+                    common_1.Logger.log(`系统预留应用${app.name}创建成功`, 'DatabaseService');
+                }
+            }
+        }
+        catch (error) {
+            console.log('创建系统预留应用过程中出现错误: ', error);
+            throw new Error('创建系统预留应用失败！');
         }
     }
 };
