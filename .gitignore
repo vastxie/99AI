@@ -2,4 +2,3 @@ node_modules
 pnpm-lock.yaml
 sql
 data
-.env.docker
