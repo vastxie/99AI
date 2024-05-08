@@ -3,7 +3,8 @@ version: '3.9'
 services:
   mysql:
     image: mysql:8
-    command: --default-authentication-plugin=caching_sha2_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --mysql-native-password=ON --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    # command: --default-authentication-plugin=caching_sha2_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     volumes:
       - ./data/mysql/:/var/lib/mysql/
