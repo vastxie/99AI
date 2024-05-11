@@ -224,22 +224,45 @@ let ChatService = class ChatService {
         if (groupId) {
             groupInfo = await this.chatGroupService.getGroupInfoFromId(groupId);
         }
-        if ((groupInfo === null || groupInfo === void 0 ? void 0 : groupInfo.title) === '新对话') {
-            let chatTitle;
-            if (modelType === 1) {
-                chatTitle = await this.apiDataService.chatFree(`根据用户提问{${prompt}}，给这个对话取一个名字，不超过10个字`);
+        // if ((groupInfo === null || groupInfo === void 0 ? void 0 : groupInfo.title) === '新对话') {
+        //     let chatTitle;
+        //     if (modelType === 1) {
+        //         chatTitle = await this.apiDataService.chatFree(`根据用户提问{${prompt}}，给这个对话取一个名字，不超过10个字`);
+        //     }
+        //     else {
+        //         chatTitle = '创意 AI';
+        //     }
+        //     await this.chatGroupService.update({
+        //         groupId,
+        //         title: chatTitle,
+        //         isSticky: false,
+        //         config: '',
+        //     }, req);
+        //     common_1.Logger.log(`更新标题名称为: ${chatTitle}`);
+        // }
+
+        //将更新标题名称的代码改为异步函数
+        const updateTitleAsync = async () => {
+            if ((groupInfo === null || groupInfo === void 0 ? void 0 : groupInfo.title) === '新对话') {
+                let chatTitle;
+                if (modelType === 1) {
+                    chatTitle = await this.apiDataService.chatFree(`根据用户提问{${prompt}}，给这个对话取一个名字，不超过10个字`);
+                }
+                else {
+                    chatTitle = '创意 AI';
+                }
+                await this.chatGroupService.update({
+                    groupId,
+                    title: chatTitle,
+                    isSticky: false,
+                    config: '',
+                }, req);
+                common_1.Logger.log(`${groupId} 更新标题名称为: ${chatTitle}`);
             }
-            else {
-                chatTitle = '创意 AI';
-            }
-            await this.chatGroupService.update({
-                groupId,
-                title: chatTitle,
-                isSticky: false,
-                config: '',
-            }, req);
-            common_1.Logger.log(`更新标题名称为: ${chatTitle}`);
-        }
+        };
+        
+        // 调用异步函数
+        updateTitleAsync();
         if (groupId) {
             await this.chatGroupService.updateTime(groupId);
         }
