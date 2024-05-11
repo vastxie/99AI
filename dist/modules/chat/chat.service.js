@@ -240,7 +240,7 @@ let ChatService = class ChatService {
         //     }, req);
         //     common_1.Logger.log(`更新标题名称为: ${chatTitle}`);
         // }
-        
+
         //将更新标题名称的代码改为异步函数
         const updateTitleAsync = async () => {
             if ((groupInfo === null || groupInfo === void 0 ? void 0 : groupInfo.title) === '新对话') {
@@ -257,7 +257,7 @@ let ChatService = class ChatService {
                     isSticky: false,
                     config: '',
                 }, req);
-                common_1.Logger.log(`更新标题名称为: ${chatTitle}`);
+                common_1.Logger.log(`${groupId} 更新标题名称为: ${chatTitle}`);
             }
         };
         
