@@ -251,6 +251,8 @@ let ChatService = class ChatService {
                 else {
                     chatTitle = '创意 AI';
                 }
+                //防止回答超过很多个字，在这里预防一下
+                chatTitle = chatTitle.length > 20 ? chatTitle.slice(0, 20) : chatTitle;
                 await this.chatGroupService.update({
                     groupId,
                     title: chatTitle,
