@@ -994,38 +994,42 @@ let ChatService = class ChatService {
         }
     }
     async sendMessageFromAi(messagesHistory, inputs, isClientClosed) {
-        if (isClientClosed) {
-            console.log("操作终止，因为客户端已关闭连接");
-            return;
-        }
-        const { onFailure, onProgress, apiKey, model, proxyUrl, modelName, timeout, chatId, isFileUpload } = inputs;
-        let result = { text: '', model: '', modelName: modelName, chatId: chatId, answer: '', errMsg: '' };
+        const { onFailure, onProgress, apiKey, model, proxyUrl, modelName, timeout, chatId, isFileUpload, modelAvatar, temperature, } = inputs;
+        let result = {
+            text: '',
+            model: '',
+            modelName: modelName,
+            chatId: chatId,
+            answer: '',
+            errMsg: '',
+            modelAvatar: modelAvatar,
+        };
         const options = {
             method: 'POST',
             url: `${proxyUrl}/v1/chat/completions`,
-            responseType: "stream",
+            responseType: 'stream',
             timeout: timeout,
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
             },
-            data: Object.assign({ stream: true, model, messages: messagesHistory }, (isFileUpload === 2 && { max_tokens: 2048 })),
+            data: Object.assign({ stream: true, model, temperature: temperature, messages: messagesHistory }, (isFileUpload === 2 && { max_tokens: 2048 })),
         };
         try {
             const response = await (0, axios_1.default)(options);
             const stream = response.data;
             await new Promise((resolve, reject) => {
                 stream.on('data', (chunk) => {
-                    const splitArr = chunk.toString().split('\n\n').filter(line => line.trim());
-                    splitArr.forEach(line => {
+                    const pattern = /(?<=\})(\n\n)(?=data)/g;
+                    const splitArr = chunk
+                        .toString()
+                        .split(pattern)
+                        .filter((line) => line.trim());
+                    // common_1.Logger.log('splitArr', splitArr);
+                    splitArr.forEach((line) => {
                         var _a, _b;
-                        if (line.trim() === "data: [DONE]") {
-                            console.log("处理结束信号 [DONE]");
-                            resolve(result);
-                            return;
-                        }
-                        if (isClientClosed) {
-                            console.log("操作终止，因为客户端已关闭连接");
+                        if (line.trim() === 'data: [DONE]') {
+                            console.log('处理结束信号 [DONE]');
                             resolve(result);
                             return;
                         }
@@ -1041,7 +1045,6 @@ let ChatService = class ChatService {
                             }
                         }
                         catch (error) {
-                            common_1.Logger.error('返回格式错误,重新提取回答', error, line);
                             const contentMatch = line.match(/"content":"([^"]+)"/);
                             if (contentMatch && contentMatch[1]) {
                                 result.answer += contentMatch[1];
