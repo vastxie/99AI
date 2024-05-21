@@ -7,16 +7,12 @@ COPY package.json ./
 # 使用腾讯源（国内服务器可取消下方注释以提升安装速度）
 # RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
 
-# 使用淘宝源（国内服务器可取消下方注释以提升安装速度）
-# RUN npm config set registry https://registry.npmmirror.com
-
 # 如遇到提示网站证书无效，取消下方注释，禁止严格SS策略
 # RUN npm config set strict-ssl false
 
-# 安装项目依赖
-RUN apk add --no-cache --virtual .build-deps git && \
-    npm install --omit=dev && \
-    apk del .build-deps
+# 使用淘宝源安装项目依赖（国内用户居多）
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install --omit=dev
 
 
 # 运行阶段
