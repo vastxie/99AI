@@ -2,7 +2,7 @@
 
 99AI：基于 NineAI 2.4.2 二开的可商业化 AI Web 应用（免授权，无后门，非盗版，已整合前后端整合包，支持 Docker 快速部署）。
 
-未编译源码暂不开源，相比稳定版，开发版进度更快一些。
+版本说明：未编译源码暂不开源，相比稳定版，开发版进度更快一些。稳定版月更，开发版周更。
 
 ## 页面预览
 
@@ -288,3 +288,7 @@
 扫码添加微信备注 `99`，拉交流群。（不接受私聊技术咨询，有问题优先群内交流）
 
 <img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/ee20578f-063d-48d8-bff6-85ac3e38fe60" width="300">
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=vastxie/99AI&type=Date)](https://star-history.com/#vastxie/99AI&Date)
