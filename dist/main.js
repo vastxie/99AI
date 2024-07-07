@@ -12,7 +12,6 @@ const crypto_1 = require("crypto");
 const Dotenv = require("dotenv");
 const xmlBodyParser = require("express-xml-bodyparser");
 const ioredis_1 = require("ioredis");
-const path_1 = require("path");
 const app_module_1 = require("./app.module");
 Dotenv.config({ path: '.env' });
 async function bootstrap() {
@@ -32,7 +31,6 @@ async function bootstrap() {
     await (0, initDatabase_1.initDatabase)();
     app.useLogger(app.get(custom_logger_service_1.CustomLoggerService));
     app.use(compression());
-    const www = (0, path_1.resolve)(__dirname, './public');
     app.use(xmlBodyParser());
     app.enableCors();
     app.setGlobalPrefix('/api');

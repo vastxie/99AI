@@ -49,7 +49,11 @@ AppModule = __decorate([
         imports: [
             database_module_1.DatabaseModule,
             serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'public/admin'),
+                serveRoot: '/admin',
+            }, {
                 rootPath: (0, path_1.join)(__dirname, '..', 'public'),
+                serveRoot: '/',
             }),
             user_module_1.UserModule,
             plugin_module_1.PluginModule,

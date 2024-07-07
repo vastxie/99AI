@@ -296,13 +296,14 @@ let AuthService = class AuthService {
         const nameSpace = await this.globalConfigService.getNamespace();
         const { color = '#fff' } = parmas;
         const captcha = svgCaptcha.create({
-            size: 5,
+            size: 4,
             ignoreChars: '0o1i',
             noise: 4,
             color: true,
             background: color,
-            height: 33,
-            width: 150,
+            height: 35,
+            width: 120,
+            charPreset: 'abcdefghijklmnopqrstuvwxyz',
         });
         const text = captcha.text;
         const randomId = Math.random().toString(36).substr(2, 9);

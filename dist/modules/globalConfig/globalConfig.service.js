@@ -388,14 +388,14 @@ let GlobalConfigService = class GlobalConfigService {
         return { siteName, qqNumber, vxNumber, registerBaseUrl, domain };
     }
     async getPhoneVerifyConfig() {
-        const { phoneRegisterStatus, aliPhoneAccessKeyId, aliPhoneAccessKeySecret, aliPhoneSignName, aliPhoneTemplateCode, } = await this.getConfigs([
-            'phoneRegisterStatus',
+        const { phoneLoginStatus, aliPhoneAccessKeyId, aliPhoneAccessKeySecret, aliPhoneSignName, aliPhoneTemplateCode, } = await this.getConfigs([
+            'phoneLoginStatus',
             'aliPhoneAccessKeyId',
             'aliPhoneAccessKeySecret',
             'aliPhoneSignName',
             'aliPhoneTemplateCode',
         ]);
-        if (Number(phoneRegisterStatus) !== 1) {
+        if (Number(phoneLoginStatus) !== 1) {
             throw new common_1.HttpException('手机验证码功能暂未开放!', common_1.HttpStatus.BAD_REQUEST);
         }
         return {
