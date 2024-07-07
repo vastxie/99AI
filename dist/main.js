@@ -1,36 +1,50 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Dotenv = require("dotenv");
-Dotenv.config({ path: '.env' });
-const core_1 = require("@nestjs/core");
-const app_module_1 = require("./app.module");
-const swagger_1 = require("./common/swagger");
 const allExceptions_filter_1 = require("./common/filters/allExceptions.filter");
 const typeOrmQueryFailed_filter_1 = require("./common/filters/typeOrmQueryFailed.filter");
-const common_1 = require("@nestjs/common");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
-const main_1 = require("./config/main");
+const custom_logger_service_1 = require("./common/logger/custom-logger.service");
 const initDatabase_1 = require("./modules/database/initDatabase");
+const common_1 = require("@nestjs/common");
+const core_1 = require("@nestjs/core");
 const compression = require("compression");
+const crypto_1 = require("crypto");
+const Dotenv = require("dotenv");
 const xmlBodyParser = require("express-xml-bodyparser");
+const ioredis_1 = require("ioredis");
 const path_1 = require("path");
+const app_module_1 = require("./app.module");
+Dotenv.config({ path: '.env' });
 async function bootstrap() {
-    await (0, initDatabase_1.initDatabase)();
+    const redis = new ioredis_1.default({
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        password: process.env.REDIS_PASSWORD,
+        db: Number(process.env.REDIS_DB || 0),
+    });
+    const existingSecret = await redis.get('JWT_SECRET');
+    if (!existingSecret) {
+        const jwtSecret = (0, crypto_1.randomBytes)(256).toString('base64');
+        common_1.Logger.log('Generating and setting new JWT_SECRET');
+        await redis.set('JWT_SECRET', jwtSecret);
+    }
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    await (0, initDatabase_1.initDatabase)();
+    app.useLogger(app.get(custom_logger_service_1.CustomLoggerService));
     app.use(compression());
     const www = (0, path_1.resolve)(__dirname, './public');
     app.use(xmlBodyParser());
     app.enableCors();
-    app.setGlobalPrefix(main_1.APIPREFIX);
+    app.setGlobalPrefix('/api');
     app.useGlobalInterceptors(new transform_interceptor_1.TransformInterceptor());
     app.useGlobalFilters(new typeOrmQueryFailed_filter_1.TypeOrmQueryFailedFilter());
     app.useGlobalFilters(new allExceptions_filter_1.AllExceptionsFilter());
     app.useGlobalPipes(new common_1.ValidationPipe());
     app.getHttpAdapter().getInstance().set('views', 'templates/pages');
     app.getHttpAdapter().getInstance().set('view engine', 'hbs');
-    (0, swagger_1.createSwagger)(app);
-    const server = await app.listen(main_1.PORT, () => {
-        common_1.Logger.log(`服务启动成功: http://localhost:${main_1.PORT}/nineai/swagger/docs`, 'Main');
+    const PORT = process.env.PORT || 3000;
+    const server = await app.listen(PORT, () => {
+        common_1.Logger.log(`服务启动成功: http://localhost:${PORT}`, 'Main');
     });
     server.timeout = 5 * 60 * 1000;
 }

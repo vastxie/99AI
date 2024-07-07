@@ -21,11 +21,11 @@ let UploadController = class UploadController {
     constructor(uploadService) {
         this.uploadService = uploadService;
     }
-    async uploadFile(file) {
-        return this.uploadService.uploadFile(file);
+    async uploadFile(file, dir) {
+        return this.uploadService.uploadFile(file, dir);
     }
-    async uploadFileFromUrl({ filename, url, dir = 'ai' }) {
-        return this.uploadService.uploadFileFromUrl({ filename, url, dir });
+    async uploadFileFromUrl({ url, dir = 'ai' }) {
+        return this.uploadService.uploadFileFromUrl({ url, dir });
     }
 };
 __decorate([
@@ -33,8 +33,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: '上传文件' }),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, common_1.Query)('dir')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadFile", null);
 __decorate([

@@ -13,14 +13,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MidjourneyController = void 0;
-const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
-const midjourney_service_1 = require("./midjourney.service");
+const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
+const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const axios_1 = require("axios");
 const getList_dto_1 = require("./dto/getList.dto");
-const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
+const mjDraw_dto_1 = require("./dto/mjDraw.dto");
+const midjourney_service_1 = require("./midjourney.service");
 let MidjourneyController = class MidjourneyController {
     constructor(midjourneyService) {
         this.midjourneyService = midjourneyService;
@@ -63,6 +64,9 @@ let MidjourneyController = class MidjourneyController {
     }
     async proxyImg(params) {
         return await this.midjourneyService.proxyImg(params);
+    }
+    async mjDraw(body, req) {
+        return await this.midjourneyService.addMjDrawQueue(body, req);
     }
 };
 __decorate([
@@ -182,6 +186,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], MidjourneyController.prototype, "proxyImg", null);
+__decorate([
+    (0, common_1.Post)('addMjDrawQueue'),
+    (0, swagger_1.ApiOperation)({ summary: '提交绘制图片任务' }),
+    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [mjDraw_dto_1.MjDrawDto, Object]),
+    __metadata("design:returntype", Promise)
+], MidjourneyController.prototype, "mjDraw", null);
 MidjourneyController = __decorate([
     (0, common_1.Controller)('midjourney'),
     __metadata("design:paramtypes", [midjourney_service_1.MidjourneyService])

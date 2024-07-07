@@ -18,6 +18,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("./auth.service");
 const authLogin_dto_1 = require("./dto/authLogin.dto");
+const authRegister_dto_1 = require("./dto/authRegister.dto");
 const updatePassByOther_dto_1 = require("./dto/updatePassByOther.dto");
 const updatePassword_dto_1 = require("./dto/updatePassword.dto");
 let AuthController = class AuthController {
@@ -29,6 +30,9 @@ let AuthController = class AuthController {
     }
     async login(body, req) {
         return this.authService.login(body, req);
+    }
+    async loginWithCaptcha(body, req) {
+        return this.authService.loginWithCaptcha(body, req);
     }
     async updatePassword(req, body) {
         return this.authService.updatePassword(req, body);
@@ -52,7 +56,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [authRegister_dto_1.UserRegisterDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
@@ -64,6 +68,15 @@ __decorate([
     __metadata("design:paramtypes", [authLogin_dto_1.UserLoginDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('loginWithCaptcha'),
+    (0, swagger_1.ApiOperation)({ summary: '用户使用验证码登录' }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "loginWithCaptcha", null);
 __decorate([
     (0, common_1.Post)('updatePassword'),
     (0, swagger_1.ApiOperation)({ summary: '用户更改密码' }),

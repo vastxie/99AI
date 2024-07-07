@@ -9,7 +9,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const whiteList_entity_1 = require("../chat/whiteList.entity");
 const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
@@ -41,17 +40,22 @@ UserModule = __decorate([
                 accountLog_entity_1.AccountLogEntity,
                 config_entity_1.ConfigEntity,
                 cramiPackage_entity_1.CramiPackageEntity,
-                whiteList_entity_1.WhiteListEntity,
                 userBalance_entity_1.UserBalanceEntity,
                 salesUsers_entity_1.SalesUsersEntity,
                 fingerprint_entity_1.FingerprintLogEntity,
                 chatLog_entity_1.ChatLogEntity,
                 chatGroup_entity_1.ChatGroupEntity,
-                midjourney_entity_1.MidjourneyEntity
+                midjourney_entity_1.MidjourneyEntity,
             ]),
         ],
         controllers: [user_controller_1.UserController],
-        providers: [user_service_1.UserService, verification_service_1.VerificationService, userBalance_service_1.UserBalanceService, redisCache_service_1.RedisCacheService, mailer_service_1.MailerService,],
+        providers: [
+            user_service_1.UserService,
+            verification_service_1.VerificationService,
+            userBalance_service_1.UserBalanceService,
+            redisCache_service_1.RedisCacheService,
+            mailer_service_1.MailerService,
+        ],
         exports: [user_service_1.UserService],
     })
 ], UserModule);

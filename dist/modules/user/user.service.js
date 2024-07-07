@@ -22,7 +22,6 @@ const typeorm_1 = require("@nestjs/typeorm");
 const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 const typeorm_2 = require("typeorm");
-const whiteList_entity_1 = require("../chat/whiteList.entity");
 const config_entity_1 = require("../globalConfig/config.entity");
 const userBalance_service_1 = require("../userBalance/userBalance.service");
 const user_constant_1 = require("./../../common/constants/user.constant");
@@ -30,9 +29,8 @@ const globalConfig_service_1 = require("./../globalConfig/globalConfig.service")
 const verification_service_1 = require("./../verification/verification.service");
 const user_entity_1 = require("./user.entity");
 let UserService = class UserService {
-    constructor(userEntity, whiteListEntity, connection, verificationService, mailerService, userBalanceService, globalConfigService, configEntity) {
+    constructor(userEntity, connection, verificationService, mailerService, userBalanceService, globalConfigService, configEntity) {
         this.userEntity = userEntity;
-        this.whiteListEntity = whiteListEntity;
         this.connection = connection;
         this.verificationService = verificationService;
         this.mailerService = mailerService;
@@ -43,7 +41,9 @@ let UserService = class UserService {
     async createUserAndVerifycation(user, req) {
         const { username, email, password, invitedBy, client = 0 } = user;
         if (invitedBy) {
-            const b = await this.userEntity.findOne({ where: { inviteCode: invitedBy } });
+            const b = await this.userEntity.findOne({
+                where: { inviteCode: invitedBy },
+            });
             if (!b) {
                 throw new common_1.HttpException('无效的邀请码！', common_1.HttpStatus.BAD_REQUEST);
             }
@@ -62,7 +62,9 @@ let UserService = class UserService {
             userInput.client = client;
             let n;
             if (!u) {
-                const userDefautlAvatar = await this.globalConfigService.getConfigs(['userDefautlAvatar']);
+                const userDefautlAvatar = await this.globalConfigService.getConfigs([
+                    'userDefautlAvatar',
+                ]);
                 userInput.avatar = userDefautlAvatar;
                 n = await this.userEntity.save(userInput);
             }
@@ -85,9 +87,13 @@ let UserService = class UserService {
                 pre[cur.configKey] = cur.configVal;
                 return pre;
             }, {});
-            const isVerifyEmail = configMap['isVerifyEmail'] ? Number(configMap['isVerifyEmail']) : 1;
+            const isVerifyEmail = configMap['isVerifyEmail']
+                ? Number(configMap['isVerifyEmail'])
+                : 1;
             if (isVerifyEmail) {
-                const expir = configMap['registerVerifyExpir'] ? Number(configMap['registerVerifyExpir']) : 30 * 60;
+                const expir = configMap['registerVerifyExpir']
+                    ? Number(configMap['registerVerifyExpir'])
+                    : 30 * 60;
                 const v = await this.verificationService.createVerification(n, verification_constant_1.VerificationEnum.Registration, expir);
                 const { code, email, id } = v;
                 const { registerVerifyEmailFrom } = configMap;
@@ -127,7 +133,11 @@ let UserService = class UserService {
             }
         }
         if (username && password) {
-            const where = [{ username }, { email: username }, { phone: username }];
+            const where = [
+                { username },
+                { email: username },
+                { phone: username },
+            ];
             u = await this.userEntity.findOne({ where: where });
             if (!u) {
                 throw new common_1.HttpException('当前账户不存在！', common_1.HttpStatus.BAD_REQUEST);
@@ -180,7 +190,16 @@ let UserService = class UserService {
     async getUserInfo(userId) {
         const userInfo = await this.userEntity.findOne({
             where: { id: userId },
-            select: ['username', 'avatar', 'role', 'email', 'sign', 'inviteCode', 'openId', 'consecutiveDays'],
+            select: [
+                'username',
+                'avatar',
+                'role',
+                'email',
+                'sign',
+                'inviteCode',
+                'openId',
+                'consecutiveDays',
+            ],
         });
         if (!userInfo) {
             throw new common_1.HttpException('当前用户信息失效、请重新登录！', common_1.HttpStatus.UNAUTHORIZED);
@@ -206,8 +225,8 @@ let UserService = class UserService {
             throw new common_1.HttpException('没有变更，无需更改！', common_1.HttpStatus.BAD_REQUEST);
         }
         if (body.username) {
-            const u = await this.userEntity.findOne({ where: { username: body.username, id: (0, typeorm_2.Not)(id) } });
-            if (u) {
+            const usernameTaken = await this.isUsernameTaken(body.username, id);
+            if (usernameTaken) {
                 throw new common_1.HttpException('用户名已存在！', common_1.HttpStatus.BAD_REQUEST);
             }
         }
@@ -216,6 +235,14 @@ let UserService = class UserService {
             throw new common_1.HttpException('修改用户信息失败！', common_1.HttpStatus.BAD_REQUEST);
         }
         return '修改用户信息成功！';
+    }
+    async isUsernameTaken(username, excludeUserId) {
+        const where = { username };
+        if (excludeUserId) {
+            where.id = (0, typeorm_2.Not)(excludeUserId);
+        }
+        const user = await this.userEntity.findOne({ where });
+        return !!user;
     }
     async updateUserPassword(userId, password) {
         const hashedPassword = bcrypt.hashSync(password, 10);
@@ -253,7 +280,14 @@ let UserService = class UserService {
             const [rows, count] = await this.userEntity.findAndCount({
                 where: { invitedBy },
                 order: { id: 'DESC' },
-                select: ['username', 'email', 'createdAt', 'status', 'avatar', 'updatedAt'],
+                select: [
+                    'username',
+                    'email',
+                    'createdAt',
+                    'status',
+                    'avatar',
+                    'updatedAt',
+                ],
                 take: size,
                 skip: (page - 1) * size,
             });
@@ -286,7 +320,11 @@ let UserService = class UserService {
     }
     async userRecharge(body) {
         const { userId, model3Count = 0, model4Count = 0, drawMjCount = 0 } = body;
-        await this.userBalanceService.addBalanceToUser(userId, { model3Count, model4Count, drawMjCount });
+        await this.userBalanceService.addBalanceToUser(userId, {
+            model3Count,
+            model4Count,
+            drawMjCount,
+        });
         const res = await this.userBalanceService.saveRecordRechargeLog({
             userId,
             rechargeType: balance_constant_1.RechargeType.ADMIN_GIFT,
@@ -298,14 +336,18 @@ let UserService = class UserService {
         return res;
     }
     async queryAll(query, req) {
-        const { page = 1, size = 10, username, email, status, keyword, phone } = query;
+        const { page = 1, size = 10, username, email, status, keyword, phone, } = query;
         let where = {};
         username && Object.assign(where, { username: (0, typeorm_2.Like)(`%${username}%`) });
         email && Object.assign(where, { email: (0, typeorm_2.Like)(`%${email}%`) });
         phone && Object.assign(where, { phone: (0, typeorm_2.Like)(`%${phone}%`) });
         status && Object.assign(where, { status });
         if (keyword) {
-            where = [{ username: (0, typeorm_2.Like)(`%${keyword}%`) }, { email: (0, typeorm_2.Like)(`%${keyword}%`) }, { phone: (0, typeorm_2.Like)(`%${keyword}%`) }];
+            where = [
+                { username: (0, typeorm_2.Like)(`%${keyword}%`) },
+                { email: (0, typeorm_2.Like)(`%${keyword}%`) },
+                { phone: (0, typeorm_2.Like)(`%${keyword}%`) },
+            ];
         }
         const [rows, count] = await this.userEntity.findAndCount({
             skip: (page - 1) * size,
@@ -313,18 +355,36 @@ let UserService = class UserService {
             take: size,
             order: { createdAt: 'DESC' },
             cache: true,
-            select: ['username', 'avatar', 'inviteCode', 'role', 'sign', 'status', 'id', 'email', 'createdAt', 'lastLoginIp', 'phone'],
+            select: [
+                'username',
+                'avatar',
+                'inviteCode',
+                'role',
+                'sign',
+                'status',
+                'id',
+                'email',
+                'createdAt',
+                'lastLoginIp',
+                'phone',
+            ],
         });
         const ids = rows.map((t) => t.id);
         const data = await this.userBalanceService.queryUserBalanceByIds(ids);
         rows.forEach((user) => (user.balanceInfo = data.find((t) => t.userId === user.id)));
-        req.user.role !== 'super' && rows.forEach((t) => (t.email = (0, utils_1.maskEmail)(t.email)));
-        req.user.role !== 'super' && rows.forEach((t) => (t.lastLoginIp = (0, utils_1.maskIpAddress)(t.lastLoginIp)));
-        req.user.role !== 'super' && rows.forEach((t) => (t.phone = (0, utils_1.maskIpAddress)(t.phone)));
+        req.user.role !== 'super' &&
+            rows.forEach((t) => (t.email = (0, utils_1.maskEmail)(t.email)));
+        req.user.role !== 'super' &&
+            rows.forEach((t) => (t.lastLoginIp = (0, utils_1.maskIpAddress)(t.lastLoginIp)));
+        req.user.role !== 'super' &&
+            rows.forEach((t) => (t.phone = (0, utils_1.maskIpAddress)(t.phone)));
         return { rows, count };
     }
     async queryOne({ id }) {
-        return await this.userEntity.findOne({ where: { id }, select: ['username', 'avatar', 'inviteCode', 'role', 'sign', 'status'] });
+        return await this.userEntity.findOne({
+            where: { id },
+            select: ['username', 'avatar', 'inviteCode', 'role', 'sign', 'status'],
+        });
     }
     async updateStatus(body) {
         const { id, status } = body;
@@ -373,7 +433,9 @@ let UserService = class UserService {
         return user;
     }
     async createUserFromOpenId(openId, invitedBy) {
-        const userDefautlAvatar = await this.globalConfigService.getConfigs(['userDefautlAvatar']);
+        const userDefautlAvatar = await this.globalConfigService.getConfigs([
+            'userDefautlAvatar',
+        ]);
         const userInfo = {
             avatar: userDefautlAvatar,
             username: `用户${(0, utils_1.createRandomUid)()}`,
@@ -385,6 +447,46 @@ let UserService = class UserService {
         };
         const user = await this.userEntity.save(userInfo);
         return user;
+    }
+    async createUserFromContact(params) {
+        const { username, email, phone, invitedBy } = params;
+        const userDefautlAvatar = await this.globalConfigService.getConfigs([
+            'userDefautlAvatar',
+        ]);
+        const userInfo = {
+            avatar: userDefautlAvatar,
+            username: `用户${(0, utils_1.createRandomUid)()}`,
+            status: user_constant_1.UserStatusEnum.ACTIVE,
+            sex: 0,
+        };
+        if (username) {
+            userInfo.username = username;
+        }
+        if (email) {
+            userInfo.email = email;
+        }
+        if (phone) {
+            userInfo.phone = phone;
+        }
+        if (invitedBy) {
+            userInfo.invitedBy = invitedBy;
+        }
+        const user = await this.userEntity.save(userInfo);
+        return user;
+    }
+    async getUserByContact(params) {
+        const { username, email, phone } = params;
+        const where = [];
+        if (username) {
+            where.push({ username });
+        }
+        if (email) {
+            where.push({ email });
+        }
+        if (phone) {
+            where.push({ phone });
+        }
+        return await this.userEntity.findOne({ where });
     }
     async bindWx(openId, userId) {
         try {
@@ -412,23 +514,33 @@ let UserService = class UserService {
         if (phone) {
             const userByPhone = await this.userEntity.findOne({ where: { phone } });
             if (userByPhone) {
-                throw new common_1.HttpException('当前手机号已注册、请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+                return false;
             }
         }
         if (email) {
             const userByEmail = await this.userEntity.findOne({ where: { email } });
             if (userByEmail) {
-                throw new common_1.HttpException('当前邮箱已注册、请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+                return false;
             }
         }
-        const userByUsername = await this.userEntity.findOne({ where: { username } });
-        if (userByUsername) {
-            throw new common_1.HttpException('用户名已存在、请更换用户名！', common_1.HttpStatus.BAD_REQUEST);
+        if (username) {
+            const userByUsername = await this.userEntity.findOne({
+                where: { username },
+            });
+            if (userByUsername) {
+                return false;
+            }
         }
+        if (!phone && !email && !username) {
+            return false;
+        }
+        return true;
     }
     async verifyUserRegisterByPhone(params) {
         const { username, password, phone, phoneCode } = params;
-        const user = await this.userEntity.findOne({ where: [{ username }, { phone }] });
+        const user = await this.userEntity.findOne({
+            where: [{ username }, { phone }],
+        });
         if (user && user.username === username) {
             throw new common_1.HttpException('用户名已存在、请更换用户名！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -439,7 +551,9 @@ let UserService = class UserService {
     async verifyUserRegisterByEmail(params) {
         const { username, email } = params;
         console.log(`校验邮箱注册: 开始 - 用户名: ${username}, 邮箱: ${email}`);
-        const user = await this.userEntity.findOne({ where: [{ username }, { email }] });
+        const user = await this.userEntity.findOne({
+            where: [{ username }, { email }],
+        });
         if (user && user.username === username) {
             console.error(`校验失败: 用户名 "${username}" 已存在`);
             throw new common_1.HttpException('用户名已存在、请更换用户名！', common_1.HttpStatus.BAD_REQUEST);
@@ -457,10 +571,8 @@ let UserService = class UserService {
 UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
-    __param(1, (0, typeorm_1.InjectRepository)(whiteList_entity_1.WhiteListEntity)),
-    __param(7, (0, typeorm_1.InjectRepository)(config_entity_1.ConfigEntity)),
+    __param(6, (0, typeorm_1.InjectRepository)(config_entity_1.ConfigEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository,
         typeorm_2.Connection,
         verification_service_1.VerificationService,
         mailer_service_1.MailerService,

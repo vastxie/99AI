@@ -32,7 +32,6 @@ let GlobalConfigService = class GlobalConfigService {
         this.chatLogEntity = chatLogEntity;
         this.modelsService = modelsService;
         this.globalConfigs = {};
-        this.nineAiToken = true;
     }
     async onModuleInit() {
         await this.initGetAllConfig();
@@ -64,11 +63,17 @@ let GlobalConfigService = class GlobalConfigService {
         this.initBaiduSensitive();
     }
     async initBaiduSensitive(isInit = true) {
-        const { baiduTextApiKey, baiduTextSecretKey } = await this.getConfigs(['baiduTextApiKey', 'baiduTextSecretKey']);
+        const { baiduTextApiKey, baiduTextSecretKey } = await this.getConfigs([
+            'baiduTextApiKey',
+            'baiduTextSecretKey',
+        ]);
         if (!baiduTextApiKey || !baiduTextSecretKey) {
             return;
         }
-        const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+        const headers = {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+        };
         const url = `https://aip.baidubce.com/oauth/2.0/token?client_id=${baiduTextApiKey}&client_secret=${baiduTextSecretKey}&grant_type=client_credentials`;
         try {
             const response = await axios_1.default.post(url, { headers });
@@ -96,7 +101,8 @@ let GlobalConfigService = class GlobalConfigService {
             this.wechatAccessToken = '';
             return;
         }
-        const { data: { errmsg, access_token }, } = await axios_1.default.get(`https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appId}&secret=${secret}`);
+        const Url = (0, utils_1.formatUrl)(process.env.weChatApiUrl || 'https://api.weixin.qq.com');
+        const { data: { errmsg, access_token }, } = await axios_1.default.get(`${Url}/cgi-bin/token?grant_type=client_credential&appid=${appId}&secret=${secret}`);
         if (errmsg) {
             if (isInit) {
                 common_1.Logger.error(`获取微信access_token失败、错误信息：${errmsg}`, 'OfficialService');
@@ -114,7 +120,8 @@ let GlobalConfigService = class GlobalConfigService {
             this.wechatJsapiTicket = '';
             return;
         }
-        const res = await axios_1.default.get(`https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`);
+        const Url = (0, utils_1.formatUrl)(process.env.weChatApiUrl || 'https://api.weixin.qq.com');
+        const res = await axios_1.default.get(`${Url}/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`);
         return (_a = res === null || res === void 0 ? void 0 : res.data) === null || _a === void 0 ? void 0 : _a.ticket;
     }
     async queryAllConfig(req) {
@@ -166,8 +173,6 @@ let GlobalConfigService = class GlobalConfigService {
             'salesAllowDrawMoney',
             'companyName',
             'filingNumber',
-            'phoneRegisterStatus',
-            'emailRegisterStatus',
             'emailLoginStatus',
             'phoneLoginStatus',
             'wechatRegisterStatus',
@@ -177,17 +182,33 @@ let GlobalConfigService = class GlobalConfigService {
             'signInModel4Count',
             'signInMjDrawToken',
             'appMenuHeaderTips',
-            'appMenuHeaderBgUrl',
+            'pluginFirst',
             'mjUseBaiduFy',
             'mjHideNotBlock',
             'mjHideWorkIn',
             'isVerifyEmail',
+            'isHideSidebar',
+            'isHideTts',
+            'isHideModel3Point',
+            'isHideModel4Point',
+            'isHideDrawMjPoint',
+            'model3Name',
+            'model4Name',
+            'drawMjName',
+            'isModelInherited',
+            'noVerifyRegister',
         ];
-        const data = await this.configEntity.find({ where: { configKey: (0, typeorm_2.In)(allowKeys) } });
+        const data = await this.configEntity.find({
+            where: { configKey: (0, typeorm_2.In)(allowKeys) },
+        });
         const { domain } = query;
         const domainDb = this.globalConfigs['domain'];
         if (domainDb !== domain) {
-            this.createOrUpdate({ configKey: `domain`, configVal: domain, status: 1 });
+            this.createOrUpdate({
+                configKey: `domain`,
+                configVal: domain,
+                status: 1,
+            });
             await this.initGetAllConfig();
         }
         const publicConfig = data.reduce((prev, cur) => {
@@ -200,7 +221,9 @@ let GlobalConfigService = class GlobalConfigService {
     }
     async queryGptKeys(req) {
         const { role } = req.user;
-        const data = await this.configEntity.find({ where: { configKey: (0, typeorm_2.Like)(`%${'chatGptKey'}%`) } });
+        const data = await this.configEntity.find({
+            where: { configKey: (0, typeorm_2.Like)(`%${'chatGptKey'}%`) },
+        });
         if (role === 'super')
             return data;
         return data.map((t) => {
@@ -213,9 +236,15 @@ let GlobalConfigService = class GlobalConfigService {
         const keys = effectiveConfig.map((t) => t.configKey);
         for (const [index, value] of effectiveConfig.entries()) {
             const { configKey, configVal, status } = value;
-            await this.createOrUpdate({ configKey: `chatGptKey:${index + 1}`, configVal, status });
+            await this.createOrUpdate({
+                configKey: `chatGptKey:${index + 1}`,
+                configVal,
+                status,
+            });
         }
-        const likeChatGptKeys = await this.configEntity.find({ where: { configKey: (0, typeorm_2.Like)(`%${'chatGptKey'}%`) } });
+        const likeChatGptKeys = await this.configEntity.find({
+            where: { configKey: (0, typeorm_2.Like)(`%${'chatGptKey'}%`) },
+        });
         const allKey = likeChatGptKeys.map((t) => t.configKey);
         if (allKey.length > keys.length) {
             const diffKey = (0, utils_1.getDiffArray)(allKey.length, keys.length, 'chatGptKey:');
@@ -229,7 +258,9 @@ let GlobalConfigService = class GlobalConfigService {
     async queryConfig(body, req) {
         const { role } = req.user;
         const { keys } = body;
-        const data = await this.configEntity.find({ where: { configKey: (0, typeorm_2.In)(keys) } });
+        const data = await this.configEntity.find({
+            where: { configKey: (0, typeorm_2.In)(keys) },
+        });
         if (role !== 'super') {
             data.forEach((item) => {
                 if (item.configKey.includes('mj') ||
@@ -247,8 +278,14 @@ let GlobalConfigService = class GlobalConfigService {
                     if (longKeys.includes(item.configKey)) {
                         return (item.configVal = (0, utils_1.hideString)(item.configVal, '隐私内容、非超级管理员无权查看'));
                     }
-                    const whiteListKey = ['payEpayStatus', 'payHupiStatus', 'mjProxy', 'payLtzfStatus'];
-                    if (!whiteListKey.includes(item.configKey) && !item.configKey.includes('Status')) {
+                    const whiteListKey = [
+                        'payEpayStatus',
+                        'payHupiStatus',
+                        'mjProxy',
+                        'payLtzfStatus',
+                    ];
+                    if (!whiteListKey.includes(item.configKey) &&
+                        !item.configKey.includes('Status')) {
                         item.configVal = (0, utils_1.hideString)(item.configVal);
                     }
                 }
@@ -259,11 +296,6 @@ let GlobalConfigService = class GlobalConfigService {
             return prev;
         }, {});
     }
-    getNineAiToken() {
-        const MjdrawCount = this.globalConfigs['MjdrawCount'];
-        const auth = this.nineAiToken;
-        return !auth || Number(MjdrawCount) === 1;
-    }
     async setConfig(body) {
         try {
             const { settings } = body;
@@ -272,10 +304,12 @@ let GlobalConfigService = class GlobalConfigService {
             }
             await this.initGetAllConfig();
             const keys = settings.map((t) => t.configKey);
-            if (keys.includes('baiduTextApiKey') || keys.includes('baiduTextSecretKey')) {
+            if (keys.includes('baiduTextApiKey') ||
+                keys.includes('baiduTextSecretKey')) {
                 await this.initBaiduSensitive(false);
             }
-            if (keys.includes('wechatOfficialAppId') || keys.includes('wechatOfficialAppSecret')) {
+            if (keys.includes('wechatOfficialAppId') ||
+                keys.includes('wechatOfficialAppSecret')) {
                 await this.getWechatAccessToken();
             }
             return '设置完成！';
@@ -292,7 +326,11 @@ let GlobalConfigService = class GlobalConfigService {
                 const res = await this.configEntity.update({ configKey }, { configVal, status });
             }
             else {
-                const save = await this.configEntity.save({ configKey, configVal, status });
+                const save = await this.configEntity.save({
+                    configKey,
+                    configVal,
+                    status,
+                });
             }
         }
         catch (error) {
@@ -307,8 +345,20 @@ let GlobalConfigService = class GlobalConfigService {
         return await this.getConfigs(['copyrightUrl', 'copyrightTitle']);
     }
     async queryPayType() {
-        const { payHupiStatus = 0, payEpayStatus = 0, payWechatStatus = 0, payMpayStatus = 0, payLtzfStatus = 0, } = await this.getConfigs(['payHupiStatus', 'payEpayStatus', 'payMpayStatus', 'payWechatStatus', 'payLtzfStatus']);
-        if ([payHupiStatus, payEpayStatus, payWechatStatus, payMpayStatus, payLtzfStatus].every((status) => status === 0)) {
+        const { payHupiStatus = 0, payEpayStatus = 0, payWechatStatus = 0, payMpayStatus = 0, payLtzfStatus = 0, } = await this.getConfigs([
+            'payHupiStatus',
+            'payEpayStatus',
+            'payMpayStatus',
+            'payWechatStatus',
+            'payLtzfStatus',
+        ]);
+        if ([
+            payHupiStatus,
+            payEpayStatus,
+            payWechatStatus,
+            payMpayStatus,
+            payLtzfStatus,
+        ].every((status) => status === 0)) {
             throw new common_1.HttpException('支付功能暂未开放!', common_1.HttpStatus.BAD_REQUEST);
         }
         if (Number(payWechatStatus) === 1) {
@@ -338,7 +388,7 @@ let GlobalConfigService = class GlobalConfigService {
         return { siteName, qqNumber, vxNumber, registerBaseUrl, domain };
     }
     async getPhoneVerifyConfig() {
-        const { phoneRegisterStatus, aliPhoneAccessKeyId, aliPhoneAccessKeySecret, aliPhoneSignName, aliPhoneTemplateCode } = await this.getConfigs([
+        const { phoneRegisterStatus, aliPhoneAccessKeyId, aliPhoneAccessKeySecret, aliPhoneSignName, aliPhoneTemplateCode, } = await this.getConfigs([
             'phoneRegisterStatus',
             'aliPhoneAccessKeyId',
             'aliPhoneAccessKeySecret',
@@ -359,7 +409,12 @@ let GlobalConfigService = class GlobalConfigService {
         return process.env.NAMESPACE || 'AIWeb';
     }
     async getSignatureGiftConfig() {
-        const { signInStatus = 0, signInModel3Count = 0, signInModel4Count = 0, signInMjDrawToken = 0, } = await this.getConfigs(['signInStatus', 'signInModel3Count', 'signInModel4Count', 'signInMjDrawToken']);
+        const { signInStatus = 0, signInModel3Count = 0, signInModel4Count = 0, signInMjDrawToken = 0, } = await this.getConfigs([
+            'signInStatus',
+            'signInModel3Count',
+            'signInModel4Count',
+            'signInMjDrawToken',
+        ]);
         if (Number(signInStatus) !== 1) {
             throw new common_1.HttpException('签到功能暂未开放!', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -374,18 +429,10 @@ let GlobalConfigService = class GlobalConfigService {
         const response = await fetch(api, {});
         const responseData = await response.json();
         const { success = true, message } = responseData;
-        common_1.Logger.error('请按要求填写正确的授权信息');
-        common_1.Logger.error('请填写您的授权码');
-        common_1.Logger.error('缺失ip信息');
-        common_1.Logger.error('缺失ip信息');
-        common_1.Logger.debug('感谢您使用NineAi、祝您使用愉快~');
+        common_1.Logger.debug('感谢您使用AIWeb，祝您使用愉快~');
     }
     async getSensitiveConfig() {
-        const { baiduTextStatus = 0, baiduTextAccessToken, nineaiBuiltInSensitiveAuthKey, } = await this.getConfigs([
-            'baiduTextStatus',
-            'baiduTextAccessToken',
-            'nineaiBuiltInSensitiveAuthKey',
-        ]);
+        const { baiduTextStatus = 0, baiduTextAccessToken } = await this.getConfigs(['baiduTextStatus', 'baiduTextAccessToken']);
         if (Number(baiduTextStatus) === 1) {
             return {
                 useType: 'baidu',

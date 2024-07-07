@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ModelsEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let ModelsEntity = class ModelsEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([
@@ -27,7 +27,7 @@ __decorate([
     __metadata("design:type", String)
 ], ModelsEntity.prototype, "model", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '模型头像', nullable: true }),
+    (0, typeorm_1.Column)({ length: 1024, comment: '模型头像', nullable: true }),
     __metadata("design:type", String)
 ], ModelsEntity.prototype, "modelAvatar", void 0);
 __decorate([
@@ -35,7 +35,11 @@ __decorate([
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "modelOrder", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '模型上下文支持的最大Token', default: 2000, nullable: true }),
+    (0, typeorm_1.Column)({
+        comment: '模型上下文支持的最大Token',
+        default: 2000,
+        nullable: true,
+    }),
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "maxModelTokens", void 0);
 __decorate([
@@ -59,7 +63,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ModelsEntity.prototype, "isTokenBased", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: '是否支持文件上传: 0:不是 1: 附件链接格式 2: 4V格式', default: 0 }),
+    (0, typeorm_1.Column)({
+        comment: '是否支持文件上传: 0:不是 1: 附件链接格式 2: 4V格式',
+        default: 0,
+    }),
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "isFileUpload", void 0);
 __decorate([
@@ -79,13 +86,12 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ModelsEntity.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ comment: 'key的状态: 1:有效  -1:被封号 -2: 错误的秘钥 -3: 余额使用完了', default: 1 }),
+    (0, typeorm_1.Column)({
+        comment: 'key的状态: 1:有效  -1:被封号 -2: 错误的秘钥 -3: 余额使用完了',
+        default: 1,
+    }),
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "keyStatus", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: 'key权重', default: 1 }),
-    __metadata("design:type", Number)
-], ModelsEntity.prototype, "keyWeight", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: 'key的使用次数', default: 0 }),
     __metadata("design:type", Number)
@@ -102,6 +108,10 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '模型频率限制 次/小时', default: 999 }),
     __metadata("design:type", Number)
 ], ModelsEntity.prototype, "modelLimits", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '模型介绍', nullable: true }),
+    __metadata("design:type", String)
+], ModelsEntity.prototype, "modelDescription", void 0);
 ModelsEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'models' })
 ], ModelsEntity);

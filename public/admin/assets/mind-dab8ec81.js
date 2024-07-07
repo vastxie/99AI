@@ -1,9 +1,0 @@
-
-/**
- * 由 Fantastic-admin 提供技术支持
- * Powered by Fantastic-admin
- * Gitee  https://gitee.com/hooray/fantastic-admin
- * Github https://github.com/hooray/fantastic-admin
- */
-  
-import{_ as V}from"./index-fd8a5577.js";import{a as i}from"./config-e611a8d0.js";import{d as j,Q as q,r as m,x as B,h as o,o as E,c as M,e,f as n,a as f,l as N,E as _,q as u}from"./index-e656eb90.js";const O={class:"flex justify-between"},P=f("b",null,"思维导图设置",-1),R=j({__name:"mind",setup(U){const l=q({mindDefaultData:"",mindCustomPrompt:""}),d=m({}),s=m();async function c(){const t=await i.queryConfig({keys:["mindDefaultData","mindCustomPrompt"]});Object.assign(l,t.data)}function p(){var t;(t=s.value)==null||t.validate(async a=>{if(a){try{await i.setConfig({settings:g(l)}),_.success("变更配置信息成功")}catch{}c()}else _.error("请填写完整信息")})}function g(t){return Object.keys(t).map(a=>({configKey:a,configVal:t[a]}))}return B(()=>{c()}),(t,a)=>{const r=o("el-alert"),y=V,b=o("el-button"),x=o("el-input"),w=o("el-form-item"),C=o("el-col"),D=o("el-row"),h=o("el-form"),k=o("el-card");return E(),M("div",null,[e(y,null,{default:n(()=>[e(r,{closable:!1,"show-icon":"",title:"系统基础设置配置说明",description:"默认配置数据会在页面加载后初次展示给用户、预设信息系统有内置提示词、如果您想覆盖掉他、则在此处设置您的专属提示词！",type:"success"})]),_:1}),e(k,{style:{margin:"20px"}},{header:n(()=>[f("div",O,[P,e(b,{class:"button",text:"",onClick:p},{default:n(()=>[N(" 保存设置 ")]),_:1})])]),default:n(()=>[e(h,{ref_key:"formRef",ref:s,rules:d.value,model:l,"label-width":"150px"},{default:n(()=>[e(D,null,{default:n(()=>[e(C,{xs:24,md:20,lg:15,xl:12},{default:n(()=>[e(w,{label:"思维导图默认数据",prop:"mindDefaultData"},{default:n(()=>[e(x,{modelValue:l.mindDefaultData,"onUpdate:modelValue":a[0]||(a[0]=v=>l.mindDefaultData=v),type:"textarea",rows:10,placeholder:"思维导图的默认展示数据Markdown格式",clearable:""},null,8,["modelValue"])]),_:1})]),_:1})]),_:1})]),_:1},8,["rules","model"])]),_:1})])}}});typeof u=="function"&&u(R);export{R as default};

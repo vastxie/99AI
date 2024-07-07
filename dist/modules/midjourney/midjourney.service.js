@@ -25,12 +25,13 @@ const user_entity_1 = require("./../user/user.entity");
 const midjourney_entity_1 = require("./midjourney.entity");
 const utils_1 = require("../../common/utils");
 const userBalance_service_1 = require("../userBalance/userBalance.service");
+const bull_1 = require("@nestjs/bull");
 const image_size_1 = require("image-size");
-const uuid = require("uuid");
 const redisCache_service_1 = require("../redisCache/redisCache.service");
 const prompt_entity_1 = require("./prompt.entity");
 let MidjourneyService = class MidjourneyService {
-    constructor(midjourneyEntity, userEntity, mjPromptsEntity, globalConfigService, uploadService, userBalanceService, redisCacheService, modelsService) {
+    constructor(mjDrawQueue, midjourneyEntity, userEntity, mjPromptsEntity, globalConfigService, uploadService, userBalanceService, redisCacheService, modelsService) {
+        this.mjDrawQueue = mjDrawQueue;
         this.midjourneyEntity = midjourneyEntity;
         this.userEntity = userEntity;
         this.mjPromptsEntity = mjPromptsEntity;
@@ -41,12 +42,59 @@ let MidjourneyService = class MidjourneyService {
         this.modelsService = modelsService;
         this.lockPrompt = [];
     }
+    async onApplicationBootstrap() {
+        await this.mjDrawQueue.clean(0, 'active');
+        await this.cleanQueue();
+    }
+    async addMjDrawQueue(body, req) {
+        const { prompt = '', imgUrl = '', base64 = '', extraParam = '', drawId = null, action = '', orderId = null, customId = '', } = body;
+        await this.checkLimit(req);
+        const modelInfo = await this.modelsService.getCurrentModelKeyInfo('midjourney');
+        const { deduct, deductType, proxyUrl, timeout } = modelInfo;
+        await this.userBalanceService.validateBalance(req, deductType, action === 'UPSCALE' ? deduct : deduct * 4);
+        const params = Object.assign(Object.assign({}, body), { userId: req.user.id });
+        const drawInfo = await this.addDrawQueue(params);
+        if (action === 'IMAGINE') {
+            this.sendDrawCommand(drawInfo, modelInfo)
+                .then((result) => this.pollComparisonResultDraw(result, modelInfo))
+                .then((drawRes) => {
+                console.log('drawRes', drawRes);
+                return this.updateDrawData(drawInfo, drawRes);
+            })
+                .catch((error) => {
+                common_1.Logger.error('Error in IMAGINE draw operation:', error);
+            });
+        }
+        else {
+            let resultPromise;
+            if (action === 'MODAL') {
+                resultPromise = this.getDrawActionDetail(action, drawId, customId).then((res) => res.drawId);
+            }
+            else {
+                resultPromise = this.sendDrawCommand(drawInfo, modelInfo);
+            }
+            resultPromise
+                .then((result) => this.pollComparisonResultDraw(result, modelInfo))
+                .then((drawRes) => {
+                console.log('drawRes', drawRes);
+                return this.updateDrawData(drawInfo, drawRes);
+            })
+                .catch((error) => {
+                common_1.Logger.error('Error in other draw operation:', error);
+            });
+        }
+        common_1.Logger.log(`执行预扣费，扣除费用:${action === 'UPSCALE' ? deduct : deduct * 4}积分。`);
+        await this.userBalanceService.deductFromBalance(req.user.id, deductType, action === 'UPSCALE' ? deduct : deduct * 4);
+        return true;
+    }
     async sleep(time) {
         return new Promise((resolve) => setTimeout(resolve, time));
     }
     async getImageSizeFromUrl(imageUrl) {
         try {
-            const response = await axios_1.default.get(imageUrl, { responseType: 'arraybuffer' });
+            const response = await axios_1.default.get(imageUrl, {
+                responseType: 'arraybuffer',
+            });
             const buffer = Buffer.from(response.data, 'binary');
             const dimensions = (0, image_size_1.default)(buffer);
             return { width: dimensions.width, height: dimensions.height };
@@ -56,34 +104,12 @@ let MidjourneyService = class MidjourneyService {
             throw error;
         }
     }
-    async draw(jobData, jobId) {
-        const { id, action, base64, userId } = jobData;
-        const drawInfo = await this.midjourneyEntity.findOne({ where: { id } });
-        const modelInfo = await this.modelsService.getSpecialModelKeyInfo('midjourney');
-        const { deduct, isTokenBased, tokenFeeRatio, deductType, key, modelName, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel } = modelInfo;
-        try {
-            await this.bindJobId(id, jobId);
-            await this.updateDrawStatus(id, midjourney_constant_1.MidjourneyStatusEnum.DRAWING);
-            const result = await this.sendDrawCommand(drawInfo, action, modelInfo, base64);
-            drawInfo.drawId = result;
-            const drawRes = await this.pollComparisonResultDraw(id, modelInfo, drawInfo);
-            await this.updateDrawData(jobData, drawRes);
-            const amount = action === "UPSCALE" ? deduct : deduct * 4;
-            common_1.Logger.log(`绘画完成，执行扣费，扣除费用:${amount}积分。`);
-            await this.userBalanceService.deductFromBalance(userId, deductType, amount);
-            await this.midjourneyEntity.update({ id }, { status: 3 });
-            return true;
-        }
-        catch (error) {
-            await this.midjourneyEntity.update({ id }, { status: 4 });
-            console.log('error: ', error);
-            return true;
-        }
-    }
     async addDrawQueue(params) {
         try {
-            const { prompt, imgUrl = '', extraParam = '', action, userId, customId, drawId } = params;
-            const fullPrompt = imgUrl ? `${imgUrl} ${prompt} ${extraParam}` : `${prompt} ${extraParam}`;
+            const { prompt, imgUrl = '', extraParam = '', action, userId, customId, drawId, } = params;
+            const fullPrompt = imgUrl
+                ? `${imgUrl} ${prompt} ${extraParam}`
+                : `${prompt} ${extraParam}`;
             const drawInfo = {
                 userId,
                 drawId,
@@ -110,7 +136,7 @@ let MidjourneyService = class MidjourneyService {
         try {
             const { id, imageUrl, action, submitTime, finishTime, progress } = drawRes;
             const durationSpent = finishTime - submitTime;
-            const { mjNotSaveImg, mjProxyImgUrl, mjNotUseProxy, } = await this.globalConfigService.getConfigs([
+            const { mjNotSaveImg, mjProxyImgUrl, mjNotUseProxy } = await this.globalConfigService.getConfigs([
                 'mjNotSaveImg',
                 'mjProxyImgUrl',
                 'mjNotUseProxy',
@@ -134,13 +160,28 @@ let MidjourneyService = class MidjourneyService {
             if (mjNotSaveImg !== '1') {
                 try {
                     common_1.Logger.debug(`------> 开始上传图片！！！`);
-                    const filename = `${Date.now()}-${uuid.v4().slice(0, 4)}.png`;
-                    processedUrl = await this.uploadService.uploadFileFromUrl({ filename, url: processedUrl });
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const currentDate = `${year}${month}/${day}`;
+                    common_1.Logger.debug(`------> 上传图片的URL: ${processedUrl}`);
+                    if (!processedUrl) {
+                        throw new Error('processedUrl is undefined or empty');
+                    }
+                    processedUrl = await this.uploadService.uploadFileFromUrl({
+                        url: processedUrl,
+                        dir: `midjourney/${currentDate}`,
+                    });
                     logMessage = `上传成功 URL: ${processedUrl}`;
+                    common_1.Logger.debug(logMessage);
                 }
                 catch (uploadError) {
                     common_1.Logger.error('存储图片失败，使用原始/代理图片链接');
+                    common_1.Logger.error(uploadError.message);
+                    common_1.Logger.error(uploadError.stack);
                     logMessage = `存储图片失败，使用原始/代理图片链接 ${processedUrl}`;
+                    common_1.Logger.debug(logMessage);
                 }
                 common_1.Logger.log(logMessage, 'MidjourneyService');
             }
@@ -166,15 +207,15 @@ let MidjourneyService = class MidjourneyService {
             throw new common_1.HttpException('更新绘画数据失败', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async sendDrawCommand(drawInfo, action, modelInfo, base64) {
-        const { openaiBaseUrl, openaiBaseKey, } = await this.globalConfigService.getConfigs([
+    async sendDrawCommand(drawInfo, modelInfo) {
+        const { openaiBaseUrl, openaiBaseKey } = await this.globalConfigService.getConfigs([
             'openaiBaseUrl',
             'openaiBaseKey',
         ]);
         const { key, proxyUrl } = modelInfo;
         const mjProxyUrl = proxyUrl || openaiBaseUrl;
         const mjKey = key || openaiBaseKey;
-        const { id, fullPrompt, imgUrl, drawId, customId } = drawInfo;
+        const { id, fullPrompt, imgUrl, drawId, customId, action, base64 } = drawInfo;
         const prompt = imgUrl ? `${imgUrl} ${fullPrompt}` : `${fullPrompt}`;
         let url = '';
         let payloadJson = {};
@@ -215,9 +256,9 @@ let MidjourneyService = class MidjourneyService {
             }
         }
     }
-    async pollComparisonResultDraw(id, modelInfo, drawInfo) {
-        const { key, proxyUrl, timeout } = modelInfo;
-        const { openaiTimeout, openaiBaseUrl, openaiBaseKey, } = await this.globalConfigService.getConfigs([
+    async pollComparisonResultDraw(drawId, modelInfo) {
+        const { key, proxyUrl, timeout, id } = modelInfo;
+        const { openaiTimeout, openaiBaseUrl, openaiBaseKey } = await this.globalConfigService.getConfigs([
             'openaiTimeout',
             'openaiBaseUrl',
             'openaiBaseKey',
@@ -231,15 +272,14 @@ let MidjourneyService = class MidjourneyService {
         let pollingCount = 0;
         let retryCount = 0;
         const MAX_RETRIES = 5;
-        const { drawId } = drawInfo;
         try {
             while (Date.now() - startTime < TIMEOUT && retryCount < MAX_RETRIES) {
-                await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+                await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
                 common_1.Logger.log(`【绘制图片】第 ${pollingCount + 1} 次开始查询, 使用 drawId: ${drawId}`, 'MidjourneyService');
                 try {
                     const headers = {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "mj-api-secret": mjKey
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'mj-api-secret': mjKey,
                     };
                     const url = `${mjProxyUrl}/mj/task/${drawId}/fetch`;
                     const res = await axios_1.default.get(url, { headers });
@@ -283,10 +323,31 @@ let MidjourneyService = class MidjourneyService {
                 order: { id: 'DESC' },
                 take: size,
                 skip: (page - 1) * size,
-                select: ['id', 'userId', 'prompt', 'extraParam', 'fullPrompt', 'rec', 'orderId', 'drawId', 'drawUrl', 'drawRatio', 'isDelete', 'status', 'action', 'extend']
+                select: [
+                    'id',
+                    'userId',
+                    'prompt',
+                    'extraParam',
+                    'fullPrompt',
+                    'rec',
+                    'orderId',
+                    'drawId',
+                    'drawUrl',
+                    'drawRatio',
+                    'isDelete',
+                    'status',
+                    'action',
+                    'extend',
+                ],
             });
-            const countQueue = await this.midjourneyEntity.count({ where: { isDelete: 0, status: (0, typeorm_2.In)([1, 2]) } });
-            const data = { rows: (0, utils_1.formatCreateOrUpdateDate)(rows), count, countQueue };
+            const countQueue = await this.midjourneyEntity.count({
+                where: { isDelete: 0, status: (0, typeorm_2.In)([1, 2]) },
+            });
+            const data = {
+                rows: (0, utils_1.formatCreateOrUpdateDate)(rows),
+                count,
+                countQueue,
+            };
             return data;
         }
         catch (error) {
@@ -295,11 +356,11 @@ let MidjourneyService = class MidjourneyService {
     }
     async getDrawActionDetail(action, drawId, customId) {
         const modelInfo = await this.modelsService.getSpecialModelKeyInfo('midjourney');
-        const { openaiBaseUrl, openaiBaseKey, } = await this.globalConfigService.getConfigs([
+        const { openaiBaseUrl, openaiBaseKey } = await this.globalConfigService.getConfigs([
             'openaiBaseUrl',
             'openaiBaseKey',
         ]);
-        const { deduct, isTokenBased, tokenFeeRatio, deductType, key, modelName, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel } = modelInfo;
+        const { deduct, isTokenBased, tokenFeeRatio, deductType, key, modelName, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel, } = modelInfo;
         const mjProxyUrl = proxyUrl;
         const mjKey = key || openaiBaseKey;
         const headers = { 'mj-api-secret': mjKey || openaiBaseUrl };
@@ -314,7 +375,9 @@ let MidjourneyService = class MidjourneyService {
         return { drawId: resultId };
     }
     async deleteDraw(id, req) {
-        const d = await this.midjourneyEntity.findOne({ where: { id, userId: req.user.id, isDelete: 0 } });
+        const d = await this.midjourneyEntity.findOne({
+            where: { id, userId: req.user.id, isDelete: 0 },
+        });
         if (!d) {
             throw new common_1.HttpException('当前图片不存在！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -331,8 +394,12 @@ let MidjourneyService = class MidjourneyService {
     }
     async checkLimit(req) {
         const { role, id } = req.user;
-        const count = await this.midjourneyEntity.count({ where: { userId: id, isDelete: 0, status: (0, typeorm_2.In)([1, 2]) } });
-        const mjLimitCount = await this.globalConfigService.getConfigs(['mjLimitCount']);
+        const count = await this.midjourneyEntity.count({
+            where: { userId: id, isDelete: 0, status: (0, typeorm_2.In)([1, 2]) },
+        });
+        const mjLimitCount = await this.globalConfigService.getConfigs([
+            'mjLimitCount',
+        ]);
         const max = mjLimitCount ? Number(mjLimitCount) : 2;
         if (count >= max) {
             throw new common_1.HttpException(`当前管理员限制单用户同时最多能执行${max}个任务`, common_1.HttpStatus.BAD_REQUEST);
@@ -342,17 +409,12 @@ let MidjourneyService = class MidjourneyService {
         const { id, userId, action } = jobData;
         await this.midjourneyEntity.update({ id }, { status: 4 });
     }
-    async drawSuccess(jobData) {
-        const { id, userId, action } = jobData;
-        const amount = action === "UPSCALE" ? 1 : 4;
-        common_1.Logger.debug(`绘画完成，执行扣费，扣除费用:${amount}积分。`);
-        await this.userBalanceService.deductFromBalance(userId, 3, 3);
-        await this.midjourneyEntity.update({ id }, { status: 3 });
-    }
     async getList(params) {
         const { page = 1, size = 20, rec, userId, status } = params;
         if (Number(size) === 999) {
-            const cache = await this.redisCacheService.get({ key: 'midjourney:getList' });
+            const cache = await this.redisCacheService.get({
+                key: 'midjourney:getList',
+            });
             if (cache) {
                 try {
                     return JSON.parse(cache);
@@ -371,13 +433,37 @@ let MidjourneyService = class MidjourneyService {
             order: { id: 'DESC' },
             take: size,
             skip: (page - 1) * size,
-            select: ['id', 'drawId', 'drawUrl', 'drawRatio', 'prompt', 'fullPrompt', 'rec', 'createdAt', 'action', 'status', 'extend'],
+            select: [
+                'id',
+                'drawId',
+                'drawUrl',
+                'drawRatio',
+                'prompt',
+                'fullPrompt',
+                'rec',
+                'createdAt',
+                'action',
+                'status',
+                'extend',
+            ],
         });
         if (Number(size) === 999) {
             const data = {
                 rows: rows.map((item) => {
-                    const { id, drawId, drawUrl, drawRatio, prompt, fullPrompt, createdAt, rec, action, status, extend } = item;
-                    return { id, drawId, drawUrl, drawRatio, prompt, fullPrompt, createdAt, rec, action, status, extend };
+                    const { id, drawId, drawUrl, drawRatio, prompt, fullPrompt, createdAt, rec, action, status, extend, } = item;
+                    return {
+                        id,
+                        drawId,
+                        drawUrl,
+                        drawRatio,
+                        prompt,
+                        fullPrompt,
+                        createdAt,
+                        rec,
+                        action,
+                        status,
+                        extend,
+                    };
                 }),
                 count,
             };
@@ -407,8 +493,13 @@ let MidjourneyService = class MidjourneyService {
                 take: size,
                 skip: (page - 1) * size,
             });
-            const userIds = rows.map((item) => item.userId).filter(id => id < 100000);
-            const userInfos = await this.userEntity.find({ where: { id: (0, typeorm_2.In)(userIds) }, select: ['id', 'username', 'avatar', 'email'] });
+            const userIds = rows
+                .map((item) => item.userId)
+                .filter((id) => id < 100000);
+            const userInfos = await this.userEntity.find({
+                where: { id: (0, typeorm_2.In)(userIds) },
+                select: ['id', 'username', 'avatar', 'email'],
+            });
             rows.forEach((item) => {
                 item.userInfo = userInfos.find((user) => user.id === item.userId);
             });
@@ -427,7 +518,9 @@ let MidjourneyService = class MidjourneyService {
     }
     async recDraw(params) {
         const { id } = params;
-        const draw = await this.midjourneyEntity.findOne({ where: { id, status: 3, isDelete: 0 } });
+        const draw = await this.midjourneyEntity.findOne({
+            where: { id, status: 3, isDelete: 0 },
+        });
         if (!draw) {
             throw new common_1.HttpException('当前图片不存在！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -465,7 +558,14 @@ let MidjourneyService = class MidjourneyService {
                 return await this.mjPromptsEntity.update({ id }, { prompt, status, isCarryParams, order, aspect });
             }
             else {
-                return await this.mjPromptsEntity.save({ prompt, status, isCarryParams, title, order, aspect });
+                return await this.mjPromptsEntity.save({
+                    prompt,
+                    status,
+                    isCarryParams,
+                    title,
+                    order,
+                    aspect,
+                });
             }
         }
         catch (error) {
@@ -495,10 +595,11 @@ let MidjourneyService = class MidjourneyService {
 };
 MidjourneyService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(midjourney_entity_1.MidjourneyEntity)),
-    __param(1, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
-    __param(2, (0, typeorm_1.InjectRepository)(prompt_entity_1.mjPromptEntity)),
-    __metadata("design:paramtypes", [typeorm_2.Repository,
+    __param(0, (0, bull_1.InjectQueue)('MJDRAW')),
+    __param(1, (0, typeorm_1.InjectRepository)(midjourney_entity_1.MidjourneyEntity)),
+    __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
+    __param(3, (0, typeorm_1.InjectRepository)(prompt_entity_1.mjPromptEntity)),
+    __metadata("design:paramtypes", [Object, typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         globalConfig_service_1.GlobalConfigService,

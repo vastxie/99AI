@@ -10,17 +10,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdatePasswordDto = void 0;
-const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
 class UpdatePasswordDto {
 }
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: '123456', description: '用户旧密码' }),
-    (0, class_validator_1.IsNotEmpty)({ message: '用户密码不能为空！' }),
-    (0, class_validator_1.MinLength)(6, { message: '用户密码最低需要大于6位数！' }),
-    (0, class_validator_1.MaxLength)(30, { message: '用户密码最长不能超过30位数！' }),
-    __metadata("design:type", String)
-], UpdatePasswordDto.prototype, "oldPassword", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: '666666', description: '用户更新新密码' }),
     (0, class_validator_1.IsNotEmpty)({ message: '用户密码不能为空！' }),

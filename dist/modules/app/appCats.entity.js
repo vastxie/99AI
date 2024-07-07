@@ -10,22 +10,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppCatsEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let AppCatsEntity = class AppCatsEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([
     (0, typeorm_1.Column)({ unique: true, comment: 'App分类名称' }),
     __metadata("design:type", String)
 ], AppCatsEntity.prototype, "name", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: 'App分类描述信息' }),
-    __metadata("design:type", String)
-], AppCatsEntity.prototype, "des", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ comment: 'App分类封面图片', nullable: true }),
-    __metadata("design:type", String)
-], AppCatsEntity.prototype, "coverImg", void 0);
 __decorate([
     (0, typeorm_1.Column)({ comment: 'App分类排序、数字越大越靠前', default: 100 }),
     __metadata("design:type", Number)

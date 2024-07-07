@@ -13,25 +13,27 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatisticService = void 0;
+const balance_constant_1 = require("../../common/constants/balance.constant");
+const midjourney_constant_1 = require("../../common/constants/midjourney.constant");
+const date_1 = require("../../common/utils/date");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const user_entity_1 = require("../user/user.entity");
+const axios_1 = require("axios");
 const typeorm_2 = require("typeorm");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
-const balance_constant_1 = require("../../common/constants/balance.constant");
-const date_1 = require("../../common/utils/date");
-const axios_1 = require("axios");
 const config_entity_1 = require("../globalConfig/config.entity");
-const order_entity_1 = require("../order/order.entity");
+const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 const midjourney_entity_1 = require("../midjourney/midjourney.entity");
-const midjourney_constant_1 = require("../../common/constants/midjourney.constant");
+const order_entity_1 = require("../order/order.entity");
+const user_entity_1 = require("../user/user.entity");
 let StatisticService = class StatisticService {
-    constructor(userEntity, chatLogEntity, configEntity, orderEntity, midjourneyEntity) {
+    constructor(userEntity, chatLogEntity, configEntity, orderEntity, midjourneyEntity, globalConfigService) {
         this.userEntity = userEntity;
         this.chatLogEntity = chatLogEntity;
         this.configEntity = configEntity;
         this.orderEntity = orderEntity;
         this.midjourneyEntity = midjourneyEntity;
+        this.globalConfigService = globalConfigService;
     }
     async getBaseStatistic() {
         const userCount = await this.countUsers();
@@ -79,11 +81,16 @@ let StatisticService = class StatisticService {
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         const queryBuilder = this.userEntity.createQueryBuilder('user');
-        const userCount = await queryBuilder.where('user.createdAt >= :today', { today }).andWhere('user.createdAt < :tomorrow', { tomorrow }).getCount();
+        const userCount = await queryBuilder
+            .where('user.createdAt >= :today', { today })
+            .andWhere('user.createdAt < :tomorrow', { tomorrow })
+            .getCount();
         return userCount;
     }
     async countChats() {
-        const chatCount = await this.chatLogEntity.count({ where: { type: balance_constant_1.ChatType.NORMAL_CHAT } });
+        const chatCount = await this.chatLogEntity.count({
+            where: { type: balance_constant_1.ChatType.NORMAL_CHAT },
+        });
         return chatCount;
     }
     async countNewChatsToday() {
@@ -99,7 +106,9 @@ let StatisticService = class StatisticService {
         return chatCount;
     }
     async countDraws() {
-        const drawCount = await this.chatLogEntity.count({ where: { type: balance_constant_1.ChatType.PAINT } });
+        const drawCount = await this.chatLogEntity.count({
+            where: { type: balance_constant_1.ChatType.PAINT },
+        });
         return drawCount;
     }
     async countNewDrawsToday() {
@@ -189,7 +198,9 @@ let StatisticService = class StatisticService {
         const queryBuilder = this.midjourneyEntity.createQueryBuilder('midjourney');
         const result = await queryBuilder
             .select(`DATE(midjourney.createdAt) as date, COUNT(*) as count`)
-            .where(`midjourney.status = :status`, { status: midjourney_constant_1.MidjourneyStatusEnum.DRAWED })
+            .where(`midjourney.status = :status`, {
+            status: midjourney_constant_1.MidjourneyStatusEnum.DRAWED,
+        })
             .andWhere('midjourney.createdAt >= :startDate', { startDate })
             .groupBy('date')
             .orderBy('date')
@@ -210,28 +221,68 @@ let StatisticService = class StatisticService {
         return dailyData;
     }
     async getBaiduStatistics(days) {
-        var _a, _b;
         const end_date = (0, date_1.formatDate)(new Date(), 'YYYYMMDD');
         const start_date = (0, date_1.formatDate)(new Date(Date.now() - Number(days - 1) * 24 * 60 * 60 * 1000), 'YYYYMMDD');
         const metrics = 'pv_count,visitor_count,ip_count,bounce_ratio,avg_visit_time';
         const method = 'overview/getTimeTrendRpt';
-        const configInfo = await this.configEntity.find({ where: { configKey: (0, typeorm_2.In)(['baiduToken', 'baiduSiteId']) } });
-        const siteId = (_a = configInfo.find((c) => c.configKey === 'baiduSiteId')) === null || _a === void 0 ? void 0 : _a.configVal;
-        const accessToken = (_b = configInfo.find((c) => c.configKey === 'baiduToken')) === null || _b === void 0 ? void 0 : _b.configVal;
-        if (!siteId || !accessToken) {
+        const { baiduToken, baiduSiteId, baiduApiKey, baiduSecretKey, baiduRefreshToken, } = await this.globalConfigService.getConfigs([
+            'baiduToken',
+            'baiduSiteId',
+            'baiduApiKey',
+            'baiduSecretKey',
+            'baiduRefreshToken',
+        ]);
+        if (!baiduApiKey ||
+            !baiduToken ||
+            !baiduSiteId ||
+            !baiduRefreshToken ||
+            !baiduSecretKey) {
             return [];
         }
-        if (!siteId) {
-            throw new common_1.HttpException('请先配置百度统计siteId', common_1.HttpStatus.BAD_REQUEST);
+        let accessToken = baiduToken;
+        let url = `https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=${accessToken}&site_id=${baiduSiteId}&method=${method}&start_date=${start_date}&end_date=${end_date}&metrics=${metrics}`;
+        let res;
+        try {
+            res = await axios_1.default.get(url);
         }
-        if (!accessToken) {
-            throw new common_1.HttpException('请先配置百度统计accessToken', common_1.HttpStatus.BAD_REQUEST);
+        catch (error) {
+            res = {
+                data: {
+                    error_code: 111,
+                    message: 'Access token invalid or no longer valid',
+                },
+            };
         }
-        const url = `https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=${accessToken}&site_id=${siteId}&method=${method}&start_date=${start_date}&end_date=${end_date}&metrics=${metrics}`;
-        const res = await axios_1.default.get(url);
-        const { error_code, message } = res.data;
+        let { error_code, message } = res.data;
         if (error_code === 111) {
-            throw new common_1.HttpException(message || '百度授权码过期', common_1.HttpStatus.BAD_REQUEST);
+            const tokenUrl = `http://openapi.baidu.com/oauth/2.0/token?grant_type=refresh_token&refresh_token=${baiduRefreshToken}&client_id=${baiduApiKey}&client_secret=${baiduSecretKey}`;
+            common_1.Logger.log('获取新 accessToken', tokenUrl);
+            let tokenRes;
+            try {
+                tokenRes = await axios_1.default.get(tokenUrl);
+            }
+            catch (tokenError) {
+                common_1.Logger.error('获取新 accessToken 失败', {
+                    message: tokenError.message,
+                    stack: tokenError.stack,
+                    response: tokenError.response
+                        ? tokenError.response.data
+                        : 'No response data',
+                });
+                throw new common_1.HttpException('获取新 accessToken 失败', common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (tokenRes.status === 200 && tokenRes.data.access_token) {
+                accessToken = tokenRes.data.access_token;
+                await this.configEntity.update({ configKey: 'baiduToken' }, {
+                    configVal: accessToken,
+                });
+                url = `https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=${accessToken}&site_id=${baiduSiteId}&method=${method}&start_date=${start_date}&end_date=${end_date}&metrics=${metrics}`;
+                res = await axios_1.default.get(url);
+                ({ error_code, message } = res.data);
+            }
+            else {
+                throw new common_1.HttpException('获取新 accessToken 失败', common_1.HttpStatus.BAD_REQUEST);
+            }
         }
         if (error_code && error_code !== 200) {
             throw new common_1.HttpException(message || '获取百度统计数据失败', common_1.HttpStatus.BAD_REQUEST);
@@ -265,6 +316,7 @@ StatisticService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        globalConfig_service_1.GlobalConfigService])
 ], StatisticService);
 exports.StatisticService = StatisticService;

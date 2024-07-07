@@ -13,22 +13,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppController = void 0;
-const app_service_1 = require("./app.service");
-const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
-const createCats_dto_1 = require("./dto/createCats.dto");
-const updateCats_dto_1 = require("./dto/updateCats.dto");
-const deleteCats_dto_1 = require("./dto/deleteCats.dto");
-const queryCats_dto_1 = require("./dto/queryCats.dto");
-const createApp_dto_1 = require("./dto/createApp.dto");
-const updateApp_dto_1 = require("./dto/updateApp.dto");
-const deleteApp_dto_1 = require("./dto/deleteApp.dto");
-const queryApp_dto_1 = require("./dto/queryApp.dto");
-const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
+const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
+const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
+const app_service_1 = require("./app.service");
 const collectApp_dto_1 = require("./dto/collectApp.dto");
+const createApp_dto_1 = require("./dto/createApp.dto");
+const createCats_dto_1 = require("./dto/createCats.dto");
 const custonApp_dto_1 = require("./dto/custonApp.dto");
+const deleteApp_dto_1 = require("./dto/deleteApp.dto");
+const deleteCats_dto_1 = require("./dto/deleteCats.dto");
+const queryApp_dto_1 = require("./dto/queryApp.dto");
+const queryCats_dto_1 = require("./dto/queryCats.dto");
+const updateApp_dto_1 = require("./dto/updateApp.dto");
+const updateCats_dto_1 = require("./dto/updateCats.dto");
 let AppController = class AppController {
     constructor(appService) {
         this.appService = appService;
@@ -60,6 +60,9 @@ let AppController = class AppController {
     }
     list(req, query) {
         return this.appService.frontAppList(req, query);
+    }
+    async searchList(body) {
+        return this.appService.searchAppList(body);
     }
     createApp(body) {
         return this.appService.createApp(body);
@@ -176,6 +179,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, queryApp_dto_1.QuerAppDto]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "list", null);
+__decorate([
+    (0, common_1.Post)('searchList'),
+    (0, swagger_1.ApiOperation)({ summary: '客户端获取App' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "searchList", null);
 __decorate([
     (0, common_1.Post)('createApp'),
     (0, swagger_1.ApiOperation)({ summary: '添加App' }),

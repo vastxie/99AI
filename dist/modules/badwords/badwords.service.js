@@ -13,15 +13,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BadwordsService = void 0;
-const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
-const common_1 = require("@nestjs/common");
-const badwords_entity_1 = require("./badwords.entity");
-const typeorm_1 = require("typeorm");
-const typeorm_2 = require("@nestjs/typeorm");
-const axios_1 = require("axios");
-const violationLog_entity_1 = require("./violationLog.entity");
-const user_entity_1 = require("../user/user.entity");
 const utils_1 = require("../../common/utils");
+const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const axios_1 = require("axios");
+const typeorm_2 = require("typeorm");
+const user_entity_1 = require("../user/user.entity");
+const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
+const badwords_entity_1 = require("./badwords.entity");
+const violationLog_entity_1 = require("./violationLog.entity");
 let BadwordsService = class BadwordsService {
     constructor(badWordsEntity, violationLogEntity, userEntity, globalConfigService) {
         this.badWordsEntity = badWordsEntity;
@@ -56,8 +56,8 @@ let BadwordsService = class BadwordsService {
     }
     async checkBadWordsByConfig(content, config, userId) {
         const { useType } = config;
-        useType === 'baidu' && (await this.baiduCheckBadWords(content, config.baiduTextAccessToken, userId));
-        useType === 'nineai' && (await this.nineaiCheckBadWords(content, config, userId));
+        useType === 'baidu' &&
+            (await this.baiduCheckBadWords(content, config.baiduTextAccessToken, userId));
     }
     extractContent(str) {
         const pattern = /存在(.*?)不合规/;
@@ -78,29 +78,11 @@ let BadwordsService = class BadwordsService {
             console.log('百度文本检测出现错误、请查看配置信息: ', error_msg);
         }
         if (conclusionType !== 1) {
-            const types = [...new Set(data.map((item) => this.extractContent(item.msg)))];
+            const types = [
+                ...new Set(data.map((item) => this.extractContent(item.msg))),
+            ];
             await this.recordUserBadWords(userId, content, ['***'], types, '百度云检测');
             const tips = `您提交的信息中包含${types.join(',')}的内容、我们已对您的账户进行标记、请合规使用！`;
-            throw new common_1.HttpException(tips, common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
-    async nineaiCheckBadWords(content, config, userId) {
-        var _a;
-        const { nineaiBuiltInSensitiveApiBase, nineaiBuiltInSensitiveAuthKey } = config;
-        if (!nineaiBuiltInSensitiveApiBase || !nineaiBuiltInSensitiveAuthKey)
-            return;
-        const res = await axios_1.default.post(nineaiBuiltInSensitiveApiBase, { content }, { headers: { 'Content-Type': 'application/json', Authorization: nineaiBuiltInSensitiveAuthKey } });
-        if (!res.data)
-            return;
-        if (res.data.code !== '0') {
-            const { msg = '检测失败' } = res.data;
-            throw new common_1.HttpException(`敏感词检测 | ${msg}`, common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (res.data.word_list && ((_a = res.data.word_list) === null || _a === void 0 ? void 0 : _a.length)) {
-            const words = [...new Set(res.data.word_list.map((t) => t.keyword))];
-            const types = [...new Set(res.data.word_list.map((t) => t.category))];
-            await this.recordUserBadWords(userId, content, words, types, 'NineAi检测');
-            const tips = this.formarTips(res.data.word_list);
             throw new common_1.HttpException(tips, common_1.HttpStatus.BAD_REQUEST);
         }
     }
@@ -110,14 +92,17 @@ let BadwordsService = class BadwordsService {
         return `您提交的内容中包含${unSet.join(',')}的信息、我们已对您账号进行标记、请合规使用！`;
     }
     async loadBadWords() {
-        const data = await this.badWordsEntity.find({ where: { status: 1 }, select: ['word'] });
+        const data = await this.badWordsEntity.find({
+            where: { status: 1 },
+            select: ['word'],
+        });
         this.badWords = data.map((t) => t.word);
     }
     async queryBadWords(query) {
         const { page = 1, size = 500, word, status } = query;
         const where = {};
         [0, 1, '0', '1'].includes(status) && (where.status = status);
-        word && (where.word = (0, typeorm_1.Like)(`%${word}%`));
+        word && (where.word = (0, typeorm_2.Like)(`%${word}%`));
         const [rows, count] = await this.badWordsEntity.findAndCount({
             where,
             skip: (page - 1) * size,
@@ -200,7 +185,7 @@ let BadwordsService = class BadwordsService {
         });
         const userIds = [...new Set(rows.map((t) => t.userId))];
         const usersInfo = await this.userEntity.find({
-            where: { id: (0, typeorm_1.In)(userIds) },
+            where: { id: (0, typeorm_2.In)(userIds) },
             select: ['id', 'avatar', 'username', 'email', 'violationCount', 'status'],
         });
         rows.forEach((t) => {
@@ -213,12 +198,12 @@ let BadwordsService = class BadwordsService {
 };
 BadwordsService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_2.InjectRepository)(badwords_entity_1.BadWordsEntity)),
-    __param(1, (0, typeorm_2.InjectRepository)(violationLog_entity_1.ViolationLogEntity)),
-    __param(2, (0, typeorm_2.InjectRepository)(user_entity_1.UserEntity)),
-    __metadata("design:paramtypes", [typeorm_1.Repository,
-        typeorm_1.Repository,
-        typeorm_1.Repository,
+    __param(0, (0, typeorm_1.InjectRepository)(badwords_entity_1.BadWordsEntity)),
+    __param(1, (0, typeorm_1.InjectRepository)(violationLog_entity_1.ViolationLogEntity)),
+    __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         globalConfig_service_1.GlobalConfigService])
 ], BadwordsService);
 exports.BadwordsService = BadwordsService;

@@ -10,13 +10,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetConfigCustomDto = void 0;
-const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
+const class_validator_1 = require("class-validator");
 class SetConfigCustomDto {
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: { configKey: 'siteName', configVal: 'NineAI', infoKey: 'NineAI' }, description: '设置更新配置信息' }),
+    (0, swagger_1.ApiProperty)({
+        example: { configKey: 'siteName', configVal: 'AIWeb', infoKey: 'AIWeb' },
+        description: '设置更新配置信息',
+    }),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => Object),
     __metadata("design:type", Object)

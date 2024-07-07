@@ -8,24 +8,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserBalanceModule = void 0;
 const common_1 = require("@nestjs/common");
-const userBalance_service_1 = require("./userBalance.service");
 const typeorm_1 = require("@nestjs/typeorm");
-const balance_entity_1 = require("./balance.entity");
+const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
+const chatLog_entity_1 = require("../chatLog/chatLog.entity");
+const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
+const config_entity_1 = require("../globalConfig/config.entity");
+const midjourney_entity_1 = require("../midjourney/midjourney.entity");
+const redisCache_service_1 = require("../redisCache/redisCache.service");
+const salesUsers_entity_1 = require("../sales/salesUsers.entity");
+const user_entity_1 = require("../user/user.entity");
 const verification_service_1 = require("../verification/verification.service");
 const verifycation_entity_1 = require("../verification/verifycation.entity");
 const accountLog_entity_1 = require("./accountLog.entity");
-const userBalance_controller_1 = require("./userBalance.controller");
-const config_entity_1 = require("../globalConfig/config.entity");
-const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
-const userBalance_entity_1 = require("./userBalance.entity");
-const user_entity_1 = require("../user/user.entity");
-const salesUsers_entity_1 = require("../sales/salesUsers.entity");
-const whiteList_entity_1 = require("../chat/whiteList.entity");
-const redisCache_service_1 = require("../redisCache/redisCache.service");
+const balance_entity_1 = require("./balance.entity");
 const fingerprint_entity_1 = require("./fingerprint.entity");
-const chatLog_entity_1 = require("../chatLog/chatLog.entity");
-const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
-const midjourney_entity_1 = require("../midjourney/midjourney.entity");
+const userBalance_controller_1 = require("./userBalance.controller");
+const userBalance_entity_1 = require("./userBalance.entity");
+const userBalance_service_1 = require("./userBalance.service");
 let UserBalanceModule = class UserBalanceModule {
 };
 UserBalanceModule = __decorate([
@@ -41,11 +40,10 @@ UserBalanceModule = __decorate([
                 cramiPackage_entity_1.CramiPackageEntity,
                 user_entity_1.UserEntity,
                 salesUsers_entity_1.SalesUsersEntity,
-                whiteList_entity_1.WhiteListEntity,
                 fingerprint_entity_1.FingerprintLogEntity,
                 chatLog_entity_1.ChatLogEntity,
                 chatGroup_entity_1.ChatGroupEntity,
-                midjourney_entity_1.MidjourneyEntity
+                midjourney_entity_1.MidjourneyEntity,
             ]),
         ],
         controllers: [userBalance_controller_1.UserBalanceController],

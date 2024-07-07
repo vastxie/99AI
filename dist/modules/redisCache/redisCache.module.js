@@ -8,48 +8,51 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RedisCacheModule = void 0;
 const common_1 = require("@nestjs/common");
-const redisCache_service_1 = require("./redisCache.service");
-const redisCache_controller_1 = require("./redisCache.controller");
-const nestjs_config_1 = require("nestjs-config");
 const redis_1 = require("redis");
+const redisCache_controller_1 = require("./redisCache.controller");
+const redisCache_service_1 = require("./redisCache.service");
 let RedisCacheModule = class RedisCacheModule {
 };
 RedisCacheModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [nestjs_config_1.ConfigModule],
+        imports: [],
         controllers: [redisCache_controller_1.RedisCacheController],
         providers: [
             {
                 provide: 'REDIS_CLIENT',
-                useFactory: async (redisConfig) => {
-                    const port = +process.env.REDIS_PORT;
+                useFactory: async () => {
                     const host = process.env.REDIS_HOST;
+                    const port = parseInt(process.env.REDIS_PORT, 10);
                     const password = process.env.REDIS_PASSWORD;
                     const username = process.env.REDIS_USER;
+                    const database = parseInt(process.env.REDIS_DB, 10) || 0;
                     if (!host || !port) {
-                        common_1.Logger.error(`Please config Redis config | 未配置 Redis 配置信息 请确认配置redis服务以获得更好的体验`, 'RedistCacheModule');
+                        common_1.Logger.error(`Please configure Redis config | 未配置 Redis 配置信息，请确认配置 Redis 服务以获得更好的体验`, 'RedisCacheModule');
                         return;
                     }
                     const client = (0, redis_1.createClient)({
-                        socket: { host, port },
+                        socket: {
+                            host,
+                            port,
+                        },
                         username,
                         password,
+                        database,
                     });
-                    const res = await client.connect();
                     client.on('ready', () => {
-                        common_1.Logger.debug(`Your Redis connection successful`, 'RedistCacheModule');
+                        common_1.Logger.log(`Redis connection successful`, 'RedisCacheModule');
                     });
-                    client.on('error', () => {
-                        common_1.Logger.error(`Your Redis connection failed | 您的 Redist 连接失败`, 'RedistCacheModule');
+                    client.on('error', (err) => {
+                        common_1.Logger.error(`Redis connection failed: ${err}`, 'RedisCacheModule');
                     });
+                    await client.connect();
                     return client;
                 },
-                inject: [nestjs_config_1.ConfigService],
             },
             redisCache_service_1.RedisCacheService,
         ],
-        exports: ['REDIS_CLIENT'],
+        exports: ['REDIS_CLIENT', redisCache_service_1.RedisCacheService],
     })
 ], RedisCacheModule);
 exports.RedisCacheModule = RedisCacheModule;

@@ -1,23 +1,29 @@
 # 编译阶段
-FROM node:18-alpine AS base
-FROM base AS build
+FROM node:20.14.0-alpine AS build
+
 WORKDIR /app
-COPY package.json ./
 
-# 使用腾讯源（国内服务器可取消下方注释以提升安装速度）
-# RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
+COPY package*.json ./
 
-# 如遇到提示网站证书无效，取消下方注释，禁止严格SS策略
-# RUN npm config set strict-ssl false
+# 设置环境变量来忽略一些警告
+ENV NPM_CONFIG_LOGLEVEL=error
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
-# 使用淘宝源安装项目依赖（国内用户居多）
-RUN npm config set registry https://registry.npmmirror.com && \
-    npm install --omit=dev
-
+# 合并RUN命令，更新依赖，设置镜像源，安装依赖，然后清理
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+  npm config set registry https://registry.npmmirror.com && \
+  apk add --no-cache --virtual .build-deps git && \
+  npm install -g npm@latest && \
+  npm install --production --no-optional --legacy-peer-deps && \
+  npm cache clean --force && \
+  apk del .build-deps && \
+  rm -rf /var/cache/apk/* /tmp/*
 
 # 运行阶段
-FROM base AS runner
-ENV TZ="Asia/Shanghai"
+FROM node:20.14.0-alpine AS runner
+
+ENV TZ="Asia/Shanghai" \
+  NODE_ENV=production
 
 WORKDIR /app
 
@@ -26,4 +32,4 @@ COPY . .
 
 EXPOSE 9520
 
-CMD ["node", "./dist/main.js"]
+CMD ["node", "--max-old-space-size=4096", "./dist/main.js"]

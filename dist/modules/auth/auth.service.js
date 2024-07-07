@@ -44,57 +44,109 @@ let AuthService = class AuthService {
         this.getIp();
     }
     async register(body, req) {
-        const { username, password, contact, code, invitedBy } = body;
+        await this.verificationService.verifyCaptcha(body);
+        const { password, contact, code, invitedBy } = body;
         let email = '', phone = '';
         const isEmail = /\S+@\S+\.\S+/.test(contact);
         const isPhone = /^\d{10,}$/.test(contact);
+        common_1.Logger.debug(`Contact: ${contact}, isEmail: ${isEmail}, isPhone: ${isPhone}`);
+        let username = (0, utils_1.createRandomUid)();
+        while (true) {
+            const usernameTaken = await this.userService.verifyUserRegister({
+                username,
+            });
+            common_1.Logger.debug(`Checking if username ${username} is taken: ${usernameTaken}`);
+            if (usernameTaken) {
+                break;
+            }
+            username = (0, utils_1.createRandomUid)();
+        }
         if (isEmail) {
             email = contact;
-            await this.userService.verifyUserRegister({ username, email });
+            const isAvailable = await this.userService.verifyUserRegister({
+                username,
+                email,
+            });
+            common_1.Logger.debug(`Email ${email} is available: ${isAvailable}`);
+            if (!isAvailable) {
+                throw new common_1.HttpException('当前邮箱已注册，请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+            }
         }
         else if (isPhone) {
             phone = contact;
-            await this.userService.verifyUserRegister({ username, phone });
+            const isAvailable = await this.userService.verifyUserRegister({
+                username,
+                phone,
+            });
+            common_1.Logger.debug(`Phone ${phone} is available: ${isAvailable}`);
+            if (!isAvailable) {
+                throw new common_1.HttpException('当前手机号已注册，请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+            }
         }
         else {
             throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
         }
-        const nameSpace = await this.globalConfigService.getNamespace();
-        const key = `${nameSpace}:CODE:${contact}`;
-        const redisCode = await this.redisCacheService.get({ key });
-        if (!redisCode) {
-            common_1.Logger.log(`验证码过期: ${contact}`);
-            throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
+        const noVerifyRegister = await this.globalConfigService.getConfigs([
+            'noVerifyRegister',
+        ]);
+        common_1.Logger.debug(`noVerifyRegister: ${noVerifyRegister}`);
+        if (noVerifyRegister !== '1') {
+            const nameSpace = await this.globalConfigService.getNamespace();
+            const key = `${nameSpace}:CODE:${contact}`;
+            const redisCode = await this.redisCacheService.get({ key });
+            common_1.Logger.debug(`Retrieved redisCode for ${contact}: ${redisCode}`);
+            if (code === '') {
+                throw new common_1.HttpException('请输入验证码', common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (!redisCode) {
+                common_1.Logger.log(`验证码过期: ${contact}`);
+                throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (code !== redisCode) {
+                common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`);
+                throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
+            }
         }
-        if (code !== redisCode) {
-            common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`);
-            throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        console.log('开始创建用户...');
         let newUser;
         if (isEmail) {
-            newUser = { username, password, email: contact, invitedBy, status: user_constant_1.UserStatusEnum.ACTIVE };
+            newUser = {
+                username,
+                password,
+                email: contact,
+                invitedBy,
+                status: user_constant_1.UserStatusEnum.ACTIVE,
+            };
         }
         else {
             const email = `${(0, utils_1.createRandomUid)()}@aiweb.com`;
-            newUser = { username, password, email, phone: contact, invitedBy, status: user_constant_1.UserStatusEnum.ACTIVE };
+            newUser = {
+                username,
+                password,
+                email,
+                phone: contact,
+                invitedBy,
+                status: user_constant_1.UserStatusEnum.ACTIVE,
+            };
         }
-        ;
-        console.log('获取默认用户头像...');
-        const userDefautlAvatar = await this.globalConfigService.getConfigs(['userDefautlAvatar']);
-        console.log(`使用默认用户头像: ${userDefautlAvatar}`);
+        common_1.Logger.debug('获取默认用户头像...');
+        const userDefautlAvatar = await this.globalConfigService.getConfigs([
+            'userDefautlAvatar',
+        ]);
+        common_1.Logger.debug(`使用默认用户头像: ${userDefautlAvatar}`);
         newUser.avatar = userDefautlAvatar;
-        console.log('加密用户密码...');
+        common_1.Logger.debug('加密用户密码...');
         const hashedPassword = bcrypt.hashSync(password, 10);
         newUser.password = hashedPassword;
-        console.log('保存新用户到数据库...');
+        common_1.Logger.debug('保存新用户到数据库...');
         const u = await this.userService.createUser(newUser);
-        console.log(`用户创建成功，用户ID: ${u.id}`);
+        common_1.Logger.debug(`用户创建成功，用户ID: ${u.id}`);
         let inviteUser;
         if (invitedBy) {
             inviteUser = await this.userService.qureyUserInfoByInviteCode(invitedBy);
+            common_1.Logger.debug(`邀请人信息: ${inviteUser}`);
         }
         await this.userBalanceService.addBalanceToNewUser(u.id, inviteUser === null || inviteUser === void 0 ? void 0 : inviteUser.id);
+        common_1.Logger.debug('完成新用户余额处理');
         return { success: true, message: '注册成功' };
     }
     async login(user, req) {
@@ -109,7 +161,73 @@ let AuthService = class AuthService {
         const ip = (0, utils_1.getClientIp)(req);
         await this.userService.savaLoginIp(id, ip);
         console.log(`保存登录IP: ${ip} - 用户ID: ${id}`);
-        const token = await this.jwtService.sign({ username, id, email, role, openId, client, phone });
+        const token = await this.jwtService.sign({
+            username,
+            id,
+            email,
+            role,
+            openId,
+            client,
+            phone,
+        });
+        console.log(`JWT令牌生成成功 - 用户ID: ${id}`);
+        await this.redisCacheService.saveToken(id, token);
+        console.log(`令牌已保存到Redis - 用户ID: ${id}`);
+        return token;
+    }
+    async loginWithCaptcha(body, req) {
+        const { contact, code } = body;
+        let email = '', phone = '';
+        const isEmail = /\S+@\S+\.\S+/.test(contact);
+        const isPhone = /^\d{10,}$/.test(contact);
+        if (isEmail) {
+            email = contact;
+        }
+        else if (isPhone) {
+            phone = contact;
+        }
+        else {
+            throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
+        }
+        const isAvailable = await this.userService.verifyUserRegister({
+            email,
+            phone,
+        });
+        const nameSpace = await this.globalConfigService.getNamespace();
+        const key = `${nameSpace}:CODE:${contact}`;
+        const redisCode = await this.redisCacheService.get({ key });
+        if (!redisCode) {
+            common_1.Logger.log(`验证码过期: ${contact}`);
+            throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (code !== redisCode) {
+            common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`);
+            throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        let u;
+        if (isAvailable) {
+            u = await this.userService.createUserFromContact({ email, phone });
+        }
+        else {
+            u = await this.userService.getUserByContact({ email, phone });
+        }
+        if (!u) {
+            throw new common_1.HttpException('登录失败，用户凭证无效。', common_1.HttpStatus.UNAUTHORIZED);
+        }
+        const { username, id, role, openId, client } = u;
+        console.log(`用户凭证验证成功，用户ID: ${id}, 用户名: ${username}`);
+        const ip = (0, utils_1.getClientIp)(req);
+        await this.userService.savaLoginIp(id, ip);
+        console.log(`保存登录IP: ${ip} - 用户ID: ${id}`);
+        const token = await this.jwtService.sign({
+            username,
+            id,
+            email,
+            role,
+            openId,
+            client,
+            phone,
+        });
         console.log(`JWT令牌生成成功 - 用户ID: ${id}`);
         await this.redisCacheService.saveToken(id, token);
         console.log(`令牌已保存到Redis - 用户ID: ${id}`);
@@ -123,7 +241,14 @@ let AuthService = class AuthService {
         const { username, id, email, role, openId, client } = user;
         const ip = (0, utils_1.getClientIp)(req);
         await this.userService.savaLoginIp(id, ip);
-        const token = await this.jwtService.sign({ username, id, email, role, openId, client });
+        const token = await this.jwtService.sign({
+            username,
+            id,
+            email,
+            role,
+            openId,
+            client,
+        });
         await this.redisCacheService.saveToken(id, token);
         return token;
     }
@@ -138,10 +263,6 @@ let AuthService = class AuthService {
         }
         if (role === 'admin') {
             throw new common_1.HttpException('非法操作、请联系管理员！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const bool = await this.userService.verifyUserPassword(id, body.oldPassword);
-        if (!bool) {
-            throw new common_1.HttpException('旧密码错误、请检查提交', common_1.HttpStatus.BAD_REQUEST);
         }
         this.userService.updateUserPassword(id, body.password);
         return '密码修改成功';
@@ -161,7 +282,9 @@ let AuthService = class AuthService {
             const interfaceInfo = interfaces[interfaceName];
             for (let i = 0; i < interfaceInfo.length; i++) {
                 const alias = interfaceInfo[i];
-                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                if (alias.family === 'IPv4' &&
+                    alias.address !== '127.0.0.1' &&
+                    !alias.internal) {
                     ipAddress = alias.address;
                     break;
                 }
@@ -172,33 +295,53 @@ let AuthService = class AuthService {
     async captcha(parmas) {
         const nameSpace = await this.globalConfigService.getNamespace();
         const { color = '#fff' } = parmas;
-        const captcha = svgCaptcha.createMathExpr({ background: color, height: 30, width: 120, noise: 5 });
+        const captcha = svgCaptcha.create({
+            size: 5,
+            ignoreChars: '0o1i',
+            noise: 4,
+            color: true,
+            background: color,
+            height: 33,
+            width: 150,
+        });
         const text = captcha.text;
-        const randomId = (0, utils_1.createRandomUid)();
+        const randomId = Math.random().toString(36).substr(2, 9);
         const key = `${nameSpace}:CAPTCHA:${randomId}`;
-        await this.redisCacheService.set({ key, val: captcha.text }, 5 * 60);
+        await this.redisCacheService.set({ key, val: text }, 5 * 60);
         return {
             svgCode: captcha.data,
             code: randomId,
         };
     }
     async sendCode(body) {
-        await this.verificationService.verifyCaptcha(body);
-        const { contact, username } = body;
+        const { contact, isLogin } = body;
         let email = '', phone = '';
         const code = (0, utils_1.createRandomCode)();
         const isEmail = /\S+@\S+\.\S+/.test(contact);
         const isPhone = /^\d{10,}$/.test(contact);
-        if (isEmail) {
-            email = contact;
-            await this.userService.verifyUserRegister({ username, email });
-        }
-        else if (isPhone) {
-            phone = contact;
-            await this.userService.verifyUserRegister({ username, phone });
-        }
-        else {
+        if (!isEmail && !isPhone) {
             throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (!isLogin) {
+            await this.verificationService.verifyCaptcha(body);
+            if (isEmail) {
+                email = contact;
+                const isAvailable = await this.userService.verifyUserRegister({
+                    email,
+                });
+                if (!isAvailable) {
+                    throw new common_1.HttpException('当前邮箱已注册，请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+                }
+            }
+            else if (isPhone) {
+                phone = contact;
+                const isAvailable = await this.userService.verifyUserRegister({
+                    phone,
+                });
+                if (!isAvailable) {
+                    throw new common_1.HttpException('当前手机号已注册，请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+                }
+            }
         }
         const nameSpace = await this.globalConfigService.getNamespace();
         const key = `${nameSpace}:CODE:${contact}`;

@@ -49,17 +49,24 @@ let OfficialService = class OfficialService {
         return this.fetchQRCodeTicket(sceneStr);
     }
     async getRedirectUrl(url) {
-        const appId = await this.globalConfigService.getConfigs(['wechatOfficialAppId']);
-        const res = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${encodeURIComponent(url)}&response_type=code&scope=snsapi_base&state=weChatLogin#wechat_redirect`;
+        const appId = await this.globalConfigService.getConfigs([
+            'wechatOfficialAppId',
+        ]);
+        const Url = (0, utils_1.formatUrl)(process.env.weChatOpenUrl || 'https://open.weixin.qq.com');
+        const res = `${Url}/connect/oauth2/authorize?appid=${appId}&redirect_uri=${encodeURIComponent(url)}&response_type=code&scope=snsapi_base&state=weChatLogin#wechat_redirect`;
         console.log('回跳跳转地址: ', res);
         return res;
     }
     async getJsapiTicket(url) {
         const nonceStr = (0, utils_1.createRandomNonceStr)(32);
         const timestamp = (Date.now() / 1000).toFixed(0);
-        const jsapiTicket = await this.globalConfigService.getConfigs(['wechatJsapiTicket']);
+        const jsapiTicket = await this.globalConfigService.getConfigs([
+            'wechatJsapiTicket',
+        ]);
         console.log('jsapiTicket: ', jsapiTicket);
-        const appId = await this.globalConfigService.getConfigs(['wechatOfficialAppId']);
+        const appId = await this.globalConfigService.getConfigs([
+            'wechatOfficialAppId',
+        ]);
         console.log('appId: ', appId);
         const str = `jsapi_ticket=${jsapiTicket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
         console.log('str: ', str);
@@ -67,18 +74,29 @@ let OfficialService = class OfficialService {
         return { appId, nonceStr, timestamp, signature };
     }
     async fetchQRCodeTicket(sceneStr) {
-        const accessToken = await this.globalConfigService.getConfigs(['wechatAccessToken']);
-        const params = { action_name: 'QR_STR_SCENE', action_info: { scene: { scene_str: sceneStr } } };
-        const res = await axios_1.default.post(`https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=${accessToken}`, params);
+        const accessToken = await this.globalConfigService.getConfigs([
+            'wechatAccessToken',
+        ]);
+        const Url = (0, utils_1.formatUrl)(process.env.weChatApiUrl || 'https://api.weixin.qq.com');
+        const params = {
+            action_name: 'QR_STR_SCENE',
+            action_info: { scene: { scene_str: sceneStr } },
+        };
+        const res = await axios_1.default.post(`${Url}/cgi-bin/qrcode/create?access_token=${accessToken}`, params);
         const { data: { errmsg, ticket }, } = res;
         if (errmsg)
             throw new common_1.HttpException(errmsg, common_1.HttpStatus.BAD_REQUEST);
         return ticket;
     }
     async loginByCode(req, code) {
-        const appId = await this.globalConfigService.getConfigs(['wechatOfficialAppId']);
-        const secret = await this.globalConfigService.getConfigs(['wechatOfficialAppSecret']);
-        const res = await axios_1.default.get(`https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${secret}&code=${code}&grant_type=authorization_code`);
+        const appId = await this.globalConfigService.getConfigs([
+            'wechatOfficialAppId',
+        ]);
+        const secret = await this.globalConfigService.getConfigs([
+            'wechatOfficialAppSecret',
+        ]);
+        const Url = (0, utils_1.formatUrl)(process.env.weChatApiUrl || 'https://api.weixin.qq.com');
+        const res = await axios_1.default.get(`${Url}/sns/oauth2/access_token?appid=${appId}&secret=${secret}&code=${code}&grant_type=authorization_code`);
         const { data: { errmsg, openid }, } = res;
         if (errmsg)
             throw new common_1.HttpException(errmsg, common_1.HttpStatus.BAD_REQUEST);
@@ -90,10 +108,21 @@ let OfficialService = class OfficialService {
         return this.authService.loginByOpenId(user, req);
     }
     async scan(openID, sceneStr) {
-        if (!this.sceneStrMap[sceneStr])
-            throw new common_1.HttpException('非法参数', common_1.HttpStatus.BAD_REQUEST);
-        const user = await this.userService.getUserFromOpenId(openID, sceneStr);
-        this.scanedSceneStrMap[sceneStr] = user.id;
+        try {
+            common_1.Logger.log(`Scanning with openID: ${openID}, sceneStr: ${sceneStr}`);
+            if (!this.sceneStrMap[sceneStr]) {
+                common_1.Logger.error(`非法参数: 未找到的 sceneStr ${sceneStr}`);
+                throw new common_1.HttpException('非法参数', common_1.HttpStatus.BAD_REQUEST);
+            }
+            const user = await this.userService.getUserFromOpenId(openID, sceneStr);
+            common_1.Logger.log(`User found: ${user ? user.id : 'No user found'}`);
+            this.scanedSceneStrMap[sceneStr] = user.id;
+        }
+        catch (error) {
+            common_1.Logger.error('Error in scan method:', error.message);
+            common_1.Logger.error('Stack trace:', error.stack);
+            throw new common_1.HttpException('处理扫码事件时发生错误', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async loginBySceneStr(req, sceneStr) {
         if (!this.sceneStrMap[sceneStr])
@@ -123,8 +152,9 @@ let OfficialService = class OfficialService {
         return res;
     }
     async verify(signature, nonce, timestamp) {
-        const token = (await this.globalConfigService.getConfigs(['wechatOfficialToken'])) || '';
-        return (await this.sha1([token, nonce, timestamp].sort().join(''))) == signature;
+        const token = (await this.globalConfigService.getConfigs(['wechatOfficialToken'])) ||
+            '';
+        return ((await this.sha1([token, nonce, timestamp].sort().join(''))) == signature);
     }
     sha1(data) {
         return crypto.createHash('sha1').update(data).digest('hex');
@@ -149,7 +179,8 @@ let OfficialService = class OfficialService {
                 reject(new Error('请求超时'));
             }, 4800);
         });
-        let question = (await this.globalConfigService.getConfigs(['officialAutoReplyText'])) || '由于公众号的回复限制、过长的问题我们可能无法回复、您可以前往我们的官方站点享受更加完善的服务、如果您有更多问题、欢迎像我提问！';
+        let question = (await this.globalConfigService.getConfigs(['officialAutoReplyText'])) ||
+            '由于公众号的回复限制、过长的问题我们可能无法回复、您可以前往我们的官方站点享受更加完善的服务、如果您有更多问题、欢迎像我提问！';
         return question;
     }
 };

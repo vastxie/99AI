@@ -10,12 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JwtAuthGuard = void 0;
+const globalConfig_service_1 = require("../../modules/globalConfig/globalConfig.service");
 const redisCache_service_1 = require("../../modules/redisCache/redisCache.service");
 const common_1 = require("@nestjs/common");
+const core_1 = require("@nestjs/core");
 const passport_1 = require("@nestjs/passport");
 const jwt = require("jsonwebtoken");
-const core_1 = require("@nestjs/core");
-const globalConfig_service_1 = require("../../modules/globalConfig/globalConfig.service");
 const auth_service_1 = require("../../modules/auth/auth.service");
 let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
     constructor(redisCacheService, moduleRef, globalConfigService, authService) {
@@ -27,13 +27,14 @@ let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
     }
     async canActivate(context) {
         if (!this.redisCacheService) {
-            this.redisCacheService = this.moduleRef.get(redisCache_service_1.RedisCacheService, { strict: false });
+            this.redisCacheService = this.moduleRef.get(redisCache_service_1.RedisCacheService, {
+                strict: false,
+            });
         }
         const request = context.switchToHttp().getRequest();
         const domain = request.headers['x-website-domain'];
         const token = this.extractToken(request);
-        request.user = this.validateToken(token);
-        const auth = this.globalConfigService.getNineAiToken();
+        request.user = await this.validateToken(token);
         await this.redisCacheService.checkTokenAuth(token, request);
         return true;
     }
@@ -56,9 +57,11 @@ let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
         }
         return parts[1];
     }
-    validateToken(token) {
+    async validateToken(token) {
         try {
-            return jwt.verify(token, process.env.JWT_SECRET);
+            const secret = await this.redisCacheService.getJwtSecret();
+            const decoded = await jwt.verify(token, secret);
+            return decoded;
         }
         catch (error) {
             throw new common_1.HttpException('亲爱的用户,请登录后继续操作,我们正在等您的到来！', common_1.HttpStatus.UNAUTHORIZED);

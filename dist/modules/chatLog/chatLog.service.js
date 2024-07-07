@@ -59,7 +59,9 @@ let ChatLogService = class ChatLogService {
             if (r.type === 'paintCount') {
                 const w = r.model === 'mj' ? 310 : 160;
                 const imgType = r.answer.includes('cos') ? 'tencent' : 'ali';
-                const compress = imgType === 'tencent' ? `?imageView2/1/w/${w}/q/55` : `?x-oss-process=image/resize,w_${w}`;
+                const compress = imgType === 'tencent'
+                    ? `?imageView2/1/w/${w}/q/55`
+                    : `?x-oss-process=image/resize,w_${w}`;
                 r.thumbImg = r.answer + compress;
                 try {
                     r.fileInfo = r.fileInfo ? JSON.parse(r.fileInfo) : null;
@@ -73,11 +75,19 @@ let ChatLogService = class ChatLogService {
     }
     async querAllDrawLog(params) {
         const { page = 1, size = 20, rec, userId, model } = params;
-        const where = { type: 2, prompt: (0, typeorm_2.Not)(''), answer: (0, typeorm_2.Not)(''), fileInfo: (0, typeorm_2.Not)(''), };
+        const where = {
+            type: 2,
+            prompt: (0, typeorm_2.Not)(''),
+            answer: (0, typeorm_2.Not)(''),
+            fileInfo: (0, typeorm_2.Not)(''),
+        };
         rec && Object.assign(where, { rec });
         userId && Object.assign(where, { userId });
         if (model) {
             where.model = model;
+        }
+        else {
+            where.model = (0, typeorm_2.In)(['midjourney', 'dall-e-3', 'stable-diffusion']);
         }
         const [rows, count] = await this.chatLogEntity.findAndCount({
             order: { id: 'DESC' },
@@ -85,11 +95,23 @@ let ChatLogService = class ChatLogService {
             take: size,
             where,
         });
+        const userIds = rows
+            .map((item) => item.userId)
+            .filter((id) => id < 100000);
+        const userInfos = await this.userEntity.find({
+            where: { id: (0, typeorm_2.In)(userIds) },
+            select: ['id', 'username', 'avatar', 'email'],
+        });
+        rows.forEach((item) => {
+            item.userInfo = userInfos.find((user) => user.id === item.userId);
+        });
         rows.forEach((r) => {
             var _a;
             const w = r.model === 'midjourney' ? 310 : 160;
             const imgType = r.answer.includes('cos') ? 'tencent' : 'ali';
-            const compress = imgType === 'tencent' ? `?imageView2/1/w/${w}/q/55` : `?x-oss-process=image/resize,w_${w}`;
+            const compress = imgType === 'tencent'
+                ? `?imageView2/1/w/${w}/q/55`
+                : `?x-oss-process=image/resize,w_${w}`;
             r.thumbImg = r.answer + compress;
             try {
                 const detailInfo = r.extend ? JSON.parse(r.extend) : null;
@@ -115,7 +137,9 @@ let ChatLogService = class ChatLogService {
     }
     async recDrawImg(body) {
         const { id } = body;
-        const l = await this.chatLogEntity.findOne({ where: { id, type: balance_constant_1.ChatType.PAINT } });
+        const l = await this.chatLogEntity.findOne({
+            where: { id, type: balance_constant_1.ChatType.PAINT },
+        });
         if (!l) {
             throw new common_1.HttpException('你推荐的图片不存在、请检查！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -141,7 +165,9 @@ let ChatLogService = class ChatLogService {
             where,
         });
         const userIds = rows.map((r) => r.userId);
-        const userInfos = await this.userEntity.find({ where: { id: (0, typeorm_2.In)(userIds) } });
+        const userInfos = await this.userEntity.find({
+            where: { id: (0, typeorm_2.In)(userIds) },
+        });
         const data = rows.map((r) => {
             const userInfo = userInfos.find((u) => u.id === r.userId);
             return {
@@ -179,15 +205,19 @@ let ChatLogService = class ChatLogService {
             where,
         });
         const userIds = rows.map((item) => item.userId);
-        const userInfo = await this.userEntity.find({ where: { id: (0, typeorm_2.In)(userIds) }, select: ['id', 'username', 'email'] });
+        const userInfo = await this.userEntity.find({
+            where: { id: (0, typeorm_2.In)(userIds) },
+            select: ['id', 'username', 'email'],
+        });
         rows.forEach((item) => {
             const { username, email } = userInfo.find((u) => u.id === item.userId) || {};
             item.username = username;
             item.email = email;
         });
-        req.user.role !== 'super' && rows.forEach((t) => (t.email = (0, utils_1.maskEmail)(t.email)));
+        req.user.role !== 'super' &&
+            rows.forEach((t) => (t.email = (0, utils_1.maskEmail)(t.email)));
         rows.forEach((item) => {
-            !item.email && (item.email = `${item === null || item === void 0 ? void 0 : item.userId}@nine.com`);
+            !item.email && (item.email = `${item === null || item === void 0 ? void 0 : item.userId}@aiweb.com`);
             !item.username && (item.username = `游客${item === null || item === void 0 ? void 0 : item.userId}`);
         });
         return { rows, count };
@@ -198,13 +228,15 @@ let ChatLogService = class ChatLogService {
         const where = { userId: id, isDelete: false };
         groupId && Object.assign(where, { groupId });
         if (groupId) {
-            const count = await this.chatGroupEntity.count({ where: { isDelete: false } });
+            const count = await this.chatGroupEntity.count({
+                where: { isDelete: false },
+            });
             if (count === 0)
                 return [];
         }
         const list = await this.chatLogEntity.find({ where });
         return list.map((item) => {
-            const { prompt, role, answer, createdAt, model, modelName, type, status, action, drawId, id, fileInfo, ttsUrl, customId, pluginParam } = item;
+            const { prompt, role, answer, createdAt, model, modelName, type, status, action, drawId, id, fileInfo, ttsUrl, videoUrl, audioUrl, customId, pluginParam, modelAvatar, taskData, } = item;
             return {
                 chatId: id,
                 dateTime: (0, utils_1.formatDate)(createdAt),
@@ -218,9 +250,13 @@ let ChatLogService = class ChatLogService {
                 error: false,
                 fileInfo: fileInfo,
                 ttsUrl: ttsUrl,
+                videoUrl: videoUrl,
+                audioUrl: audioUrl,
                 model: model,
                 modelName: modelName,
                 pluginParam: pluginParam,
+                modelAvatar: modelAvatar,
+                taskData: taskData,
             };
         });
     }
@@ -232,18 +268,23 @@ let ChatLogService = class ChatLogService {
         const list = await this.chatLogEntity.find({
             where,
             order: {
-                createdAt: 'DESC'
+                createdAt: 'DESC',
             },
-            take: rounds * 2
+            take: rounds * 2,
         });
-        return list.map((item) => {
+        const result = list
+            .map((item) => {
             const { role, prompt, answer, fileInfo } = item;
-            return {
+            const record = {
                 role: role,
                 text: role === 'user' ? prompt : answer,
                 fileInfo: fileInfo,
             };
-        }).reverse();
+            return record;
+        })
+            .reverse();
+        common_1.Logger.debug('处理后的结果:', JSON.stringify(result, null, 2));
+        return result;
     }
     async deleteChatLog(req, body) {
         const { id: userId } = req.user;
@@ -263,7 +304,9 @@ let ChatLogService = class ChatLogService {
     async delByGroupId(req, body) {
         const { groupId } = body;
         const { id } = req.user;
-        const g = await this.chatGroupEntity.findOne({ where: { id: groupId, userId: id } });
+        const g = await this.chatGroupEntity.findOne({
+            where: { id: groupId, userId: id },
+        });
         if (!g) {
             throw new common_1.HttpException('你删除的对话记录不存在、请检查！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -295,7 +338,7 @@ let ChatLogService = class ChatLogService {
                     userId: userId.id,
                     model,
                     createdAt: (0, typeorm_2.MoreThan)(oneHourAgo),
-                }
+                },
             });
             adjustedUsageCount = Math.ceil(usageCount / 2);
             common_1.Logger.debug(`用户ID: ${userId.id} 模型: ${model} 一小时内已调用: ${adjustedUsageCount} 次`);

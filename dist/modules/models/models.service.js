@@ -47,18 +47,16 @@ let ModelsService = class ModelsService {
             }
             return pre;
         }, {});
-        this.modelTypes = Object.keys(keyTypes).map(keyType => {
+        this.modelTypes = Object.keys(keyTypes).map((keyType) => {
             return { label: status_constant_1.ModelsMapCn[keyType], val: keyType };
         });
         this.modelMaps = keyTypes;
         this.keyList = {};
-        allKeys.forEach(keyDetail => {
-            const { keyType, model, keyWeight } = keyDetail;
+        allKeys.forEach((keyDetail) => {
+            const { keyType, model } = keyDetail;
             if (!this.keyPoolMap[model])
                 this.keyPoolMap[model] = [];
-            for (let index = 0; index < keyWeight; index++) {
-                this.keyPoolMap[model].push(keyDetail);
-            }
+            this.keyPoolMap[model].push(keyDetail);
             if (!this.keyPoolIndexMap[model])
                 this.keyPoolIndexMap[model] = 0;
             if (!this.keyList[keyType])
@@ -74,7 +72,9 @@ let ModelsService = class ModelsService {
         this.initCalcKey();
     }
     async getCurrentModelKeyInfo(model) {
-        const modelKeyInfo = await this.modelsEntity.findOne({ where: { model: model } });
+        const modelKeyInfo = await this.modelsEntity.findOne({
+            where: { model: model },
+        });
         if (!modelKeyInfo) {
             throw new common_1.HttpException('当前调用模型的key未找到，请重新选择模型！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -82,7 +82,7 @@ let ModelsService = class ModelsService {
     }
     async getSpecialModelKeyInfo(modelPrefix) {
         const matchingModels = await this.modelsEntity.find({
-            where: { model: (0, typeorm_2.Like)(`${modelPrefix}%`) }
+            where: { model: (0, typeorm_2.Like)(`${modelPrefix}%`) },
         });
         if (matchingModels.length === 0) {
             throw new common_1.HttpException('未找到匹配的模型，请重新选择模型！', common_1.HttpStatus.BAD_REQUEST);
@@ -95,9 +95,18 @@ let ModelsService = class ModelsService {
     async getBaseConfig(appId) {
         if (!this.modelTypes.length || !Object.keys(this.modelMaps).length)
             return;
-        const { keyType, modelName, model, deductType, deduct, isFileUpload } = this.modelMaps[1][0];
+        const { keyType, modelName, model, deductType, deduct, isFileUpload, modelAvatar, modelDescription, } = this.modelMaps[1][0];
         return {
-            modelInfo: { keyType, modelName, model, deductType, deduct, isFileUpload }
+            modelInfo: {
+                keyType,
+                modelName,
+                model,
+                deductType,
+                deduct,
+                isFileUpload,
+                modelAvatar,
+                modelDescription,
+            },
         };
     }
     async setModel(params) {
@@ -120,7 +129,7 @@ let ModelsService = class ModelsService {
                     return res;
                 }
                 else {
-                    const data = key.map(k => {
+                    const data = key.map((k) => {
                         try {
                             const data = JSON.parse(JSON.stringify(params));
                             data.key = k;
@@ -166,13 +175,13 @@ let ModelsService = class ModelsService {
         const [rows, count] = await this.modelsEntity.findAndCount({
             where: where,
             order: {
-                modelOrder: 'ASC'
+                modelOrder: 'ASC',
             },
             skip: (page - 1) * size,
             take: size,
         });
         if (role !== 'super') {
-            rows.forEach(item => {
+            rows.forEach((item) => {
                 item.key && (item.key = (0, utils_1.hideString)(item.key));
             });
         }
@@ -180,22 +189,37 @@ let ModelsService = class ModelsService {
     }
     async modelsList() {
         const cloneModelMaps = JSON.parse(JSON.stringify(this.modelMaps));
-        Object.keys(cloneModelMaps).forEach(key => {
-            cloneModelMaps[key] = cloneModelMaps[key].sort((a, b) => a.modelOrder - b.modelOrder);
+        Object.keys(cloneModelMaps).forEach((key) => {
+            cloneModelMaps[key] = cloneModelMaps[key]
+                .filter((t) => t.keyStatus === 1)
+                .sort((a, b) => a.modelOrder - b.modelOrder);
             cloneModelMaps[key] = Array.from(cloneModelMaps[key]
-                .map(t => {
-                const { modelName, keyType, model, deduct, deductType, maxRounds, modelAvatar, isFileUpload } = t;
-                return { modelName, keyType, model, deduct, deductType, maxRounds, modelAvatar, isFileUpload };
+                .map((t) => {
+                const { modelName, keyType, model, deduct, deductType, maxRounds, modelAvatar, isFileUpload, modelDescription, } = t;
+                return {
+                    modelName,
+                    keyType,
+                    model,
+                    deduct,
+                    deductType,
+                    maxRounds,
+                    modelAvatar,
+                    isFileUpload,
+                    modelDescription,
+                };
             })
-                .reduce((map, obj) => map.set(obj.modelName, obj), new Map()).values());
+                .reduce((map, obj) => map.set(obj.modelName, obj), new Map())
+                .values());
         });
         return {
             modelTypeList: this.modelTypes,
-            modelMaps: cloneModelMaps
+            modelMaps: cloneModelMaps,
         };
     }
     async getMjInfo() {
-        const modelInfo = await this.modelsEntity.findOne({ where: { model: "midjourney" } });
+        const modelInfo = await this.modelsEntity.findOne({
+            where: { model: 'midjourney' },
+        });
         if (modelInfo) {
             return {
                 modelName: modelInfo.modelName,
@@ -212,7 +236,10 @@ let ModelsService = class ModelsService {
         await this.modelsEntity
             .createQueryBuilder()
             .update(models_entity_1.ModelsEntity)
-            .set({ useCount: () => 'useCount + 1', useToken: () => `useToken + ${useToken}` })
+            .set({
+            useCount: () => 'useCount + 1',
+            useToken: () => `useToken + ${useToken}`,
+        })
             .where('id = :id', { id })
             .execute();
     }

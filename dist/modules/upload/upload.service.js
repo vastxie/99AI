@@ -25,29 +25,57 @@ let UploadService = class UploadService {
         this.globalConfigService = globalConfigService;
     }
     onModuleInit() { }
-    async uploadFile(file) {
-        const { filename: name, originalname, buffer, dir = 'ai', mimetype } = file;
-        const fileTyle = mimetype ? mimetype.split('/')[1] : '';
-        const filename = originalname || name;
-        common_1.Logger.debug(`准备上传文件: ${filename}, 类型: ${fileTyle}`, 'UploadService');
-        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs(['tencentCosStatus', 'aliOssStatus', 'cheveretoStatus']);
+    async uploadFile(file, dir = 'others') {
+        const { filename: name, originalname, buffer, mimetype, } = file;
+        if (process.env.ISDEV) {
+            dir = `dev/${dir}`;
+        }
+        common_1.Logger.debug(`准备上传文件: ${dir}`, 'UploadService');
+        const now = new Date();
+        const timestamp = now.getTime();
+        const randomString = Math.random().toString(36).substring(2, 6);
+        const fileType = mimetype ? mimetype.split('/')[1] : '';
+        const filename = `${timestamp}_${randomString}.${fileType}`;
+        common_1.Logger.debug(`准备上传文件: ${filename}, 类型: ${fileType}`, 'UploadService');
+        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs([
+            'tencentCosStatus',
+            'aliOssStatus',
+            'cheveretoStatus',
+        ]);
         common_1.Logger.debug(`上传配置状态 - 腾讯云: ${tencentCosStatus}, 阿里云: ${aliOssStatus}, Chevereto: ${cheveretoStatus}`, 'UploadService');
-        if (!Number(tencentCosStatus) && !Number(aliOssStatus) && !Number(cheveretoStatus)) {
+        if (!Number(tencentCosStatus) &&
+            !Number(aliOssStatus) &&
+            !Number(cheveretoStatus)) {
             throw new common_1.HttpException('请先前往后台配置上传图片的方式', common_1.HttpStatus.BAD_REQUEST);
         }
         try {
             if (Number(tencentCosStatus)) {
                 common_1.Logger.debug(`使用腾讯云COS上传`, 'UploadService');
-                return await this.uploadFileByTencentCos({ filename, buffer, dir, fileTyle });
+                return await this.uploadFileByTencentCos({
+                    filename,
+                    buffer,
+                    dir,
+                    fileType,
+                });
             }
             if (Number(aliOssStatus)) {
                 common_1.Logger.debug(`使用阿里云OSS上传`, 'UploadService');
-                return await this.uploadFileByAliOss({ filename, buffer, dir, fileTyle });
+                return await this.uploadFileByAliOss({
+                    filename,
+                    buffer,
+                    dir,
+                    fileType,
+                });
             }
             if (Number(cheveretoStatus)) {
                 common_1.Logger.debug(`使用Chevereto上传`, 'UploadService');
                 const { filename, buffer: fromBuffer, dir } = file;
-                return await this.uploadFileByChevereto({ filename, buffer: fromBuffer.toString('base64'), dir, fileTyle });
+                return await this.uploadFileByChevereto({
+                    filename,
+                    buffer: fromBuffer.toString('base64'),
+                    dir,
+                    fileType,
+                });
             }
         }
         catch (error) {
@@ -56,7 +84,11 @@ let UploadService = class UploadService {
         }
     }
     async getUploadType() {
-        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs(['tencentCosStatus', 'aliOssStatus', 'cheveretoStatus']);
+        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs([
+            'tencentCosStatus',
+            'aliOssStatus',
+            'cheveretoStatus',
+        ]);
         if (Number(tencentCosStatus)) {
             return 'tencent';
         }
@@ -67,10 +99,72 @@ let UploadService = class UploadService {
             return 'chevereto';
         }
     }
-    async uploadFileFromUrl({ filename, url, dir = 'ai' }) {
-        dir = process.env.ISDEV ? 'mjdev' : dir;
-        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs(['tencentCosStatus', 'aliOssStatus', 'cheveretoStatus']);
-        if (!Number(tencentCosStatus) && !Number(aliOssStatus) && !Number(cheveretoStatus)) {
+    async uploadFileFromUrl({ url, dir = 'others' }) {
+        if (process.env.ISDEV) {
+            dir = `dev/${dir}`;
+        }
+        const now = new Date();
+        const timestamp = now.getTime();
+        const randomString = Math.random().toString(36).substring(2, 6);
+        const response = await axios_1.default.head(url);
+        const mimeType = response.headers['content-type'];
+        let fileExtension = '';
+        if (mimeType) {
+            const mimeTypeMap = {
+                'image/jpeg': 'jpg',
+                'image/png': 'png',
+                'image/gif': 'gif',
+                'image/webp': 'webp',
+                'image/bmp': 'bmp',
+                'image/svg+xml': 'svg',
+                'image/tiff': 'tiff',
+                'image/x-icon': 'ico',
+                'video/mp4': 'mp4',
+                'video/mpeg': 'mpeg',
+                'video/ogg': 'ogv',
+                'video/webm': 'webm',
+                'video/quicktime': 'mov',
+                'video/x-msvideo': 'avi',
+                'video/x-flv': 'flv',
+                'audio/mpeg': 'mp3',
+                'audio/ogg': 'ogg',
+                'audio/wav': 'wav',
+                'audio/x-wav': 'wav',
+                'audio/webm': 'weba',
+                'application/pdf': 'pdf',
+                'application/msword': 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+                'application/vnd.ms-excel': 'xls',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+                'application/vnd.ms-powerpoint': 'ppt',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+                'application/zip': 'zip',
+                'application/x-rar-compressed': 'rar',
+                'application/x-7z-compressed': '7z',
+                'text/plain': 'txt',
+                'text/html': 'html',
+                'text/css': 'css',
+                'text/javascript': 'js',
+                'application/json': 'json',
+                'application/xml': 'xml',
+                'application/octet-stream': 'bin',
+                'application/vnd.android.package-archive': 'apk',
+                'application/x-sh': 'sh',
+            };
+            fileExtension = mimeTypeMap[mimeType] || '';
+        }
+        const filename = fileExtension
+            ? `${timestamp}_${randomString}.${fileExtension}`
+            : `${timestamp}_${randomString}`;
+        common_1.Logger.debug(`准备上传文件: ${filename}, URL: ${url}, 目录: ${dir}`, 'UploadService');
+        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs([
+            'tencentCosStatus',
+            'aliOssStatus',
+            'cheveretoStatus',
+        ]);
+        if (!Number(tencentCosStatus) &&
+            !Number(aliOssStatus) &&
+            !Number(cheveretoStatus)) {
             throw new common_1.HttpException('请先前往后台配置上传图片的方式', common_1.HttpStatus.BAD_REQUEST);
         }
         if (Number(tencentCosStatus)) {
@@ -84,16 +178,20 @@ let UploadService = class UploadService {
             return await this.uploadFileByCheveretoFromUrl({ filename, url, dir });
         }
     }
-    async uploadFileByTencentCos({ filename, buffer, dir, fileTyle }) {
+    async uploadFileByTencentCos({ filename, buffer, dir, fileType }) {
         const { Bucket, Region, SecretId, SecretKey } = await this.getUploadConfig('tencent');
-        this.tencentCos = new TENCENTCOS({ SecretId, SecretKey, FileParallelLimit: 10 });
+        this.tencentCos = new TENCENTCOS({
+            SecretId,
+            SecretKey,
+            FileParallelLimit: 10,
+        });
         try {
             return new Promise(async (resolve, reject) => {
-                const type = fileTyle || 'png';
+                const type = fileType || 'png';
                 this.tencentCos.putObject({
                     Bucket: (0, utils_1.removeSpecialCharacters)(Bucket),
                     Region: (0, utils_1.removeSpecialCharacters)(Region),
-                    Key: `${dir}/${filename || `${(0, utils_1.createRandomUid)()}.${fileTyle}`}`,
+                    Key: `${dir}/${filename || `${(0, utils_1.createRandomUid)()}.${fileType}`}`,
                     StorageClass: 'STANDARD',
                     Body: buffer,
                 }, async (err, data) => {
@@ -118,25 +216,44 @@ let UploadService = class UploadService {
     }
     async uploadFileByTencentCosFromUrl({ filename, url, dir }) {
         const { Bucket, Region, SecretId, SecretKey } = await this.getUploadConfig('tencent');
-        this.tencentCos = new TENCENTCOS({ SecretId, SecretKey, FileParallelLimit: 10 });
+        this.tencentCos = new TENCENTCOS({
+            SecretId,
+            SecretKey,
+            FileParallelLimit: 10,
+        });
         try {
             const buffer = await this.getBufferFromUrl(url);
-            return await this.uploadFileByTencentCos({ filename, buffer, dir, fileTyle: '' });
+            return await this.uploadFileByTencentCos({
+                filename,
+                buffer,
+                dir,
+                fileType: '',
+            });
         }
         catch (error) {
             console.log('TODO->error:  ', error);
             throw new common_1.HttpException('上传图片失败[ten][url]', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async uploadFileByAliOss({ filename, buffer, dir, fileTyle = 'png' }) {
+    async uploadFileByAliOss({ filename, buffer, dir, fileType = 'png' }) {
         const { region, bucket, accessKeyId, accessKeySecret } = await this.getUploadConfig('ali');
-        const client = new ALIOSS({ region: (0, utils_1.removeSpecialCharacters)(region), accessKeyId, accessKeySecret, bucket: (0, utils_1.removeSpecialCharacters)(bucket) });
+        const client = new ALIOSS({
+            region: (0, utils_1.removeSpecialCharacters)(region),
+            accessKeyId,
+            accessKeySecret,
+            bucket: (0, utils_1.removeSpecialCharacters)(bucket),
+        });
         try {
             console.log('ali 开始上传');
             return new Promise((resolve, reject) => {
                 client
-                    .put(`${dir}/${filename || `${(0, utils_1.createRandomUid)()}.${fileTyle}`}`, buffer)
-                    .then((result) => {
+                    .put(`${dir}/${filename || `${(0, utils_1.createRandomUid)()}.${fileType}`}`, buffer)
+                    .then(async (result) => {
+                    const { acceleratedDomain } = await this.getUploadConfig('ali');
+                    if (acceleratedDomain) {
+                        result.url = result.url.replace(/^(https:\/\/[^/]+)(\/.*)$/, `https://${acceleratedDomain}$2`);
+                        console.log('当前已开启全球加速----------------->', result.url);
+                    }
                     resolve(result.url);
                 })
                     .catch((err) => {
@@ -160,7 +277,7 @@ let UploadService = class UploadService {
     }
     async uploadFileToLocal({ filename, buffer, dir = 'ai' }) {
         if (!filename || !buffer) {
-            throw new Error("必须提供文件名和文件内容");
+            throw new Error('必须提供文件名和文件内容');
         }
         const appRoot = require('app-root-path');
         const uploadDir = path_1.default.join(appRoot.path, 'service', 'public', 'file');
@@ -187,7 +304,7 @@ let UploadService = class UploadService {
             throw new common_1.HttpException('上传图片失败[ALI][url]', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async uploadFileByChevereto({ filename = '', buffer, dir = 'ai', fileTyle = 'png' }) {
+    async uploadFileByChevereto({ filename = '', buffer, dir = 'ai', fileType = 'png', }) {
         var _a;
         const { key, uploadPath } = await this.getUploadConfig('chevereto');
         let url = uploadPath.endsWith('/') ? uploadPath.slice(0, -1) : uploadPath;
@@ -225,11 +342,29 @@ let UploadService = class UploadService {
     }
     async getUploadConfig(type) {
         if (type === 'ali') {
-            const { aliOssRegion: region, aliOssBucket: bucket, aliOssAccessKeyId: accessKeyId, aliOssAccessKeySecret: accessKeySecret, } = await this.globalConfigService.getConfigs(['aliOssRegion', 'aliOssBucket', 'aliOssAccessKeyId', 'aliOssAccessKeySecret']);
-            return { region, bucket, accessKeyId, accessKeySecret };
+            const { aliOssRegion: region, aliOssBucket: bucket, aliOssAccessKeyId: accessKeyId, aliOssAccessKeySecret: accessKeySecret, aliOssAcceleratedDomain: acceleratedDomain, } = await this.globalConfigService.getConfigs([
+                'aliOssRegion',
+                'aliOssBucket',
+                'aliOssAccessKeyId',
+                'aliOssAccessKeySecret',
+                'acceleratedDomain',
+            ]);
+            return {
+                region,
+                bucket,
+                accessKeyId,
+                accessKeySecret,
+                acceleratedDomain,
+            };
         }
         if (type === 'tencent') {
-            const { cosBucket: Bucket, cosRegion: Region, cosSecretId: SecretId, cosSecretKey: SecretKey, tencentCosAcceleratedDomain: acceleratedDomain, } = await this.globalConfigService.getConfigs(['cosBucket', 'cosRegion', 'cosSecretId', 'cosSecretKey', 'tencentCosAcceleratedDomain']);
+            const { cosBucket: Bucket, cosRegion: Region, cosSecretId: SecretId, cosSecretKey: SecretKey, tencentCosAcceleratedDomain: acceleratedDomain, } = await this.globalConfigService.getConfigs([
+                'cosBucket',
+                'cosRegion',
+                'cosSecretId',
+                'cosSecretKey',
+                'tencentCosAcceleratedDomain',
+            ]);
             return { Bucket, Region, SecretId, SecretKey, acceleratedDomain };
         }
         if (type === 'chevereto') {

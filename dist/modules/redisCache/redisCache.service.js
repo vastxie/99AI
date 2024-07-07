@@ -18,12 +18,6 @@ let RedisCacheService = class RedisCacheService {
     constructor(redisClient) {
         this.redisClient = redisClient;
     }
-    async onModuleInit() {
-    }
-    test() {
-        this.redisClient.set('aaa', 111);
-        return 1;
-    }
     async get(body) {
         const { key } = body;
         const res = await this.redisClient.get(key);
@@ -39,6 +33,13 @@ let RedisCacheService = class RedisCacheService {
         catch (error) {
             throw new common_1.HttpException(error, common_1.HttpStatus.BAD_REQUEST);
         }
+    }
+    async getJwtSecret() {
+        const secret = await this.redisClient.get('JWT_SECRET');
+        if (!secret) {
+            throw new Error('JWT secret not found in Redis');
+        }
+        return secret;
     }
     async ttl(key) {
         return await this.redisClient.ttl(key);

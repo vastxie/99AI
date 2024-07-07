@@ -10,15 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRegisterDto = void 0;
-const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
 class UserRegisterDto {
 }
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'cooper', description: '用户名称' }),
-    (0, class_validator_1.IsNotEmpty)({ message: '用户名不能为空！' }),
-    (0, class_validator_1.MinLength)(2, { message: '用户名最低需要大于2位数！' }),
-    (0, class_validator_1.MaxLength)(12, { message: '用户名不得超过12位！' }),
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "username", void 0);
 __decorate([
@@ -29,9 +26,7 @@ __decorate([
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "password", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'J_longyan@163.com', description: '用户邮箱' }),
-    (0, class_validator_1.IsEmail)({}, { message: '请填写正确格式的邮箱！' }),
-    (0, class_validator_1.IsNotEmpty)({ message: '邮箱不能为空！' }),
+    (0, swagger_1.ApiProperty)({ example: 'ai@aiweb.com', description: '用户邮箱' }),
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "email", void 0);
 __decorate([
@@ -45,7 +40,11 @@ __decorate([
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "captchaId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'FRJDLJHFNV', description: '用户填写的别人邀请码', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: 'FRJDLJHFNV',
+        description: '用户填写的别人邀请码',
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "invitedBy", void 0);
@@ -59,7 +58,11 @@ __decorate([
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "avatar", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'default', description: '用户注册来源', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: 'default',
+        description: '用户注册来源',
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "client", void 0);

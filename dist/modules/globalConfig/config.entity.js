@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConfigEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let ConfigEntity = class ConfigEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([
@@ -19,15 +19,21 @@ __decorate([
     __metadata("design:type", String)
 ], ConfigEntity.prototype, "configKey", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 3000, comment: '配置内容', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'text', comment: '配置内容', nullable: true }),
     __metadata("design:type", String)
 ], ConfigEntity.prototype, "configVal", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 0, comment: '配置是否公开，公开内容对前端项目展示  0：不公开 1：公开' }),
+    (0, typeorm_1.Column)({
+        default: 0,
+        comment: '配置是否公开，公开内容对前端项目展示  0：不公开 1：公开',
+    }),
     __metadata("design:type", Number)
 ], ConfigEntity.prototype, "public", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 0, comment: '配置是否加密，加密内容仅仅super权限可看 0：不加 1：加' }),
+    (0, typeorm_1.Column)({
+        default: 0,
+        comment: '配置是否加密，加密内容仅仅super权限可看 0：不加 1：加',
+    }),
     __metadata("design:type", Number)
 ], ConfigEntity.prototype, "encry", void 0);
 __decorate([

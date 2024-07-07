@@ -13,8 +13,6 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
 const typeorm_1 = require("@nestjs/typeorm");
-const nestjs_config_1 = require("nestjs-config");
-const whiteList_entity_1 = require("../chat/whiteList.entity");
 const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
@@ -42,10 +40,14 @@ AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             user_module_1.UserModule,
+            redisCache_module_1.RedisCacheModule,
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.registerAsync({
-                useFactory: async (configService) => configService.get('jwt'),
-                inject: [nestjs_config_1.ConfigService],
+                inject: [redisCache_service_1.RedisCacheService],
+                useFactory: async (redisService) => ({
+                    secret: await redisService.getJwtSecret(),
+                    signOptions: { expiresIn: '7d' },
+                }),
             }),
             typeorm_1.TypeOrmModule.forFeature([
                 verifycation_entity_1.VerifycationEntity,
@@ -53,19 +55,25 @@ AuthModule = __decorate([
                 accountLog_entity_1.AccountLogEntity,
                 config_entity_1.ConfigEntity,
                 cramiPackage_entity_1.CramiPackageEntity,
-                redisCache_module_1.RedisCacheModule,
                 userBalance_entity_1.UserBalanceEntity,
                 salesUsers_entity_1.SalesUsersEntity,
                 user_entity_1.UserEntity,
-                whiteList_entity_1.WhiteListEntity,
                 fingerprint_entity_1.FingerprintLogEntity,
                 chatLog_entity_1.ChatLogEntity,
                 chatGroup_entity_1.ChatGroupEntity,
-                midjourney_entity_1.MidjourneyEntity
+                midjourney_entity_1.MidjourneyEntity,
             ]),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, jwtAuth_guard_1.JwtAuthGuard, mailer_service_1.MailerService, verification_service_1.VerificationService, userBalance_service_1.UserBalanceService, redisCache_service_1.RedisCacheService],
+        providers: [
+            auth_service_1.AuthService,
+            jwt_strategy_1.JwtStrategy,
+            jwtAuth_guard_1.JwtAuthGuard,
+            mailer_service_1.MailerService,
+            verification_service_1.VerificationService,
+            userBalance_service_1.UserBalanceService,
+            redisCache_service_1.RedisCacheService,
+        ],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);

@@ -13,13 +13,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const nestjs_config_1 = require("nestjs-config");
 const typeorm_2 = require("typeorm");
 const database_service_1 = require("./database.service");
 let DatabaseModule = DatabaseModule_1 = class DatabaseModule {
-    constructor(connection, config) {
+    constructor(connection) {
         this.connection = connection;
-        this.config = config;
         this.logger = new common_1.Logger(DatabaseModule_1.name);
     }
     onModuleInit() {
@@ -31,12 +29,22 @@ DatabaseModule = DatabaseModule_1 = __decorate([
     (0, common_1.Module)({
         imports: [
             typeorm_1.TypeOrmModule.forRootAsync({
-                useFactory: (config) => config.get('database'),
-                inject: [nestjs_config_1.ConfigService],
+                useFactory: () => ({
+                    type: 'mysql',
+                    host: process.env.DB_HOST,
+                    port: parseInt(process.env.DB_PORT, 10),
+                    username: process.env.DB_USER,
+                    password: process.env.DB_PASS,
+                    database: process.env.DB_DATABASE,
+                    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+                    logging: false,
+                    charset: 'utf8mb4',
+                    timezone: '+08:00',
+                }),
             }),
         ],
         providers: [database_service_1.DatabaseService],
     }),
-    __metadata("design:paramtypes", [typeorm_2.Connection, nestjs_config_1.ConfigService])
+    __metadata("design:paramtypes", [typeorm_2.DataSource])
 ], DatabaseModule);
 exports.DatabaseModule = DatabaseModule;

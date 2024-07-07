@@ -13,12 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OfficialController = void 0;
+const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
+const utils_1 = require("../../common/utils");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
-const official_service_1 = require("./official.service");
 const getQrCode_dto_1 = require("./dto/getQrCode.dto");
 const getQrSceneStr_dto_1 = require("./dto/getQrSceneStr.dto");
+const official_service_1 = require("./official.service");
 let OfficialController = class OfficialController {
     constructor(officialService) {
         this.officialService = officialService;
@@ -85,7 +86,8 @@ let OfficialController = class OfficialController {
         if (process.env.ISDEV === 'TRUE')
             return '';
         const ticket = await this.officialService.getQRCodeTicket(query.sceneStr);
-        return `https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=${encodeURIComponent(ticket)}`;
+        const Url = (0, utils_1.formatUrl)(process.env.weChatMpUrl || 'https://mp.weixin.qq.com');
+        return `${Url}/cgi-bin/showqrcode?ticket=${encodeURIComponent(ticket)}`;
     }
     async loginBySceneStr(req, body) {
         return this.officialService.loginBySceneStr(req, body.sceneStr);

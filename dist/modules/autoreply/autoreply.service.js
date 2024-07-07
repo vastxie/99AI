@@ -14,9 +14,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoreplyService = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
 const autoreplay_entity_1 = require("./autoreplay.entity");
-const typeorm_1 = require("typeorm");
-const typeorm_2 = require("@nestjs/typeorm");
 let AutoreplyService = class AutoreplyService {
     constructor(autoReplyEntity) {
         this.autoReplyEntity = autoReplyEntity;
@@ -44,7 +44,7 @@ let AutoreplyService = class AutoreplyService {
         const { page = 1, size = 10, prompt, status } = query;
         const where = {};
         [0, 1, '0', '1'].includes(status) && (where.status = status);
-        prompt && (where.prompt = (0, typeorm_1.Like)(`%${prompt}%`));
+        prompt && (where.prompt = (0, typeorm_2.Like)(`%${prompt}%`));
         const [rows, count] = await this.autoReplyEntity.findAndCount({
             where,
             skip: (page - 1) * size,
@@ -88,7 +88,7 @@ let AutoreplyService = class AutoreplyService {
 };
 AutoreplyService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_2.InjectRepository)(autoreplay_entity_1.AutoReplyEntity)),
-    __metadata("design:paramtypes", [typeorm_1.Repository])
+    __param(0, (0, typeorm_1.InjectRepository)(autoreplay_entity_1.AutoReplyEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], AutoreplyService);
 exports.AutoreplyService = AutoreplyService;

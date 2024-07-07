@@ -18,7 +18,11 @@ __decorate([
     __metadata("design:type", String)
 ], AddAutoReplyDto.prototype, "prompt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '我是NineAi提供的Ai服务机器人', description: '回答的答案', required: true }),
+    (0, swagger_1.ApiProperty)({
+        example: '我是AIWeb提供的Ai服务机器人',
+        description: '回答的答案',
+        required: true,
+    }),
     __metadata("design:type", String)
 ], AddAutoReplyDto.prototype, "answer", void 0);
 exports.AddAutoReplyDto = AddAutoReplyDto;

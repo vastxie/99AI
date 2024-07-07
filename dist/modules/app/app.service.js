@@ -50,7 +50,9 @@ let AppService = class AppService {
     }
     async updateAppCats(body) {
         const { id, name } = body;
-        const c = await this.appCatsEntity.findOne({ where: { name, id: (0, typeorm_2.Not)(id) } });
+        const c = await this.appCatsEntity.findOne({
+            where: { name, id: (0, typeorm_2.Not)(id) },
+        });
         if (c) {
             throw new common_1.HttpException('该分类名称已存在！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -65,7 +67,7 @@ let AppService = class AppService {
             throw new common_1.HttpException('缺失必要参数！', common_1.HttpStatus.BAD_REQUEST);
         }
         const app = await this.appEntity.findOne({ where: { id } });
-        const { demoData: demo, coverImg, des, name, isFixedModel, isGPTs, appModel } = app;
+        const { demoData: demo, coverImg, des, name, isFixedModel, isGPTs, appModel, } = app;
         return {
             demoData: demo ? demo.split('\n') : [],
             coverImg,
@@ -140,7 +142,12 @@ let AppService = class AppService {
         var _a;
         const { page = 1, size = 1000, name, catId, role } = query;
         const where = [
-            { status: (0, typeorm_2.In)([1, 4]), userId: (0, typeorm_2.IsNull)(), public: false, isSystemReserved: 0 },
+            {
+                status: (0, typeorm_2.In)([1, 4]),
+                userId: (0, typeorm_2.IsNull)(),
+                public: false,
+                isSystemReserved: 0,
+            },
             { userId: (0, typeorm_2.MoreThan)(0), public: true },
         ];
         const [rows, count] = await this.appEntity.findAndCount({
@@ -162,6 +169,42 @@ let AppService = class AppService {
         }
         return { rows, count };
     }
+    async searchAppList(body) {
+        console.log('搜索App列表', body);
+        const { page = 1, size = 1000, keyword } = body;
+        console.log(`搜索关键词：${keyword}`);
+        let baseWhere = [
+            {
+                status: (0, typeorm_2.In)([1, 4]),
+                userId: (0, typeorm_2.IsNull)(),
+                public: false,
+                isSystemReserved: 0,
+            },
+            { userId: (0, typeorm_2.MoreThan)(0), public: true },
+        ];
+        console.log('初始查询条件：', JSON.stringify(baseWhere));
+        if (keyword) {
+            baseWhere = baseWhere.map((condition) => (Object.assign(Object.assign({}, condition), { name: (0, typeorm_2.Like)(`%${keyword}%`) })));
+            console.log('更新后的查询条件：', JSON.stringify(baseWhere));
+        }
+        try {
+            const [rows, count] = await this.appEntity.findAndCount({
+                where: baseWhere,
+                skip: (page - 1) * size,
+                take: size,
+            });
+            console.log(`查询返回 ${count} 条结果，显示第 ${page} 页的结果。`);
+            rows.forEach((item) => {
+                delete item.preset;
+            });
+            console.log('完成查询，准备返回结果');
+            return { rows, count };
+        }
+        catch (error) {
+            console.error('查询数据库时出错：', error);
+            throw new Error('Database query failed');
+        }
+    }
     async createApp(body) {
         const { name, catId } = body;
         body.role = 'system';
@@ -177,13 +220,24 @@ let AppService = class AppService {
     }
     async customApp(body, req) {
         const { id } = req.user;
-        const { name, catId, des, preset, coverImg, demoData, public: isPublic, appId } = body;
+        const { name, catId, des, preset, coverImg, demoData, public: isPublic, appId, } = body;
         if (appId) {
-            const a = await this.appEntity.findOne({ where: { id: appId, userId: id } });
+            const a = await this.appEntity.findOne({
+                where: { id: appId, userId: id },
+            });
             if (!a) {
                 throw new common_1.HttpException('您正在编辑一个不存在的应用！', common_1.HttpStatus.BAD_REQUEST);
             }
-            const data = { name, catId, des, preset, coverImg, demoData, public: isPublic, status: isPublic ? 3 : 1 };
+            const data = {
+                name,
+                catId,
+                des,
+                preset,
+                coverImg,
+                demoData,
+                public: isPublic,
+                status: isPublic ? 3 : 1,
+            };
             const res = await this.appEntity.update({ id: appId, userId: id }, data);
             if (res.affected) {
                 return '修改成功';
@@ -201,9 +255,27 @@ let AppService = class AppService {
             if (a) {
                 throw new common_1.HttpException('该应用名称已存在！', common_1.HttpStatus.BAD_REQUEST);
             }
-            const data = { name, catId, des, preset, coverImg, status: isPublic ? 3 : 1, demoData, public: isPublic, role: 'user', userId: id };
+            const data = {
+                name,
+                catId,
+                des,
+                preset,
+                coverImg,
+                status: isPublic ? 3 : 1,
+                demoData,
+                public: isPublic,
+                role: 'user',
+                userId: id,
+            };
             const res = await this.appEntity.save(data);
-            const params = { appId: res.id, userId: id, appType: 'user', public: isPublic, status: isPublic ? 3 : 1, catId };
+            const params = {
+                appId: res.id,
+                userId: id,
+                appType: 'user',
+                public: isPublic,
+                status: isPublic ? 3 : 1,
+                catId,
+            };
             return this.userAppsEntity.save(params);
         }
     }
@@ -229,7 +301,9 @@ let AppService = class AppService {
     async updateSystemApp(body) {
         const { id, name } = body;
         common_1.Logger.log(`尝试更新应用: ${name} (ID: ${id})`);
-        const existingApp = await this.appEntity.findOne({ where: { name, id: (0, typeorm_2.Not)(id) } });
+        const existingApp = await this.appEntity.findOne({
+            where: { name, id: (0, typeorm_2.Not)(id) },
+        });
         if (existingApp) {
             common_1.Logger.warn(`应用名称已存在：${name}`);
             throw new common_1.HttpException('该应用名称已存在！', common_1.HttpStatus.BAD_REQUEST);
@@ -249,9 +323,6 @@ let AppService = class AppService {
             throw new common_1.HttpException('该应用不存在！', common_1.HttpStatus.BAD_REQUEST);
         }
         const useApp = await this.userAppsEntity.count({ where: { appId: id } });
-        if (useApp > 0) {
-            throw new common_1.HttpException('该应用已被用户关联使用中，不可删除！', common_1.HttpStatus.BAD_REQUEST);
-        }
         const res = await this.appEntity.delete(id);
         if (res.affected > 0)
             return '删除App成功';
@@ -279,7 +350,9 @@ let AppService = class AppService {
     }
     async delMineApp(body, req) {
         const { id } = body;
-        const a = await this.appEntity.findOne({ where: { id, userId: req.user.id } });
+        const a = await this.appEntity.findOne({
+            where: { id, userId: req.user.id },
+        });
         if (!a) {
             throw new common_1.HttpException('您正在操作一个不存在的资源！', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -290,7 +363,9 @@ let AppService = class AppService {
     async collect(body, req) {
         const { appId } = body;
         const { id: userId } = req.user;
-        const historyApp = await this.userAppsEntity.findOne({ where: { appId, userId } });
+        const historyApp = await this.userAppsEntity.findOne({
+            where: { appId, userId },
+        });
         if (historyApp) {
             const r = await this.userAppsEntity.delete({ appId, userId });
             if (r.affected > 0) {
@@ -302,7 +377,14 @@ let AppService = class AppService {
         }
         const app = await this.appEntity.findOne({ where: { id: appId } });
         const { id, role: appRole, catId } = app;
-        const collectInfo = { userId, appId: id, catId, appRole, public: true, status: 1 };
+        const collectInfo = {
+            userId,
+            appId: id,
+            catId,
+            appRole,
+            public: true,
+            status: 1,
+        };
         await this.userAppsEntity.save(collectInfo);
         return '已将应用加入到我的收藏！';
     }

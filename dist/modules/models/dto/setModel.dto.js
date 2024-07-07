@@ -30,17 +30,21 @@ __decorate([
     __metadata("design:type", Object)
 ], SetModelDto.prototype, "key", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '是否开启当前key对应的模型', required: true }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '是否开启当前key对应的模型',
+        required: true,
+    }),
     __metadata("design:type", Boolean)
 ], SetModelDto.prototype, "status", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'gpt-3.5', description: '当前key绑定的模型是多少 需要调用的模型', required: true }),
+    (0, swagger_1.ApiProperty)({
+        example: 'gpt-3.5',
+        description: '当前key绑定的模型是多少 需要调用的模型',
+        required: true,
+    }),
     __metadata("design:type", String)
 ], SetModelDto.prototype, "model", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 1, description: 'key的权重' }),
-    __metadata("design:type", Number)
-], SetModelDto.prototype, "keyWeight", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 1, description: '模型排序' }),
     __metadata("design:type", Number)
@@ -50,11 +54,19 @@ __decorate([
     __metadata("design:type", String)
 ], SetModelDto.prototype, "modelAvatar", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 4096, description: '模型支持的最大TOken数量', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: 4096,
+        description: '模型支持的最大TOken数量',
+        required: false,
+    }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "maxModelTokens", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '模型的代理地址', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '模型的代理地址',
+        required: false,
+    }),
     __metadata("design:type", String)
 ], SetModelDto.prototype, "proxyUrl", void 0);
 __decorate([
@@ -66,7 +78,11 @@ __decorate([
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "keyStatus", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '扣费类型 1： 普通 2： 高级余额', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '扣费类型 1： 普通 2： 高级余额',
+        required: false,
+    }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "deductType", void 0);
 __decorate([
@@ -74,19 +90,35 @@ __decorate([
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "deduct", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '最大上下文轮次', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '最大上下文轮次',
+        required: false,
+    }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "maxRounds", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '是否设置为绘画Key', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '是否设置为绘画Key',
+        required: false,
+    }),
     __metadata("design:type", Boolean)
 ], SetModelDto.prototype, "isDraw", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '是否支持文件上传', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '是否支持文件上传',
+        required: false,
+    }),
     __metadata("design:type", Number)
 ], SetModelDto.prototype, "isFileUpload", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '是否使用token计费', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '是否使用token计费',
+        required: false,
+    }),
     __metadata("design:type", Boolean)
 ], SetModelDto.prototype, "isTokenBased", void 0);
 __decorate([
