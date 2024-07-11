@@ -69,7 +69,15 @@
 
 <img width="1446" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/365cc93e-6fc0-4107-ac4c-6b25f31f0f12">
 
-### 开发版已 / 将支持
+### 开发版已支持
+
+**知识库预设**
+
+<img width="1446" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/abe7fe07-535f-43cc-8bc5-5e49eb6271cf">
+
+<img width="1442" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/330be2fc-db83-446c-8518-d97f85ef0ec4">
+
+<img width="1443" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/a341dc07-cd83-4594-bff7-c5b784f41eb1">
 
 **AI 音乐弹窗**
 
