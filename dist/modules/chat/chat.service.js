@@ -659,6 +659,9 @@ let ChatService = class ChatService {
             if (modelType === 1) {
                 try {
                     chatTitle = await this.openAIChatService.chatFree(`根据用户提问{${prompt}}，给这个对话取一个名字，不超过10个字`);
+                    if (chatTitle.length > 15) {
+                    chatTitle = chatTitle.slice(0, 15);
+                    }
                 }
                 catch (error) {
                     common_1.Logger.error(`调用 chatFree 出错: ${error}`);
@@ -667,9 +670,6 @@ let ChatService = class ChatService {
             }
             else {
                 chatTitle = '创意 AI';
-            }
-            if (chatTitle.length > 15) {
-                chatTitle = chatTitle.slice(0, 15);
             }
             this.chatGroupService
                 .update({
