@@ -54,7 +54,7 @@ let DatabaseService = class DatabaseService {
             const { username, password, status, email, role } = userInfo;
             const user = await this.connection.query(`INSERT INTO users (username, password, status, email, role) VALUES ('${username}', '${password}', '${status}', '${email}', '${role}')`);
             const userId = user.insertId;
-            const balance = await this.connection.query(`INSERT INTO balance (userId, balance, usesLeft, paintCount) VALUES ('${userId}', 0, 1000, 100)`);
+            await this.connection.query(`INSERT INTO balance (userId, balance, usesLeft, paintCount) VALUES ('${userId}', 0, 1000, 100)`);
             common_1.Logger.log(`初始化创建${role}用户成功、用户名为[${username}]、初始密码为[${username === 'super' ? 'super' : '123456'}] ==============> 请注意查阅`, 'DatabaseService');
         }
         catch (error) {

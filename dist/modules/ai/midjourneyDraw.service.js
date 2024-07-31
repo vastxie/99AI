@@ -22,8 +22,8 @@ let MidjourneyService = class MidjourneyService {
         this.chatLogService = chatLogService;
     }
     async midjourneyDraw(inputs) {
-        var _a, _b;
-        const { id, apiKey, proxyUrl, action, drawId, prompt, usePrompt, customId, timeout, assistantLogId, } = inputs;
+        var _a, _b, _c, _d;
+        const { id, apiKey, proxyUrl, action, drawId, prompt, usePrompt, customId, timeout, fileInfo, assistantLogId, } = inputs;
         let result = {
             text: '',
             fileInfo: '',
@@ -34,6 +34,8 @@ let MidjourneyService = class MidjourneyService {
         let response;
         let retryCount = 0;
         let url = '';
+        const headers = { 'mj-api-secret': apiKey };
+        common_1.Logger.debug(`当前任务类型: ${action}`, 'MidjourneyService');
         while (retryCount < 3) {
             let payloadJson = {};
             try {
@@ -41,15 +43,40 @@ let MidjourneyService = class MidjourneyService {
                     url = `${proxyUrl}/mj/submit/imagine`;
                     payloadJson = { prompt: usePrompt };
                 }
+                else if (action === 'DESCRIBE') {
+                    url = `${proxyUrl}/mj/submit/describe`;
+                    if (fileInfo) {
+                        const response = await fetch(fileInfo);
+                        const blob = await response.blob();
+                        const buffer = Buffer.from(await blob.arrayBuffer());
+                        const base64String = buffer.toString('base64');
+                        payloadJson = { base64: `data:image/png;base64,${base64String}` };
+                    }
+                    else {
+                        return;
+                    }
+                }
+                else if (action === 'PICREADER') {
+                    url = `${proxyUrl}/mj/submit/action`;
+                    payloadJson = { taskId: drawId, customId: customId };
+                    response = await axios_1.default.post(url, payloadJson, { headers });
+                    if ((response === null || response === void 0 ? void 0 : response.status) === 200 && ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.result)) {
+                        url = `${proxyUrl}/mj/submit/modal`;
+                        payloadJson = { taskId: (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.result };
+                    }
+                }
                 else {
                     url = `${proxyUrl}/mj/submit/action`;
                     payloadJson = { taskId: drawId, customId: customId };
                 }
-                const headers = { 'mj-api-secret': apiKey };
                 common_1.Logger.log(`正在准备发送请求到 ${url}，payload: ${JSON.stringify(payloadJson)}, headers: ${JSON.stringify(headers)}`, 'MidjourneyService');
                 response = await axios_1.default.post(url, payloadJson, { headers });
-                if ((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.result) {
-                    result.drawId = (_b = response === null || response === void 0 ? void 0 : response.data) === null || _b === void 0 ? void 0 : _b.result;
+                if ((response === null || response === void 0 ? void 0 : response.status) === 200 && ((_c = response === null || response === void 0 ? void 0 : response.data) === null || _c === void 0 ? void 0 : _c.result)) {
+                    common_1.Logger.debug(`收到响应: ${JSON.stringify(response.data)}`, 'MidjourneyService');
+                    result.drawId = (_d = response === null || response === void 0 ? void 0 : response.data) === null || _d === void 0 ? void 0 : _d.result;
+                    result.state = 2;
+                    result.answer = '绘画任务提交成功';
+                    common_1.Logger.log(`绘画任务提交成功, 绘画ID: ${response.data.result}`, 'MidjourneyService');
                     break;
                 }
                 else {
@@ -59,6 +86,8 @@ let MidjourneyService = class MidjourneyService {
             catch (error) {
                 retryCount++;
                 if (retryCount >= 3) {
+                    result.answer = '任务提交失败，请检查提示词后重试';
+                    result.status = 5;
                     common_1.Logger.log(`绘画任务提交失败, 请检查后台配置或者稍后重试! ${error}`, 'MidjourneyService');
                 }
             }
@@ -66,7 +95,7 @@ let MidjourneyService = class MidjourneyService {
         this.pollMjDrawingResult({
             proxyUrl,
             apiKey,
-            drawId: response.data.result,
+            drawId: result.drawId,
             timeout,
             prompt,
             onSuccess: async (data) => {
@@ -78,7 +107,7 @@ let MidjourneyService = class MidjourneyService {
                     drawId: data === null || data === void 0 ? void 0 : data.drawId,
                     customId: data === null || data === void 0 ? void 0 : data.customId,
                 });
-                common_1.Logger.log('绘图成功！');
+                common_1.Logger.log('绘图成功！', 'MidjourneyService');
             },
             onDrawing: async (data) => {
                 await this.chatLogService.updateChatLog(assistantLogId, {
@@ -86,19 +115,18 @@ let MidjourneyService = class MidjourneyService {
                     progress: data === null || data === void 0 ? void 0 : data.progress,
                     status: 2,
                 });
-                common_1.Logger.log(`绘制中！绘制进度${data === null || data === void 0 ? void 0 : data.progress}`);
+                common_1.Logger.log(`绘制中！绘制进度${data === null || data === void 0 ? void 0 : data.progress}`, 'MidjourneyService');
             },
             onFailure: async (data) => {
                 await this.chatLogService.updateChatLog(assistantLogId, {
                     answer: '绘图失败',
                     status: data.status,
                 });
-                common_1.Logger.log('绘图失败');
+                common_1.Logger.log('绘图失败', 'MidjourneyService');
             },
         }).catch((error) => {
             common_1.Logger.error('查询绘图结果时发生错误:', error, 'MidjourneyService');
         });
-        common_1.Logger.log(`绘画任务提交成功, 绘画ID: ${response.data.result}`, 'MidjourneyService');
         return result;
     }
     async pollMjDrawingResult(inputs) {
@@ -108,7 +136,6 @@ let MidjourneyService = class MidjourneyService {
             'mjProxyImgUrl',
             'mjNotUseProxy',
         ]);
-        let response;
         let result = {
             fileInfo: '',
             drawId: '',
@@ -117,11 +144,9 @@ let MidjourneyService = class MidjourneyService {
             progress: 0,
             answer: '',
         };
-        let payloadJson = {};
         const startTime = Date.now();
         const POLL_INTERVAL = 5000;
         let retryCount = 0;
-        let pollingCount = 0;
         try {
             while (Date.now() - startTime < timeout) {
                 await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
@@ -133,6 +158,7 @@ let MidjourneyService = class MidjourneyService {
                     const url = `${proxyUrl}/mj/task/${drawId}/fetch`;
                     const res = await axios_1.default.get(url, { headers });
                     const responses = res.data;
+                    common_1.Logger.debug(`查询结果: ${JSON.stringify(responses)}`, 'MidjourneyService');
                     if (responses.status === 'SUCCESS') {
                         common_1.Logger.log(`绘制成功, 获取到的URL: ${responses.imageUrl}`, 'MidjourneyService');
                         let processedUrl = responses.imageUrl;
@@ -150,7 +176,7 @@ let MidjourneyService = class MidjourneyService {
                         }
                         if (mjNotSaveImg !== '1') {
                             try {
-                                common_1.Logger.log(`------> 开始上传图片！！！`);
+                                common_1.Logger.log(`------> 开始上传图片！！！`, 'MidjourneyService');
                                 const now = new Date();
                                 const year = now.getFullYear();
                                 const month = String(now.getMonth() + 1).padStart(2, '0');

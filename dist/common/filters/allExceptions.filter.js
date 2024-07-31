@@ -7,20 +7,31 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AllExceptionsFilter = void 0;
-const common_1 = require("@nestjs/common");
 const result_1 = require("../result");
+const common_1 = require("@nestjs/common");
 let AllExceptionsFilter = class AllExceptionsFilter {
     catch(exception, host) {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse();
         const request = ctx.getRequest();
-        const exceptionRes = exception.getResponse() || 'inter server error';
-        const message = (exceptionRes === null || exceptionRes === void 0 ? void 0 : exceptionRes.message) ? (Array.isArray(exceptionRes) ? exceptionRes['message'][0] : exceptionRes['message']) : exceptionRes;
-        const statusCode = exception.getStatus() || 400;
-        const status = exception instanceof common_1.HttpException ? exception.getStatus() : common_1.HttpStatus.INTERNAL_SERVER_ERROR;
-        response.status(status);
-        response.header('Content-Type', 'application/json; charset=utf-8');
-        response.send(result_1.Result.fail(statusCode, Array.isArray(message) ? message[0] : message));
+        const exceptionRes = exception.getResponse() || 'Internal server error';
+        const message = (exceptionRes === null || exceptionRes === void 0 ? void 0 : exceptionRes.message)
+            ? Array.isArray(exceptionRes)
+                ? exceptionRes['message'][0]
+                : exceptionRes['message']
+            : exceptionRes;
+        const status = exception instanceof common_1.HttpException
+            ? exception.getStatus()
+            : common_1.HttpStatus.INTERNAL_SERVER_ERROR;
+        if (status === common_1.HttpStatus.NOT_FOUND) {
+            response.redirect('/');
+        }
+        else {
+            const statusCode = status || 400;
+            response.status(status);
+            response.header('Content-Type', 'application/json; charset=utf-8');
+            response.send(result_1.Result.fail(statusCode, Array.isArray(message) ? message[0] : message));
+        }
     }
 };
 AllExceptionsFilter = __decorate([

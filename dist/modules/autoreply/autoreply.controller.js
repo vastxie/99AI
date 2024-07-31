@@ -13,15 +13,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoreplyController = void 0;
-const autoreply_service_1 = require("./autoreply.service");
-const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
-const queryAutoReply_dto_1 = require("./dto/queryAutoReply.dto");
-const addAutoReply_dto_1 = require("./dto/addAutoReply.dto");
-const updateAutoReply_dto_1 = require("./dto/updateAutoReply.dto");
-const delBadWords_dto_1 = require("./dto/delBadWords.dto");
 const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
+const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
+const autoreply_service_1 = require("./autoreply.service");
+const addAutoReply_dto_1 = require("./dto/addAutoReply.dto");
+const delBadWords_dto_1 = require("./dto/delBadWords.dto");
+const queryAutoReply_dto_1 = require("./dto/queryAutoReply.dto");
+const updateAutoReply_dto_1 = require("./dto/updateAutoReply.dto");
 let AutoreplyController = class AutoreplyController {
     constructor(autoreplyService) {
         this.autoreplyService = autoreplyService;
@@ -66,7 +66,7 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [updateAutoReply_dto_1.UpdateAutpReplyDto]),
+    __metadata("design:paramtypes", [updateAutoReply_dto_1.UpdateAutoReplyDto]),
     __metadata("design:returntype", void 0)
 ], AutoreplyController.prototype, "updateAutoreply", null);
 __decorate([

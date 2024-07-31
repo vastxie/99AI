@@ -16,66 +16,75 @@ const ALIOSS = require("ali-oss");
 const axios_1 = require("axios");
 const TENCENTCOS = require("cos-nodejs-sdk-v5");
 const FormData = require("form-data");
-const fs = require("fs");
-const path_1 = require("path");
+const fs_1 = require("fs");
+const mime = require("mime-types");
+const path = require("path");
 const streamToBuffer = require("stream-to-buffer");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const blacklist = ['exe', 'sh', 'bat', 'js', 'php', 'py'];
 let UploadService = class UploadService {
     constructor(globalConfigService) {
         this.globalConfigService = globalConfigService;
     }
     onModuleInit() { }
     async uploadFile(file, dir = 'others') {
-        const { filename: name, originalname, buffer, mimetype, } = file;
-        if (process.env.ISDEV) {
+        const { buffer, mimetype } = file;
+        if (process.env.ISDEV === 'TRUE') {
             dir = `dev/${dir}`;
         }
-        common_1.Logger.debug(`准备上传文件: ${dir}`, 'UploadService');
+        const fileExtension = mime.extension(mimetype) || '';
+        if (!fileExtension) {
+            common_1.Logger.error('无法识别文件类型，请检查文件', 'UploadService');
+        }
+        if (blacklist.includes(fileExtension.toLowerCase())) {
+            common_1.Logger.error('不允许上传此类型的文件', 'UploadService');
+            throw new Error('不允许上传此类型的文件');
+        }
         const now = new Date();
         const timestamp = now.getTime();
         const randomString = Math.random().toString(36).substring(2, 6);
-        const fileType = mimetype ? mimetype.split('/')[1] : '';
-        const filename = `${timestamp}_${randomString}.${fileType}`;
-        common_1.Logger.debug(`准备上传文件: ${filename}, 类型: ${fileType}`, 'UploadService');
+        const filename = `${timestamp}_${randomString}.${fileExtension}`;
         const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs([
             'tencentCosStatus',
             'aliOssStatus',
             'cheveretoStatus',
         ]);
-        common_1.Logger.debug(`上传配置状态 - 腾讯云: ${tencentCosStatus}, 阿里云: ${aliOssStatus}, Chevereto: ${cheveretoStatus}`, 'UploadService');
+        common_1.Logger.log(`上传配置状态 - 腾讯云: ${tencentCosStatus}, 阿里云: ${aliOssStatus}, Chevereto: ${cheveretoStatus}`, 'UploadService');
         if (!Number(tencentCosStatus) &&
             !Number(aliOssStatus) &&
             !Number(cheveretoStatus)) {
+            common_1.Logger.error('未配置任何上传方式', 'UploadService');
             throw new common_1.HttpException('请先前往后台配置上传图片的方式', common_1.HttpStatus.BAD_REQUEST);
         }
         try {
             if (Number(tencentCosStatus)) {
-                common_1.Logger.debug(`使用腾讯云COS上传`, 'UploadService');
-                return await this.uploadFileByTencentCos({
+                common_1.Logger.log('使用腾讯云 COS 上传文件', 'UploadService');
+                const result = await this.uploadFileByTencentCos({
                     filename,
                     buffer,
                     dir,
-                    fileType,
                 });
+                common_1.Logger.log(`文件已上传到腾讯云 COS。访问 URL: ${result}`, 'UploadService');
+                return result;
             }
             if (Number(aliOssStatus)) {
-                common_1.Logger.debug(`使用阿里云OSS上传`, 'UploadService');
-                return await this.uploadFileByAliOss({
+                common_1.Logger.log('使用阿里云 OSS 上传文件', 'UploadService');
+                const result = await this.uploadFileByAliOss({
                     filename,
                     buffer,
                     dir,
-                    fileType,
                 });
+                common_1.Logger.log(`文件已上传到阿里云 OSS。访问 URL: ${result}`, 'UploadService');
+                return result;
             }
             if (Number(cheveretoStatus)) {
-                common_1.Logger.debug(`使用Chevereto上传`, 'UploadService');
-                const { filename, buffer: fromBuffer, dir } = file;
-                return await this.uploadFileByChevereto({
+                common_1.Logger.log('使用 Chevereto 上传文件', 'UploadService');
+                const result = await this.uploadFileByChevereto({
                     filename,
-                    buffer: fromBuffer.toString('base64'),
-                    dir,
-                    fileType,
+                    buffer: buffer.toString('base64'),
                 });
+                common_1.Logger.log(`文件已上传到 Chevereto。访问 URL: ${result}`, 'UploadService');
+                return result;
             }
         }
         catch (error) {
@@ -100,85 +109,13 @@ let UploadService = class UploadService {
         }
     }
     async uploadFileFromUrl({ url, dir = 'others' }) {
-        if (process.env.ISDEV) {
+        if (process.env.ISDEV === 'TRUE') {
             dir = `dev/${dir}`;
         }
-        const now = new Date();
-        const timestamp = now.getTime();
-        const randomString = Math.random().toString(36).substring(2, 6);
-        const response = await axios_1.default.head(url);
-        const mimeType = response.headers['content-type'];
-        let fileExtension = '';
-        if (mimeType) {
-            const mimeTypeMap = {
-                'image/jpeg': 'jpg',
-                'image/png': 'png',
-                'image/gif': 'gif',
-                'image/webp': 'webp',
-                'image/bmp': 'bmp',
-                'image/svg+xml': 'svg',
-                'image/tiff': 'tiff',
-                'image/x-icon': 'ico',
-                'video/mp4': 'mp4',
-                'video/mpeg': 'mpeg',
-                'video/ogg': 'ogv',
-                'video/webm': 'webm',
-                'video/quicktime': 'mov',
-                'video/x-msvideo': 'avi',
-                'video/x-flv': 'flv',
-                'audio/mpeg': 'mp3',
-                'audio/ogg': 'ogg',
-                'audio/wav': 'wav',
-                'audio/x-wav': 'wav',
-                'audio/webm': 'weba',
-                'application/pdf': 'pdf',
-                'application/msword': 'doc',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-                'application/vnd.ms-excel': 'xls',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-                'application/vnd.ms-powerpoint': 'ppt',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
-                'application/zip': 'zip',
-                'application/x-rar-compressed': 'rar',
-                'application/x-7z-compressed': '7z',
-                'text/plain': 'txt',
-                'text/html': 'html',
-                'text/css': 'css',
-                'text/javascript': 'js',
-                'application/json': 'json',
-                'application/xml': 'xml',
-                'application/octet-stream': 'bin',
-                'application/vnd.android.package-archive': 'apk',
-                'application/x-sh': 'sh',
-            };
-            fileExtension = mimeTypeMap[mimeType] || '';
-        }
-        const filename = fileExtension
-            ? `${timestamp}_${randomString}.${fileExtension}`
-            : `${timestamp}_${randomString}`;
-        common_1.Logger.debug(`准备上传文件: ${filename}, URL: ${url}, 目录: ${dir}`, 'UploadService');
-        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs([
-            'tencentCosStatus',
-            'aliOssStatus',
-            'cheveretoStatus',
-        ]);
-        if (!Number(tencentCosStatus) &&
-            !Number(aliOssStatus) &&
-            !Number(cheveretoStatus)) {
-            throw new common_1.HttpException('请先前往后台配置上传图片的方式', common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (Number(tencentCosStatus)) {
-            return this.uploadFileByTencentCosFromUrl({ filename, url, dir });
-        }
-        if (Number(aliOssStatus)) {
-            const res = await this.uploadFileByAliOssFromUrl({ filename, url, dir });
-            return res;
-        }
-        if (Number(cheveretoStatus)) {
-            return await this.uploadFileByCheveretoFromUrl({ filename, url, dir });
-        }
+        const { buffer, mimeType } = await this.getBufferFromUrl(url);
+        return await this.uploadFile({ buffer, mimetype: mimeType }, dir);
     }
-    async uploadFileByTencentCos({ filename, buffer, dir, fileType }) {
+    async uploadFileByTencentCos({ filename, buffer, dir }) {
         const { Bucket, Region, SecretId, SecretKey } = await this.getUploadConfig('tencent');
         this.tencentCos = new TENCENTCOS({
             SecretId,
@@ -187,11 +124,10 @@ let UploadService = class UploadService {
         });
         try {
             return new Promise(async (resolve, reject) => {
-                const type = fileType || 'png';
                 this.tencentCos.putObject({
                     Bucket: (0, utils_1.removeSpecialCharacters)(Bucket),
                     Region: (0, utils_1.removeSpecialCharacters)(Region),
-                    Key: `${dir}/${filename || `${(0, utils_1.createRandomUid)()}.${fileType}`}`,
+                    Key: `${dir}/${filename}`,
                     StorageClass: 'STANDARD',
                     Body: buffer,
                 }, async (err, data) => {
@@ -214,28 +150,7 @@ let UploadService = class UploadService {
             throw new common_1.HttpException('上传图片失败[ten]', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async uploadFileByTencentCosFromUrl({ filename, url, dir }) {
-        const { Bucket, Region, SecretId, SecretKey } = await this.getUploadConfig('tencent');
-        this.tencentCos = new TENCENTCOS({
-            SecretId,
-            SecretKey,
-            FileParallelLimit: 10,
-        });
-        try {
-            const buffer = await this.getBufferFromUrl(url);
-            return await this.uploadFileByTencentCos({
-                filename,
-                buffer,
-                dir,
-                fileType: '',
-            });
-        }
-        catch (error) {
-            console.log('TODO->error:  ', error);
-            throw new common_1.HttpException('上传图片失败[ten][url]', common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
-    async uploadFileByAliOss({ filename, buffer, dir, fileType = 'png' }) {
+    async uploadFileByAliOss({ filename, buffer, dir }) {
         const { region, bucket, accessKeyId, accessKeySecret } = await this.getUploadConfig('ali');
         const client = new ALIOSS({
             region: (0, utils_1.removeSpecialCharacters)(region),
@@ -247,7 +162,7 @@ let UploadService = class UploadService {
             console.log('ali 开始上传');
             return new Promise((resolve, reject) => {
                 client
-                    .put(`${dir}/${filename || `${(0, utils_1.createRandomUid)()}.${fileType}`}`, buffer)
+                    .put(`${dir}/${filename}`, buffer)
                     .then(async (result) => {
                     const { acceleratedDomain } = await this.getUploadConfig('ali');
                     if (acceleratedDomain) {
@@ -265,46 +180,38 @@ let UploadService = class UploadService {
             throw new common_1.HttpException('上传图片失败[ali]', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async uploadFileToLocalFromUrl({ filename, url, dir }) {
+    async uploadFileToLocal({ filename, buffer, dir = 'others' }) {
+        const normalizedDir = path.normalize(dir).replace(/^(\.\.(\/|\\|$))+/, '');
+        const normalizedFilename = path.basename(filename);
+        const projectRoot = process.cwd();
+        const uploadDir = path.join(projectRoot, 'public', 'file', normalizedDir);
+        const filePath = path.join(uploadDir, normalizedFilename);
+        if (!filePath.startsWith(path.join(projectRoot, 'public', 'file'))) {
+            throw new Error('非法路径，禁止访问目录之外的位置');
+        }
         try {
-            const buffer = await this.getBufferFromUrl(url);
-            return await this.uploadFileToLocal({ filename, buffer, dir });
+            await fs_1.promises.mkdir(uploadDir, { recursive: true });
         }
-        catch (error) {
-            console.log('TODO->error:  ', error);
-            throw new common_1.HttpException('上传图片失败[ten][url]', common_1.HttpStatus.BAD_REQUEST);
+        catch (err) {
+            common_1.Logger.error(`创建目录失败: ${uploadDir}`, err);
+            throw err;
         }
-    }
-    async uploadFileToLocal({ filename, buffer, dir = 'ai' }) {
-        if (!filename || !buffer) {
-            throw new Error('必须提供文件名和文件内容');
+        try {
+            await fs_1.promises.writeFile(filePath, buffer, { mode: 0o444 });
         }
-        const appRoot = require('app-root-path');
-        const uploadDir = path_1.default.join(appRoot.path, 'service', 'public', 'file');
-        const filePath = path_1.default.join(uploadDir, filename);
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-            common_1.Logger.log(`创建目录: ${uploadDir}`);
+        catch (err) {
+            common_1.Logger.error(`文件保存失败: ${filePath}`, err);
+            throw err;
         }
-        fs.writeFileSync(filePath, buffer);
-        common_1.Logger.log(`文件已保存: ${filePath}`);
-        const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:9520';
-        const fileUrl = `${baseUrl}/file/${filename}`;
-        common_1.Logger.log(`文件可访问于: ${fileUrl}`);
+        let fileUrl = `file/${normalizedDir}/${normalizedFilename}`;
+        const siteUrl = await this.globalConfigService.getConfigs(['siteUrl']);
+        if (siteUrl) {
+            const url = (0, utils_1.formatUrl)(siteUrl);
+            fileUrl = `${url}/${fileUrl}`;
+        }
         return fileUrl;
     }
-    async uploadFileByAliOssFromUrl({ filename, url, dir }) {
-        const { region, bucket, accessKeyId, accessKeySecret } = await this.getUploadConfig('ali');
-        const client = new ALIOSS({ region, accessKeyId, accessKeySecret, bucket });
-        try {
-            const buffer = await this.getBufferFromUrl(url);
-            return await this.uploadFileByAliOss({ filename, buffer, dir });
-        }
-        catch (error) {
-            throw new common_1.HttpException('上传图片失败[ALI][url]', common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
-    async uploadFileByChevereto({ filename = '', buffer, dir = 'ai', fileType = 'png', }) {
+    async uploadFileByChevereto({ filename = '', buffer }) {
         var _a;
         const { key, uploadPath } = await this.getUploadConfig('chevereto');
         let url = uploadPath.endsWith('/') ? uploadPath.slice(0, -1) : uploadPath;
@@ -328,16 +235,6 @@ let UploadService = class UploadService {
         catch (error) {
             console.log('error: ', error);
             throw new common_1.HttpException(`上传图片失败[Chevereto|buffer] --> ${(_a = error.response) === null || _a === void 0 ? void 0 : _a.data.error.message}`, common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
-    async uploadFileByCheveretoFromUrl({ filename, url, dir }) {
-        try {
-            const buffer = await this.getBufferFromUrl(url);
-            return await this.uploadFileByChevereto({ filename, buffer, dir });
-        }
-        catch (error) {
-            console.log('error: ', error);
-            throw new common_1.HttpException(error.response, common_1.HttpStatus.BAD_REQUEST);
         }
     }
     async getUploadConfig(type) {
@@ -377,16 +274,18 @@ let UploadService = class UploadService {
     }
     async getBufferFromUrl(url) {
         const response = await axios_1.default.get(url, { responseType: 'stream' });
-        return new Promise((resolve, reject) => {
+        const buffer = await new Promise((resolve, reject) => {
             streamToBuffer(response.data, (err, buffer) => {
                 if (err) {
-                    throw new common_1.HttpException('获取图片资源失败、请重新试试吧！', common_1.HttpStatus.BAD_REQUEST);
+                    reject(new common_1.HttpException('获取图片资源失败，请重新试试吧！', common_1.HttpStatus.BAD_REQUEST));
                 }
                 else {
                     resolve(buffer);
                 }
             });
         });
+        const mimeType = response.headers['content-type'];
+        return { buffer, mimeType };
     }
 };
 UploadService = __decorate([

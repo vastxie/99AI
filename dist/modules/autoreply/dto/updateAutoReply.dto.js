@@ -9,29 +9,33 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateAutpReplyDto = void 0;
-const class_validator_1 = require("class-validator");
+exports.UpdateAutoReplyDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
-class UpdateAutpReplyDto {
+const class_validator_1 = require("class-validator");
+class UpdateAutoReplyDto {
 }
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 1, description: '自动回复id', required: true }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
-], UpdateAutpReplyDto.prototype, "id", void 0);
+], UpdateAutoReplyDto.prototype, "id", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: '你可以干嘛', description: '问题', required: false }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], UpdateAutpReplyDto.prototype, "prompt", void 0);
+], UpdateAutoReplyDto.prototype, "prompt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '我可以干很多事情.......', description: '答案', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: '我可以干很多事情.......',
+        description: '答案',
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], UpdateAutpReplyDto.prototype, "answer", void 0);
+], UpdateAutoReplyDto.prototype, "answer", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 0, description: '状态', required: false }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
-], UpdateAutpReplyDto.prototype, "status", void 0);
-exports.UpdateAutpReplyDto = UpdateAutpReplyDto;
+], UpdateAutoReplyDto.prototype, "status", void 0);
+exports.UpdateAutoReplyDto = UpdateAutoReplyDto;

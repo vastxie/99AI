@@ -16,19 +16,37 @@ exports.PluginService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
+const models_service_1 = require("../models/models.service");
 const plugin_entity_1 = require("./plugin.entity");
 let PluginService = class PluginService {
-    constructor(PluginEntity) {
+    constructor(PluginEntity, modelsService) {
         this.PluginEntity = PluginEntity;
+        this.modelsService = modelsService;
     }
     async pluginList(query) {
-        const { page = 1, size = 1000 } = query;
+        const { page = 1, size = 100 } = query;
         const rows = await this.PluginEntity.find({
             order: { sortOrder: 'ASC', id: 'DESC' },
             skip: (page - 1) * size,
             take: size,
         });
-        return { rows, count: rows.length };
+        const processedRows = await Promise.all(rows.map(async (plugin) => {
+            if (plugin.isSystemPlugin === 1) {
+                try {
+                    const parameters = await this.modelsService.getCurrentModelKeyInfo(plugin.parameters);
+                    const deductType = parameters.deductType;
+                    return Object.assign(Object.assign({}, plugin), { deductType });
+                }
+                catch (error) {
+                    return Object.assign(Object.assign({}, plugin), { deductType: 0 });
+                }
+            }
+            else {
+                return Object.assign(Object.assign({}, plugin), { deductType: 0 });
+            }
+        }));
+        const filteredRows = processedRows.filter((plugin) => plugin !== null);
+        return { rows: filteredRows, count: filteredRows.length };
     }
     async createPlugin(body) {
         const { name, pluginImg, description, isEnabled, isSystemPlugin, parameters, sortOrder, } = body;
@@ -98,6 +116,7 @@ let PluginService = class PluginService {
 PluginService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(plugin_entity_1.PluginEntity)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        models_service_1.ModelsService])
 ], PluginService);
 exports.PluginService = PluginService;

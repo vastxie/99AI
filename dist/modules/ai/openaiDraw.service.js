@@ -25,10 +25,34 @@ let OpenAIDrawService = OpenAIDrawService_1 = class OpenAIDrawService {
         this.openAIChatService = openAIChatService;
         this.logger = new common_1.Logger(OpenAIDrawService_1.name);
     }
-    async dalleDraw(inputs, messagesHistory) {
+    async dalleDraw(inputs, buildMessageFromParentMessageId) {
         var _a, _b, _c, _d;
         common_1.Logger.log('开始提交 Dalle 绘图任务 ', 'DrawService');
-        const { apiKey, model, proxyUrl, prompt, extraParam, timeout, onSuccess, onFailure, } = inputs;
+        const { apiKey, model, proxyUrl, prompt, extraParam, timeout, onSuccess, onFailure, groupId, } = inputs;
+        const isDalleChat = await this.globalConfigService.getConfigs([
+            'isDalleChat',
+        ]);
+        let drawPrompt;
+        if (isDalleChat === '1') {
+            try {
+                common_1.Logger.log('已开启连续绘画模式', 'DalleDraw');
+                const { messagesHistory } = await buildMessageFromParentMessageId(`参考上文，结合我的需求，给出绘画描述。我的需求是：${prompt}`, {
+                    groupId,
+                    systemMessage: '你是一个绘画提示词生成工具，请根据用户的要求，结合上下文，用一段文字，描述用户需要的绘画需求，不用包含任何礼貌性的寒暄,只需要场景的描述,可以适当联想',
+                    maxModelTokens: 8000,
+                    maxRounds: 5,
+                    fileInfo: '',
+                }, this.chatLogService);
+                drawPrompt = await this.openAIChatService.chatFree(prompt, undefined, messagesHistory);
+            }
+            catch (error) {
+                console.error('调用chatFree失败：', error);
+                drawPrompt = prompt;
+            }
+        }
+        else {
+            drawPrompt = prompt;
+        }
         const size = (extraParam === null || extraParam === void 0 ? void 0 : extraParam.size) || '1024x1024';
         let result = { answer: '', fileInfo: '', status: 2 };
         try {
@@ -42,7 +66,7 @@ let OpenAIDrawService = OpenAIDrawService_1 = class OpenAIDrawService {
                 },
                 data: {
                     model: model,
-                    prompt: prompt,
+                    prompt: drawPrompt,
                     size,
                 },
             };

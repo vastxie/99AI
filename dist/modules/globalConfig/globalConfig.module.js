@@ -8,11 +8,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GlobalConfigModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
+const chatLog_entity_1 = require("../chatLog/chatLog.entity");
+const config_entity_1 = require("./config.entity");
 const globalConfig_controller_1 = require("./globalConfig.controller");
 const globalConfig_service_1 = require("./globalConfig.service");
-const typeorm_1 = require("@nestjs/typeorm");
-const config_entity_1 = require("./config.entity");
-const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 let GlobalConfigModule = class GlobalConfigModule {
 };
 GlobalConfigModule = __decorate([

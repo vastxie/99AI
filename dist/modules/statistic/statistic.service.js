@@ -220,6 +220,36 @@ let StatisticService = class StatisticService {
         }
         return dailyData;
     }
+    async getNewAccessToken(baiduApiKey, baiduSecretKey, baiduRefreshToken) {
+        const tokenUrl = `http://openapi.baidu.com/oauth/2.0/token?grant_type=refresh_token&refresh_token=${baiduRefreshToken}&client_id=${baiduApiKey}&client_secret=${baiduSecretKey}`;
+        common_1.Logger.log('获取新 accessToken', tokenUrl);
+        try {
+            const tokenRes = await axios_1.default.get(tokenUrl);
+            if (tokenRes.status === 200 && tokenRes.data.access_token) {
+                return {
+                    accessToken: tokenRes.data.access_token,
+                    refreshToken: tokenRes.data.refresh_token,
+                };
+            }
+            else {
+                throw new Error('Failed to get new access token');
+            }
+        }
+        catch (tokenError) {
+            common_1.Logger.error('获取新 accessToken 失败', {
+                message: tokenError.message,
+                stack: tokenError.stack,
+                response: tokenError.response
+                    ? tokenError.response.data
+                    : 'No response data',
+            });
+            throw new common_1.HttpException('获取新 accessToken 失败', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async updateAccessTokenInDatabase(accessToken, refreshToken, configEntity) {
+        await configEntity.update({ configKey: 'baiduToken' }, { configVal: accessToken });
+        await configEntity.update({ configKey: 'baiduRefreshToken' }, { configVal: refreshToken });
+    }
     async getBaiduStatistics(days) {
         const end_date = (0, date_1.formatDate)(new Date(), 'YYYYMMDD');
         const start_date = (0, date_1.formatDate)(new Date(Date.now() - Number(days - 1) * 24 * 60 * 60 * 1000), 'YYYYMMDD');
@@ -232,58 +262,34 @@ let StatisticService = class StatisticService {
             'baiduSecretKey',
             'baiduRefreshToken',
         ]);
-        if (!baiduApiKey ||
-            !baiduToken ||
-            !baiduSiteId ||
-            !baiduRefreshToken ||
-            !baiduSecretKey) {
+        if (!baiduApiKey || !baiduSiteId || !baiduRefreshToken || !baiduSecretKey) {
             return [];
         }
         let accessToken = baiduToken;
-        let url = `https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=${accessToken}&site_id=${baiduSiteId}&method=${method}&start_date=${start_date}&end_date=${end_date}&metrics=${metrics}`;
         let res;
-        try {
-            res = await axios_1.default.get(url);
-        }
-        catch (error) {
-            res = {
-                data: {
-                    error_code: 111,
-                    message: 'Access token invalid or no longer valid',
-                },
-            };
-        }
-        let { error_code, message } = res.data;
-        if (error_code === 111) {
-            const tokenUrl = `http://openapi.baidu.com/oauth/2.0/token?grant_type=refresh_token&refresh_token=${baiduRefreshToken}&client_id=${baiduApiKey}&client_secret=${baiduSecretKey}`;
-            common_1.Logger.log('获取新 accessToken', tokenUrl);
-            let tokenRes;
+        let url;
+        const fetchData = async (token) => {
+            url = `https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=${token}&site_id=${baiduSiteId}&method=${method}&start_date=${start_date}&end_date=${end_date}&metrics=${metrics}`;
             try {
-                tokenRes = await axios_1.default.get(tokenUrl);
+                return await axios_1.default.get(url);
             }
-            catch (tokenError) {
-                common_1.Logger.error('获取新 accessToken 失败', {
-                    message: tokenError.message,
-                    stack: tokenError.stack,
-                    response: tokenError.response
-                        ? tokenError.response.data
-                        : 'No response data',
-                });
-                throw new common_1.HttpException('获取新 accessToken 失败', common_1.HttpStatus.BAD_REQUEST);
+            catch (error) {
+                return {
+                    data: {
+                        error_code: 111,
+                        message: 'Access token invalid or no longer valid',
+                    },
+                };
             }
-            if (tokenRes.status === 200 && tokenRes.data.access_token) {
-                accessToken = tokenRes.data.access_token;
-                await this.configEntity.update({ configKey: 'baiduToken' }, {
-                    configVal: accessToken,
-                });
-                url = `https://openapi.baidu.com/rest/2.0/tongji/report/getData?access_token=${accessToken}&site_id=${baiduSiteId}&method=${method}&start_date=${start_date}&end_date=${end_date}&metrics=${metrics}`;
-                res = await axios_1.default.get(url);
-                ({ error_code, message } = res.data);
-            }
-            else {
-                throw new common_1.HttpException('获取新 accessToken 失败', common_1.HttpStatus.BAD_REQUEST);
-            }
+        };
+        res = await fetchData(accessToken);
+        if (res.data.error_code === 111 || !baiduToken) {
+            const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await this.getNewAccessToken(baiduApiKey, baiduSecretKey, baiduRefreshToken);
+            accessToken = newAccessToken;
+            await this.updateAccessTokenInDatabase(accessToken, newRefreshToken, this.configEntity);
+            res = await fetchData(accessToken);
         }
+        const { error_code, message } = res.data;
         if (error_code && error_code !== 200) {
             throw new common_1.HttpException(message || '获取百度统计数据失败', common_1.HttpStatus.BAD_REQUEST);
         }

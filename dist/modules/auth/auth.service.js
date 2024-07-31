@@ -21,7 +21,6 @@ const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("@nestjs/typeorm");
 const bcrypt = require("bcryptjs");
 const os = require("os");
-const svgCaptcha = require("svg-captcha");
 const typeorm_2 = require("typeorm");
 const config_entity_1 = require("../globalConfig/config.entity");
 const mailer_service_1 = require("../mailer/mailer.service");
@@ -44,7 +43,6 @@ let AuthService = class AuthService {
         this.getIp();
     }
     async register(body, req) {
-        await this.verificationService.verifyCaptcha(body);
         const { password, contact, code, invitedBy } = body;
         let email = '', phone = '';
         const isEmail = /\S+@\S+\.\S+/.test(contact);
@@ -99,11 +97,11 @@ let AuthService = class AuthService {
                 throw new common_1.HttpException('请输入验证码', common_1.HttpStatus.BAD_REQUEST);
             }
             if (!redisCode) {
-                common_1.Logger.log(`验证码过期: ${contact}`);
+                common_1.Logger.log(`验证码过期: ${contact}`, 'authService');
                 throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
             }
             if (code !== redisCode) {
-                common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`);
+                common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`, 'authService');
                 throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
             }
         }
@@ -197,11 +195,11 @@ let AuthService = class AuthService {
         const key = `${nameSpace}:CODE:${contact}`;
         const redisCode = await this.redisCacheService.get({ key });
         if (!redisCode) {
-            common_1.Logger.log(`验证码过期: ${contact}`);
+            common_1.Logger.log(`验证码过期: ${contact}`, 'authService');
             throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
         }
         if (code !== redisCode) {
-            common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`);
+            common_1.Logger.log(`验证码错误: ${contact} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`, 'authService');
             throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
         }
         let u;
@@ -292,28 +290,6 @@ let AuthService = class AuthService {
         });
         this.ipAddress = ipAddress;
     }
-    async captcha(parmas) {
-        const nameSpace = await this.globalConfigService.getNamespace();
-        const { color = '#fff' } = parmas;
-        const captcha = svgCaptcha.create({
-            size: 4,
-            ignoreChars: '0o1i',
-            noise: 4,
-            color: true,
-            background: color,
-            height: 35,
-            width: 120,
-            charPreset: 'abcdefghijklmnopqrstuvwxyz',
-        });
-        const text = captcha.text;
-        const randomId = Math.random().toString(36).substr(2, 9);
-        const key = `${nameSpace}:CAPTCHA:${randomId}`;
-        await this.redisCacheService.set({ key, val: text }, 5 * 60);
-        return {
-            svgCode: captcha.data,
-            code: randomId,
-        };
-    }
     async sendCode(body) {
         const { contact, isLogin } = body;
         let email = '', phone = '';
@@ -324,7 +300,6 @@ let AuthService = class AuthService {
             throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
         }
         if (!isLogin) {
-            await this.verificationService.verifyCaptcha(body);
             if (isEmail) {
                 email = contact;
                 const isAvailable = await this.userService.verifyUserRegister({

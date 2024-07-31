@@ -13,9 +13,13 @@ exports.SunoService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("axios");
 const chatLog_service_1 = require("../chatLog/chatLog.service");
+const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const upload_service_1 = require("../upload/upload.service");
 let SunoService = class SunoService {
-    constructor(chatLogService) {
+    constructor(chatLogService, uploadService, globalConfigService) {
         this.chatLogService = chatLogService;
+        this.uploadService = uploadService;
+        this.globalConfigService = globalConfigService;
     }
     async suno(inputs) {
         var _a, _b, _c;
@@ -46,7 +50,7 @@ let SunoService = class SunoService {
                 throw new Error('taskData格式错误');
             }
         }
-        common_1.Logger.log(`正在准备发送请求到 ${url}，payload: ${JSON.stringify(payloadJson)}, headers: ${JSON.stringify(headers)}`);
+        common_1.Logger.log(`正在准备发送请求到 ${url}，payload: ${JSON.stringify(payloadJson)}, headers: ${JSON.stringify(headers)}`, 'SunoService');
         try {
             response = await axios_1.default.post(url, payloadJson, { headers });
         }
@@ -164,6 +168,7 @@ let SunoService = class SunoService {
                 try {
                     const res = await axios_1.default.get(url, { headers });
                     const responses = res.data.data;
+                    common_1.Logger.debug(`轮询结果: ${JSON.stringify(responses)}`, 'SunoService');
                     if (action === 'LYRICS') {
                         if (responses.status === 'SUCCESS') {
                             result.taskId = responses.data.id;
@@ -179,7 +184,6 @@ let SunoService = class SunoService {
                         }
                     }
                     if (action === 'MUSIC') {
-                        const data = responses.data;
                         if (responses.data) {
                             const data = responses.data;
                             result.taskData = JSON.stringify(data);
@@ -195,30 +199,100 @@ let SunoService = class SunoService {
                                     .filter((url) => url);
                                 const titles = data.map((item) => item.title);
                                 const firstTitle = titles.length > 0 ? titles[0] : '音乐已生成';
-                                const audioUrls = validAudioUrls.join(',');
-                                const videoUrls = validVideoUrls.join(',');
-                                const imageUrls = validImageUrls.join(',');
-                                result.audioUrl = audioUrls;
-                                result.videoUrl = videoUrls;
-                                result.fileInfo = imageUrls;
-                                if (validAudioUrls.length === 2) {
-                                    result.status = 3;
-                                    result.answer = firstTitle;
+                                if (responses.status === 'SUCCESS') {
+                                    let audioUrls = [];
+                                    let videoUrls = [];
+                                    let imageUrls = [];
+                                    try {
+                                        const localStorageStatus = await this.globalConfigService.getConfigs([
+                                            'localStorageStatus',
+                                        ]);
+                                        if (Number(localStorageStatus)) {
+                                            const now = new Date();
+                                            const year = now.getFullYear();
+                                            const month = String(now.getMonth() + 1).padStart(2, '0');
+                                            const day = String(now.getDate()).padStart(2, '0');
+                                            const currentDate = `${year}${month}/${day}`;
+                                            for (const url of validAudioUrls) {
+                                                try {
+                                                    const uploadedUrl = await this.uploadService.uploadFileFromUrl({
+                                                        url: url,
+                                                        dir: `audio/suno-music/${currentDate}`,
+                                                    });
+                                                    audioUrls.push(uploadedUrl);
+                                                }
+                                                catch (error) {
+                                                    common_1.Logger.error(`上传音频文件失败: ${error.message}`, 'SunoService');
+                                                    audioUrls.push(url);
+                                                }
+                                            }
+                                            for (const url of validVideoUrls) {
+                                                try {
+                                                    const uploadedUrl = await this.uploadService.uploadFileFromUrl({
+                                                        url: url,
+                                                        dir: `video/suno-music/${currentDate}`,
+                                                    });
+                                                    videoUrls.push(uploadedUrl);
+                                                }
+                                                catch (error) {
+                                                    common_1.Logger.error(`上传视频文件失败: ${error.message}`, 'SunoService');
+                                                    videoUrls.push(url);
+                                                }
+                                            }
+                                            for (const url of validImageUrls) {
+                                                try {
+                                                    const uploadedUrl = await this.uploadService.uploadFileFromUrl({
+                                                        url: url,
+                                                        dir: `images/suno-music/${currentDate}`,
+                                                    });
+                                                    imageUrls.push(uploadedUrl);
+                                                }
+                                                catch (error) {
+                                                    common_1.Logger.error(`上传图片文件失败: ${error.message}`, 'SunoService');
+                                                    imageUrls.push(url);
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            audioUrls = validAudioUrls;
+                                            videoUrls = validVideoUrls;
+                                            imageUrls = validImageUrls;
+                                        }
+                                    }
+                                    catch (error) {
+                                        common_1.Logger.error(`获取配置失败: ${error.message}`, 'LumaService');
+                                        audioUrls = validAudioUrls;
+                                        videoUrls = validVideoUrls;
+                                        imageUrls = validImageUrls;
+                                    }
+                                    result.audioUrl = audioUrls.join(',');
+                                    result.videoUrl = videoUrls.join(',');
+                                    result.fileInfo = imageUrls.join(',');
+                                    if (validAudioUrls.length === 2) {
+                                        result.status = 3;
+                                        result.answer = firstTitle;
+                                    }
+                                    else {
+                                        result.status = 2;
+                                        result.progress = responses === null || responses === void 0 ? void 0 : responses.progress;
+                                        result.answer = `当前生成进度 ${responses === null || responses === void 0 ? void 0 : responses.progress}`;
+                                    }
+                                    common_1.Logger.debug(`音乐生成成功: ${JSON.stringify(data)}`, 'SunoService');
+                                    onSuccess(result);
+                                    return;
                                 }
                                 else {
+                                    result.audioUrl = validAudioUrls.join(',');
+                                    result.videoUrl = validVideoUrls.join(',');
+                                    result.fileInfo = validImageUrls.join(',');
                                     result.status = 2;
                                     result.progress = responses === null || responses === void 0 ? void 0 : responses.progress;
-                                    result.answer = `当前生成进度 ${responses === null || responses === void 0 ? void 0 : responses.progress}`;
+                                    result.answer = firstTitle;
+                                    onAudioSuccess(result);
                                 }
-                                onAudioSuccess(result);
                             }
                         }
-                        if (responses.status === 'SUCCESS') {
-                            common_1.Logger.debug(`音乐生成成功: ${JSON.stringify(data)}`, 'SunoService');
-                            onSuccess(result);
-                            return;
-                        }
-                        if (result.progress && result.status === 2) {
+                        if (!result.audioUrl && result.progress && result.status === 2) {
                             onGenerating(result);
                         }
                     }
@@ -242,6 +316,8 @@ let SunoService = class SunoService {
 };
 SunoService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [chatLog_service_1.ChatLogService])
+    __metadata("design:paramtypes", [chatLog_service_1.ChatLogService,
+        upload_service_1.UploadService,
+        globalConfig_service_1.GlobalConfigService])
 ], SunoService);
 exports.SunoService = SunoService;

@@ -32,7 +32,12 @@ async function bootstrap() {
     app.useLogger(app.get(custom_logger_service_1.CustomLoggerService));
     app.use(compression());
     app.use(xmlBodyParser());
-    app.enableCors();
+    app.enableCors({
+        origin: '*',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+    });
     app.setGlobalPrefix('/api');
     app.useGlobalInterceptors(new transform_interceptor_1.TransformInterceptor());
     app.useGlobalFilters(new typeOrmQueryFailed_filter_1.TypeOrmQueryFailedFilter());

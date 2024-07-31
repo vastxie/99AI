@@ -29,8 +29,12 @@ let VerificationService = class VerificationService {
         this.redisCacheService = redisCacheService;
     }
     async createVerification(user, type, expir = 30 * 60) {
-        const historyVerify = await this.verifycationEntity.findOne({ where: { userId: user.id, type }, order: { createdAt: 'DESC' } });
-        if (historyVerify && historyVerify.createdAt.getTime() + 1 * 60 * 1000 > Date.now()) {
+        const historyVerify = await this.verifycationEntity.findOne({
+            where: { userId: user.id, type },
+            order: { createdAt: 'DESC' },
+        });
+        if (historyVerify &&
+            historyVerify.createdAt.getTime() + 1 * 60 * 1000 > Date.now()) {
             const diffS = Math.ceil((historyVerify.createdAt.getTime() + 1 * 60 * 1000 - Date.now()) / 1000);
             throw new common_1.HttpException(`${diffS}S内不得重新发送`, common_1.HttpStatus.BAD_REQUEST);
         }
@@ -41,7 +45,10 @@ let VerificationService = class VerificationService {
         return await this.verifycationEntity.save(verifycation);
     }
     async verifyCode({ code, id }, type) {
-        const v = await this.verifycationEntity.findOne({ where: { id, type }, order: { createdAt: 'DESC' } });
+        const v = await this.verifycationEntity.findOne({
+            where: { id, type },
+            order: { createdAt: 'DESC' },
+        });
         if (!v) {
             throw new common_1.HttpException('验证码不存在', common_1.HttpStatus.BAD_REQUEST);
         }
@@ -60,29 +67,26 @@ let VerificationService = class VerificationService {
         }
         return v;
     }
-    async verifyCaptcha(body) {
-        const { captchaId, captchaCode } = body;
-        const nameSpace = await this.globalConfigService.getNamespace();
-        const key = `${nameSpace}:CAPTCHA:${captchaId}`;
-        const code = await this.redisCacheService.get({ key });
-        await this.redisCacheService.del({ key });
-        if (!code) {
-            throw new common_1.HttpException('图形验证码已过期、请重新输入!', common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (!code || code !== captchaCode) {
-            throw new common_1.HttpException('图形验证码错误、请检查填写!', common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
     async sendPhoneCode(messageInfo) {
         var _a;
         const { accessKeyId, accessKeySecret, SignName, TemplateCode } = await this.globalConfigService.getPhoneVerifyConfig();
-        console.log("Received messageInfo:", messageInfo);
+        console.log('Received messageInfo:', messageInfo);
         const { phone, code } = messageInfo;
         if (!phone || !code) {
             throw new common_1.HttpException('确实必要参数错误！', common_1.HttpStatus.BAD_REQUEST);
         }
-        const client = new Core({ accessKeyId, accessKeySecret, endpoint: 'https://dysmsapi.aliyuncs.com', apiVersion: '2017-05-25' });
-        const params = { PhoneNumbers: phone, SignName, TemplateCode, TemplateParam: JSON.stringify({ code }) };
+        const client = new Core({
+            accessKeyId,
+            accessKeySecret,
+            endpoint: 'https://dysmsapi.aliyuncs.com',
+            apiVersion: '2017-05-25',
+        });
+        const params = {
+            PhoneNumbers: phone,
+            SignName,
+            TemplateCode,
+            TemplateParam: JSON.stringify({ code }),
+        };
         const requestOption = { method: 'POST', formatParams: false };
         try {
             const response = await client.request('SendSms', params, requestOption);

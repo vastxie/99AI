@@ -109,13 +109,13 @@ let OfficialService = class OfficialService {
     }
     async scan(openID, sceneStr) {
         try {
-            common_1.Logger.log(`Scanning with openID: ${openID}, sceneStr: ${sceneStr}`);
+            common_1.Logger.log(`Scanning with openID: ${openID}, sceneStr: ${sceneStr}`, 'OfficialService');
             if (!this.sceneStrMap[sceneStr]) {
                 common_1.Logger.error(`非法参数: 未找到的 sceneStr ${sceneStr}`);
                 throw new common_1.HttpException('非法参数', common_1.HttpStatus.BAD_REQUEST);
             }
             const user = await this.userService.getUserFromOpenId(openID, sceneStr);
-            common_1.Logger.log(`User found: ${user ? user.id : 'No user found'}`);
+            common_1.Logger.log(`User found: ${user ? user.id : 'No user found'}`, 'OfficialService');
             this.scanedSceneStrMap[sceneStr] = user.id;
         }
         catch (error) {

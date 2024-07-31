@@ -50,9 +50,17 @@ AppModule = __decorate([
             database_module_1.DatabaseModule,
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(__dirname, '..', 'public/admin'),
-                serveRoot: '/admin',
+                serveRoot: process.env.ADMIN_SERVE_ROOT || '/admin',
             }, {
-                rootPath: (0, path_1.join)(__dirname, '..', 'public'),
+                rootPath: (0, path_1.join)(__dirname, '..', 'public/file'),
+                serveRoot: '/file',
+                serveStaticOptions: {
+                    setHeaders: (res, path, stat) => {
+                        res.set('Access-Control-Allow-Origin', '*');
+                    },
+                },
+            }, {
+                rootPath: (0, path_1.join)(__dirname, '..', 'public/chat'),
                 serveRoot: '/',
             }),
             user_module_1.UserModule,

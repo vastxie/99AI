@@ -3,7 +3,7 @@
     "name": "99AI",
     "script": "./dist/main.js",
     "watch": true,
-    "ignore_watch": ["node_modules", "logs"],
+    "ignore_watch": ["node_modules", "logs", "public/file"],
     "env": {
       "TZ": "Asia/Shanghai"
     },

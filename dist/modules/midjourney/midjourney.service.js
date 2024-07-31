@@ -68,7 +68,9 @@ let MidjourneyService = class MidjourneyService {
         else {
             let resultPromise;
             if (action === 'MODAL') {
-                resultPromise = this.getDrawActionDetail(action, drawId, customId).then((res) => res.drawId);
+                common_1.Logger.debug('customId:', customId);
+                drawInfo.drawId = (await this.getDrawActionDetail(drawId, customId)).drawId;
+                resultPromise = this.sendDrawCommand(drawInfo, modelInfo);
             }
             else {
                 resultPromise = this.sendDrawCommand(drawInfo, modelInfo);
@@ -83,7 +85,7 @@ let MidjourneyService = class MidjourneyService {
                 common_1.Logger.error('Error in other draw operation:', error);
             });
         }
-        common_1.Logger.log(`执行预扣费，扣除费用:${action === 'UPSCALE' ? deduct : deduct * 4}积分。`);
+        common_1.Logger.log(`执行预扣费，扣除费用:${action === 'UPSCALE' ? deduct : deduct * 4}积分。`, 'MidjourneyService');
         await this.userBalanceService.deductFromBalance(req.user.id, deductType, action === 'UPSCALE' ? deduct : deduct * 4);
         return true;
     }
@@ -106,7 +108,7 @@ let MidjourneyService = class MidjourneyService {
     }
     async addDrawQueue(params) {
         try {
-            const { prompt, imgUrl = '', extraParam = '', action, userId, customId, drawId, } = params;
+            const { prompt, imgUrl = '', extraParam = '', action, userId, customId, drawId, base64, } = params;
             const fullPrompt = imgUrl
                 ? `${imgUrl} ${prompt} ${extraParam}`
                 : `${prompt} ${extraParam}`;
@@ -120,6 +122,7 @@ let MidjourneyService = class MidjourneyService {
                 status: midjourney_constant_1.MidjourneyStatusEnum.WAITING,
                 action,
                 customId,
+                base64,
             };
             const res = await this.midjourneyEntity.save(drawInfo);
             return res;
@@ -231,6 +234,7 @@ let MidjourneyService = class MidjourneyService {
                 else if (action === 'MODAL') {
                     url = `${mjProxyUrl}/mj/submit/modal`;
                     payloadJson = { maskBase64: base64, taskId: drawId, prompt: prompt };
+                    console.log('提交参数', payloadJson);
                 }
                 else {
                     url = `${mjProxyUrl}/mj/submit/action`;
@@ -354,24 +358,22 @@ let MidjourneyService = class MidjourneyService {
             throw new common_1.HttpException('获取我得绘制列表失败', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async getDrawActionDetail(action, drawId, customId) {
+    async getDrawActionDetail(drawId, customId) {
         const modelInfo = await this.modelsService.getSpecialModelKeyInfo('midjourney');
         const { openaiBaseUrl, openaiBaseKey } = await this.globalConfigService.getConfigs([
             'openaiBaseUrl',
             'openaiBaseKey',
         ]);
-        const { deduct, isTokenBased, tokenFeeRatio, deductType, key, modelName, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel, } = modelInfo;
+        const { key, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel, } = modelInfo;
         const mjProxyUrl = proxyUrl;
         const mjKey = key || openaiBaseKey;
         const headers = { 'mj-api-secret': mjKey || openaiBaseUrl };
         let resultId;
-        if (action === 'MODAL') {
-            const payloadJson = { taskId: drawId, customId: customId };
-            const url = `${mjProxyUrl}/mj/submit/action`;
-            const res = await axios_1.default.post(url, payloadJson, { headers });
-            resultId = res.data.result;
-            console.log('Received response from action submission:', resultId);
-        }
+        const payloadJson = { taskId: drawId, customId: customId };
+        const url = `${mjProxyUrl}/mj/submit/action`;
+        const res = await axios_1.default.post(url, payloadJson, { headers });
+        resultId = res.data.result;
+        console.log('Received response from action submission:', resultId);
         return { drawId: resultId };
     }
     async deleteDraw(id, req) {

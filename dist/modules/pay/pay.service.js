@@ -52,13 +52,17 @@ let PayService = class PayService {
         return this.notifyMpay(params);
     }
     async pay(userId, orderId, payType = 'wxpay') {
-        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        const order = await this.orderEntity.findOne({
+            where: { userId, orderId },
+        });
         if (!order)
             throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        const goods = await this.cramiPackageEntity.findOne({
+            where: { id: order.goodsId },
+        });
         if (!goods)
             throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
-        console.log('本次支付类型: ', order.payPlatform);
+        common_1.Logger.log('本次支付类型: ', order.payPlatform);
         try {
             if (order.payPlatform == 'wechat') {
                 return this.payWeChat(userId, orderId, payType);
@@ -77,7 +81,7 @@ let PayService = class PayService {
             }
         }
         catch (error) {
-            console.log('支付请求失败: ', error);
+            common_1.Logger.log('支付请求失败: ', error);
             throw new common_1.HttpException('支付请求失败!', common_1.HttpStatus.BAD_REQUEST);
         }
     }
@@ -88,12 +92,16 @@ let PayService = class PayService {
         return order;
     }
     async notifyHupi(params) {
-        const payHupiSecret = await this.globalConfigService.getConfigs(['payHupiSecret']);
+        const payHupiSecret = await this.globalConfigService.getConfigs([
+            'payHupiSecret',
+        ]);
         const hash = params['hash'];
         delete params['hash'];
         if (this.sign(params, payHupiSecret) != hash)
             return 'failed';
-        const order = await this.orderEntity.findOne({ where: { orderId: params['trade_order_id'], status: 0 } });
+        const order = await this.orderEntity.findOne({
+            where: { orderId: params['trade_order_id'], status: 0 },
+        });
         if (!order)
             return 'failed';
         await this.userBalanceService.addBalanceToOrder(order);
@@ -103,18 +111,22 @@ let PayService = class PayService {
         return 'success';
     }
     async payHupi(userId, orderId, payType = 'wxpay') {
-        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        const order = await this.orderEntity.findOne({
+            where: { userId, orderId },
+        });
         if (!order)
             throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        const goods = await this.cramiPackageEntity.findOne({
+            where: { id: order.goodsId },
+        });
         if (!goods)
             throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const { payHupiAppId, payHupiSecret, payHupiNotifyUrl, payHupiReturnUrl, payHupiGatewayUrl } = await this.globalConfigService.getConfigs([
+        const { payHupiAppId, payHupiSecret, payHupiNotifyUrl, payHupiReturnUrl, payHupiGatewayUrl, } = await this.globalConfigService.getConfigs([
             'payHupiAppId',
             'payHupiSecret',
             'payHupiNotifyUrl',
             'payHupiReturnUrl',
-            'payHupiGatewayUrl'
+            'payHupiGatewayUrl',
         ]);
         const params = {};
         params['version'] = '1.1';
@@ -134,7 +146,10 @@ let PayService = class PayService {
         return { url_qrcode, url };
     }
     async queryHupi(orderId) {
-        const { payHupiAppId, payHupiSecret } = await this.globalConfigService.getConfigs(['payHupiAppId', 'payHupiSecret']);
+        const { payHupiAppId, payHupiSecret } = await this.globalConfigService.getConfigs([
+            'payHupiAppId',
+            'payHupiSecret',
+        ]);
         const params = {};
         params['version'] = '1.1';
         params['appid'] = payHupiAppId;
@@ -151,11 +166,15 @@ let PayService = class PayService {
         const sign = params['sign'];
         delete params['sign'];
         delete params['sign_type'];
-        const payEpaySecret = await this.globalConfigService.getConfigs(['payEpaySecret']);
+        const payEpaySecret = await this.globalConfigService.getConfigs([
+            'payEpaySecret',
+        ]);
         if (this.sign(params, payEpaySecret) != sign)
             return 'failed';
-        console.log('校验签名通过');
-        const order = await this.orderEntity.findOne({ where: { orderId: params['out_trade_no'], status: 0 } });
+        common_1.Logger.log('校验签名通过');
+        const order = await this.orderEntity.findOne({
+            where: { orderId: params['out_trade_no'], status: 0 },
+        });
         if (!order)
             return 'failed';
         const status = params['trade_status'] == 'TRADE_SUCCESS' ? 1 : 2;
@@ -168,13 +187,17 @@ let PayService = class PayService {
         return 'success';
     }
     async payEpay(userId, orderId, payType = 'alipay') {
-        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        const order = await this.orderEntity.findOne({
+            where: { userId, orderId },
+        });
         if (!order)
             throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        const goods = await this.cramiPackageEntity.findOne({
+            where: { id: order.goodsId },
+        });
         if (!goods)
             throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const { payEpayPid, payEpaySecret, payEpayNotifyUrl, payEpayReturnUrl, payEpayApiPayUrl } = await this.globalConfigService.getConfigs([
+        const { payEpayPid, payEpaySecret, payEpayNotifyUrl, payEpayReturnUrl, payEpayApiPayUrl, } = await this.globalConfigService.getConfigs([
             'payEpayPid',
             'payEpaySecret',
             'payEpayNotifyUrl',
@@ -204,15 +227,30 @@ let PayService = class PayService {
         const queryParams = new URLSearchParams(params).toString();
         const apiUrl = `${payEpayApiPayUrl}?${queryParams}`;
         if (payEpayApiPayUrl.includes('submit.php')) {
-            return { url_qrcode: null, redirectUrl: apiUrl, channel: payType, isRedirect: true };
+            return {
+                url_qrcode: null,
+                redirectUrl: apiUrl,
+                channel: payType,
+                isRedirect: true,
+            };
         }
         else {
-            const res = await axios_1.default.get(payEpayApiPayUrl, { params });
-            console.log('epay ---> res: ', res.data);
+            const config = {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            };
+            const res = await axios_1.default.post(payEpayApiPayUrl, params, config);
+            common_1.Logger.log('epay ---> res: ', res.data);
             const { data: { code, msg, qrcode: url_qrcode }, } = res;
             if (code != 1)
                 throw new common_1.HttpException(msg, common_1.HttpStatus.BAD_REQUEST);
-            return { url_qrcode, redirectUrl: null, channel: payType, isRedirect: false };
+            return {
+                url_qrcode,
+                redirectUrl: null,
+                channel: payType,
+                isRedirect: false,
+            };
         }
     }
     async queryEpay(orderId) {
@@ -235,16 +273,20 @@ let PayService = class PayService {
         const sign = params['sign'];
         delete params['sign'];
         delete params['sign_type'];
-        const payMpaySecret = await this.globalConfigService.getConfigs(['payMpaySecret']);
-        console.log('校验签名');
+        const payMpaySecret = await this.globalConfigService.getConfigs([
+            'payMpaySecret',
+        ]);
+        common_1.Logger.log('校验签名');
         if (this.sign(params, payMpaySecret) != sign)
             return 'failed';
-        console.log('校验签名通过');
-        const order = await this.orderEntity.findOne({ where: { orderId: params['out_trade_no'], status: 0 } });
+        common_1.Logger.log('校验签名通过');
+        const order = await this.orderEntity.findOne({
+            where: { orderId: params['out_trade_no'], status: 0 },
+        });
         if (!order)
             return 'failed';
         const status = params['trade_status'] == 'TRADE_SUCCESS' ? 1 : 2;
-        console.log('status: ', status);
+        common_1.Logger.log('status: ', status);
         const result = await this.orderEntity.update({ orderId: params['out_trade_no'] }, { status, paydAt: new Date() });
         if (status === 1) {
             await this.userBalanceService.addBalanceToOrder(order);
@@ -254,13 +296,17 @@ let PayService = class PayService {
         return 'success';
     }
     async payMpay(userId, orderId, payType = 'wxpay') {
-        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        const order = await this.orderEntity.findOne({
+            where: { userId, orderId },
+        });
         if (!order)
             throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        const goods = await this.cramiPackageEntity.findOne({
+            where: { id: order.goodsId },
+        });
         if (!goods)
             throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const { payMpayPid, payMpaySecret, payMpayNotifyUrl, payMpayReturnUrl, payMpayApiPayUrl } = await this.globalConfigService.getConfigs([
+        const { payMpayPid, payMpaySecret, payMpayNotifyUrl, payMpayReturnUrl, payMpayApiPayUrl, } = await this.globalConfigService.getConfigs([
             'payMpayPid',
             'payMpaySecret',
             'payMpayNotifyUrl',
@@ -279,11 +325,20 @@ let PayService = class PayService {
         params['sign_type'] = 'MD5';
         const queryParams = new URLSearchParams(params).toString();
         const apiUrl = `${payMpayApiPayUrl}?${queryParams}`;
-        return { url_qrcode: null, redirectUrl: apiUrl, channel: payType, isRedirect: true };
+        return {
+            url_qrcode: null,
+            redirectUrl: apiUrl,
+            channel: payType,
+            isRedirect: true,
+        };
         const res = await axios_1.default.get(payMpayApiPayUrl, { params });
     }
     async queryMpay(orderId) {
-        const { payMpayApiQueryUrl } = await this.globalConfigService.getConfigs(['payMpayPid', 'payMpaySecret', 'payMpayApiQueryUrl']);
+        const { payMpayApiQueryUrl } = await this.globalConfigService.getConfigs([
+            'payMpayPid',
+            'payMpaySecret',
+            'payMpayApiQueryUrl',
+        ]);
         const params = {};
         params['type'] = 2;
         params['order_no'] = orderId;
@@ -293,8 +348,8 @@ let PayService = class PayService {
         return result;
     }
     async notifyWeChat(params) {
-        console.log('微信支付通知params: ', params);
-        const { payWeChatAppId, payWeChatMchId, payWeChatSecret, payWeChatPublicKey, payWeChatPrivateKey } = await this.globalConfigService.getConfigs([
+        common_1.Logger.log('微信支付通知params: ', params);
+        const { payWeChatAppId, payWeChatMchId, payWeChatSecret, payWeChatPublicKey, payWeChatPrivateKey, } = await this.globalConfigService.getConfigs([
             'payWeChatAppId',
             'payWeChatMchId',
             'payWeChatSecret',
@@ -311,7 +366,9 @@ let PayService = class PayService {
             if (params['event_type'] == 'TRANSACTION.SUCCESS') {
                 const { ciphertext, associated_data, nonce } = params['resource'];
                 const resource = pay.decipher_gcm(ciphertext, associated_data, nonce, payWeChatSecret);
-                const order = await this.orderEntity.findOne({ where: { orderId: resource['out_trade_no'], status: 0 } });
+                const order = await this.orderEntity.findOne({
+                    where: { orderId: resource['out_trade_no'], status: 0 },
+                });
                 if (!order)
                     return 'failed';
                 const status = resource['trade_state'] == 'SUCCESS' ? 1 : 2;
@@ -325,28 +382,30 @@ let PayService = class PayService {
             return 'success';
         }
         catch (error) {
-            console.log('error: ', error);
-            console.log('支付通知验证失败: ', error);
+            common_1.Logger.log('error: ', error);
+            common_1.Logger.log('支付通知验证失败: ', error);
             return 'failed';
         }
     }
     async payWeChat(userId, orderId, payType = 'native') {
         var _a, _b, _c, _d, _e, _f, _g;
-        console.log('payType: ', payType);
-        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        common_1.Logger.log('payType: ', payType);
+        const order = await this.orderEntity.findOne({
+            where: { userId, orderId },
+        });
         if (!order)
             throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        const goods = await this.cramiPackageEntity.findOne({
+            where: { id: order.goodsId },
+        });
         if (!goods)
             throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const { payWeChatAppId, payWeChatMchId, payWeChatPublicKey, payWeChatPrivateKey, payWeChatNotifyUrl, payWeChatH5Name, payWeChatH5Url } = await this.globalConfigService.getConfigs([
+        const { payWeChatAppId, payWeChatMchId, payWeChatPublicKey, payWeChatPrivateKey, payWeChatNotifyUrl, } = await this.globalConfigService.getConfigs([
             'payWeChatAppId',
             'payWeChatMchId',
             'payWeChatPublicKey',
             'payWeChatPrivateKey',
             'payWeChatNotifyUrl',
-            'payWeChatH5Name',
-            'payWeChatH5Url',
         ]);
         const pay = new this.WxPay({
             appid: payWeChatAppId,
@@ -364,17 +423,17 @@ let PayService = class PayService {
                 total: Math.round(order.total * 100),
             },
         };
-        console.log('wechat-pay: ', params);
+        common_1.Logger.log('wechat-pay: ', params);
         if (payType == 'jsapi') {
-            console.log(`[WeChat Pay JSAPI] 开始JSAPI支付流程，用户ID: ${userId}, 订单ID: ${orderId}`);
+            common_1.Logger.log(`[WeChat Pay JSAPI] 开始JSAPI支付流程，用户ID: ${userId}, 订单ID: ${orderId}`);
             const openid = await this.userService.getOpenIdByUserId(userId);
-            console.log(`[WeChat Pay JSAPI] 用户OpenID: ${openid}`);
+            common_1.Logger.log(`[WeChat Pay JSAPI] 用户OpenID: ${openid}`);
             params['payer'] = { openid: openid };
-            console.log(`[WeChat Pay JSAPI] 发送支付请求参数: `, JSON.stringify(params, null, 2));
+            common_1.Logger.log(`[WeChat Pay JSAPI] 发送支付请求参数: `, JSON.stringify(params, null, 2));
             try {
                 const response = await pay.transactions_jsapi(params);
                 const result = response.data ? response.data : response;
-                console.log(`[WeChat Pay JSAPI] 支付请求成功，返回结果: `, JSON.stringify(result, null, 2));
+                common_1.Logger.log(`[WeChat Pay JSAPI] 支付请求成功，返回结果: `, JSON.stringify(result, null, 2));
                 return {
                     status: response.status || 'unknown',
                     appId: result.appId || ((_a = result.data) === null || _a === void 0 ? void 0 : _a.appId),
@@ -382,7 +441,7 @@ let PayService = class PayService {
                     nonceStr: result.nonceStr || ((_c = result.data) === null || _c === void 0 ? void 0 : _c.nonceStr),
                     package: result.package || ((_d = result.data) === null || _d === void 0 ? void 0 : _d.package),
                     signType: result.signType || ((_e = result.data) === null || _e === void 0 ? void 0 : _e.signType),
-                    paySign: result.paySign || ((_f = result.data) === null || _f === void 0 ? void 0 : _f.paySign)
+                    paySign: result.paySign || ((_f = result.data) === null || _f === void 0 ? void 0 : _f.paySign),
                 };
             }
             catch (error) {
@@ -392,16 +451,16 @@ let PayService = class PayService {
             }
         }
         if (payType == 'native') {
-            console.log(`开始进行微信Native支付流程，订单ID: ${orderId}, 用户ID: ${userId}`);
+            common_1.Logger.log(`开始进行微信Native支付流程，订单ID: ${orderId}, 用户ID: ${userId}`);
             try {
                 const res = await pay.transactions_native(params);
-                console.log(`微信Native支付响应数据: `, JSON.stringify(res, null, 2));
+                common_1.Logger.log(`微信Native支付响应数据: `, JSON.stringify(res, null, 2));
                 let url_qrcode = res.code_url || ((_g = res.data) === null || _g === void 0 ? void 0 : _g.code_url);
                 if (!url_qrcode) {
                     console.error(`微信Native支付请求成功，但未返回code_url，响应数据: `, JSON.stringify(res, null, 2));
                 }
                 else {
-                    console.log(`微信Native支付请求成功，code_url: ${url_qrcode}`);
+                    common_1.Logger.log(`微信Native支付请求成功，code_url: ${url_qrcode}`);
                 }
                 return { url_qrcode, isRedirect: false };
             }
@@ -417,7 +476,12 @@ let PayService = class PayService {
         }
     }
     async queryWeChat(orderId) {
-        const { payWeChatAppId, payWeChatMchId, payWeChatPublicKey, payWeChatPrivateKey, payWeChatNotifyUrl, payWeChatH5Name, payWeChatH5Url } = await this.globalConfigService.getConfigs(['payWeChatAppId', 'payWeChatMchId', 'payWeChatPublicKey', 'payWeChatPrivateKey']);
+        const { payWeChatAppId, payWeChatMchId, payWeChatPublicKey, payWeChatPrivateKey, payWeChatNotifyUrl, } = await this.globalConfigService.getConfigs([
+            'payWeChatAppId',
+            'payWeChatMchId',
+            'payWeChatPublicKey',
+            'payWeChatPrivateKey',
+        ]);
         const pay = new this.WxPay({
             appid: payWeChatAppId,
             mchid: payWeChatMchId,
@@ -438,21 +502,25 @@ let PayService = class PayService {
         const paramsArr = Object.keys(params);
         paramsArr.sort();
         const stringArr = [];
-        paramsArr.map(key => {
+        paramsArr.map((key) => {
             stringArr.push(key + '=' + params[key]);
         });
-        stringArr.push("key=" + secret);
+        stringArr.push('key=' + secret);
         const str = stringArr.join('&');
         return crypto.createHash('md5').update(str).digest('hex').toUpperCase();
     }
     async payLtzf(userId, orderId, payType = 'wxpay') {
-        const order = await this.orderEntity.findOne({ where: { userId, orderId } });
+        const order = await this.orderEntity.findOne({
+            where: { userId, orderId },
+        });
         if (!order)
             throw new common_1.HttpException('订单不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const goods = await this.cramiPackageEntity.findOne({ where: { id: order.goodsId } });
+        const goods = await this.cramiPackageEntity.findOne({
+            where: { id: order.goodsId },
+        });
         if (!goods)
             throw new common_1.HttpException('套餐不存在!', common_1.HttpStatus.BAD_REQUEST);
-        const { payLtzfMchId, payLtzfSecret, payLtzfNotifyUrl, payLtzfReturnUrl, } = await this.globalConfigService.getConfigs([
+        const { payLtzfMchId, payLtzfSecret, payLtzfNotifyUrl, payLtzfReturnUrl } = await this.globalConfigService.getConfigs([
             'payLtzfMchId',
             'payLtzfSecret',
             'payLtzfNotifyUrl',
@@ -468,11 +536,13 @@ let PayService = class PayService {
         params['sign'] = this.ltzfSign(params, payLtzfSecret);
         params['attach'] = 'ltzf';
         params['return_url'] = payLtzfReturnUrl;
-        const formBody = Object.keys(params).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
+        const formBody = Object.keys(params)
+            .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+            .join('&');
         const config = {
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
         };
         const response = await axios_1.default.post('https://api.ltzf.cn/api/wxpay/jsapi_convenient', formBody, config);
         const { code, data, msg } = response.data;
@@ -483,17 +553,22 @@ let PayService = class PayService {
         return { url_qrcode, url };
     }
     async queryLtzf(orderId) {
-        const { payLtzfMchId, payLtzfSecret } = await this.globalConfigService.getConfigs(['payLtzfMchId', 'payLtzfSecret']);
+        const { payLtzfMchId, payLtzfSecret } = await this.globalConfigService.getConfigs([
+            'payLtzfMchId',
+            'payLtzfSecret',
+        ]);
         const params = {};
         params['mch_id'] = payLtzfMchId;
         params['timestamp'] = (Date.now() / 1000).toFixed(0);
         params['out_trade_no'] = orderId;
         params['sign'] = this.ltzfSign(params, payLtzfSecret);
-        const formBody = Object.keys(params).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
+        const formBody = Object.keys(params)
+            .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+            .join('&');
         const config = {
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
         };
         const { data: { code, msg, data: result }, } = await axios_1.default.post('https://api.ltzf.cn/api/wxpay/get_pay_order', formBody, config);
         if (code != 0)
@@ -501,7 +576,9 @@ let PayService = class PayService {
         return result;
     }
     async notifyLtzf(params) {
-        const payLtzfSecret = await this.globalConfigService.getConfigs(['payLtzfSecret']);
+        const payLtzfSecret = await this.globalConfigService.getConfigs([
+            'payLtzfSecret',
+        ]);
         const hash = params['sign'];
         delete params['sign'];
         delete params['pay_channel'];
@@ -511,7 +588,9 @@ let PayService = class PayService {
         delete params['openid'];
         if (this.ltzfSign(params, payLtzfSecret) != hash)
             return 'FAIL';
-        const order = await this.orderEntity.findOne({ where: { orderId: params['out_trade_no'], status: 0 } });
+        const order = await this.orderEntity.findOne({
+            where: { orderId: params['out_trade_no'], status: 0 },
+        });
         if (!order)
             return 'FAIL';
         await this.userBalanceService.addBalanceToOrder(order);

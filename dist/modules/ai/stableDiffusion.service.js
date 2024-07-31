@@ -24,7 +24,7 @@ let StableDiffusionService = StableDiffusionService_1 = class StableDiffusionSer
         this.logger = new common_1.Logger(StableDiffusionService_1.name);
     }
     async sdxl(messagesHistory, inputs) {
-        const { onGenerate, onSuccess, onFailure, apiKey, model, proxyUrl, modelName, timeout, chatId, isFileUpload, prompt, } = inputs;
+        const { onSuccess, onFailure, apiKey, model, proxyUrl, modelName, timeout, chatId, prompt, } = inputs;
         let result = {
             answer: '',
             model: model,
@@ -58,12 +58,28 @@ let StableDiffusionService = StableDiffusionService_1 = class StableDiffusionSer
                 const match = content.match(regex);
                 if (match && match[1]) {
                     result.fileInfo = match[1];
+                    try {
+                        const localStorageStatus = await this.globalConfigService.getConfigs(['localStorageStatus']);
+                        if (Number(localStorageStatus)) {
+                            const now = new Date();
+                            const year = now.getFullYear();
+                            const month = String(now.getMonth() + 1).padStart(2, '0');
+                            const day = String(now.getDate()).padStart(2, '0');
+                            const currentDate = `${year}${month}/${day}`;
+                            result.fileInfo = await this.uploadService.uploadFileFromUrl({
+                                url: result.fileInfo,
+                                dir: `images/stable-diffusion/${currentDate}`,
+                            });
+                        }
+                    }
+                    catch (error) {
+                        common_1.Logger.error(`上传文件失败: ${error.message}`, 'StableDiffusionService');
+                    }
                     console.log('找到链接', match[1]);
                 }
                 else {
                     console.log('没有找到链接');
                 }
-                let revised_prompt_cn;
                 result.answer = `${prompt} 绘制成功`;
                 if (result.fileInfo) {
                     onSuccess(result);

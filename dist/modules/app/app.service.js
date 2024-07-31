@@ -300,7 +300,6 @@ let AppService = class AppService {
     }
     async updateSystemApp(body) {
         const { id, name } = body;
-        common_1.Logger.log(`尝试更新应用: ${name} (ID: ${id})`);
         const existingApp = await this.appEntity.findOne({
             where: { name, id: (0, typeorm_2.Not)(id) },
         });
@@ -310,7 +309,6 @@ let AppService = class AppService {
         }
         const res = await this.appEntity.update({ id }, body);
         if (res.affected > 0) {
-            common_1.Logger.log(`修改系统应用信息成功: ${name}`);
             return '修改系统应用信息成功';
         }
         common_1.Logger.error(`修改系统应用信息失败：${name}`);

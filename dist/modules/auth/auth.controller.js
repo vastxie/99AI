@@ -43,9 +43,6 @@ let AuthController = class AuthController {
     async getInfo(req) {
         return this.authService.getInfo(req);
     }
-    async captcha(parmas) {
-        return this.authService.captcha(parmas);
-    }
     async sendCode(parmas) {
         return this.authService.sendCode(parmas);
     }
@@ -109,14 +106,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getInfo", null);
-__decorate([
-    (0, common_1.Post)('captcha'),
-    (0, swagger_1.ApiOperation)({ summary: '获取一个图形验证码' }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "captcha", null);
 __decorate([
     (0, common_1.Post)('sendCode'),
     (0, swagger_1.ApiOperation)({ summary: '发送验证码' }),

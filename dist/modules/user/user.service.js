@@ -207,6 +207,11 @@ let UserService = class UserService {
         userInfo.isBindWx = !!(userInfo === null || userInfo === void 0 ? void 0 : userInfo.openId);
         delete userInfo.openId;
         const userBalance = await this.userBalanceService.queryUserBalance(userId);
+        const processedId = (userId * 123 + 100000000)
+            .toString(36)
+            .toUpperCase()
+            .slice(-6);
+        userInfo.id = processedId;
         return { userInfo, userBalance: Object.assign({}, userBalance) };
     }
     async getUserById(id) {

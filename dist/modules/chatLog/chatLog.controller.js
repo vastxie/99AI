@@ -13,21 +13,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatLogController = void 0;
+const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
+const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
+const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
 const chatLog_service_1 = require("./chatLog.service");
-const queryAllDrawLog_dto_1 = require("./dto/queryAllDrawLog.dto");
-const queryAllChatLog_dto_1 = require("./dto/queryAllChatLog.dto");
-const recDrawImg_dto_1 = require("./dto/recDrawImg.dto");
-const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
-const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
-const queryMyChatLog_dto_1 = require("./dto/queryMyChatLog.dto");
-const exportExcelChatlog_dto_1 = require("./dto/exportExcelChatlog.dto");
 const chatList_dto_1 = require("./dto/chatList.dto");
 const del_dto_1 = require("./dto/del.dto");
 const delByGroup_dto_1 = require("./dto/delByGroup.dto");
+const exportExcelChatlog_dto_1 = require("./dto/exportExcelChatlog.dto");
+const queryAllChatLog_dto_1 = require("./dto/queryAllChatLog.dto");
+const queryAllDrawLog_dto_1 = require("./dto/queryAllDrawLog.dto");
 const queryByAppId_dto_1 = require("./dto/queryByAppId.dto");
+const queryMyChatLog_dto_1 = require("./dto/queryMyChatLog.dto");
+const recDrawImg_dto_1 = require("./dto/recDrawImg.dto");
 let ChatLogController = class ChatLogController {
     constructor(chatLogService) {
         this.chatLogService = chatLogService;
@@ -55,6 +55,9 @@ let ChatLogController = class ChatLogController {
     }
     delByGroupId(req, body) {
         return this.chatLogService.delByGroupId(req, body);
+    }
+    deleteChatsAfterId(req, body) {
+        return this.chatLogService.deleteChatsAfterId(req, body);
     }
     byAppId(req, params) {
         return this.chatLogService.byAppId(req, params);
@@ -143,6 +146,17 @@ __decorate([
     __metadata("design:paramtypes", [Object, delByGroup_dto_1.DelByGroupDto]),
     __metadata("design:returntype", void 0)
 ], ChatLogController.prototype, "delByGroupId", null);
+__decorate([
+    (0, common_1.Post)('deleteChatsAfterId'),
+    (0, swagger_1.ApiOperation)({ summary: '删除对话组中某条对话及其后的所有对话' }),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], ChatLogController.prototype, "deleteChatsAfterId", null);
 __decorate([
     (0, common_1.Get)('byAppId'),
     (0, swagger_1.ApiOperation)({ summary: '查询某个应用的问答记录' }),

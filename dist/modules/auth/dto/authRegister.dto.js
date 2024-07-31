@@ -30,16 +30,6 @@ __decorate([
     __metadata("design:type", String)
 ], UserRegisterDto.prototype, "email", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '5k3n', description: '图形验证码' }),
-    (0, class_validator_1.IsNotEmpty)({ message: '验证码为空！' }),
-    __metadata("design:type", String)
-], UserRegisterDto.prototype, "captchaCode", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: '2313ko423ko', description: '图形验证码KEY' }),
-    (0, class_validator_1.IsNotEmpty)({ message: '验证ID不能为空！' }),
-    __metadata("design:type", String)
-], UserRegisterDto.prototype, "captchaId", void 0);
-__decorate([
     (0, swagger_1.ApiProperty)({
         example: 'FRJDLJHFNV',
         description: '用户填写的别人邀请码',

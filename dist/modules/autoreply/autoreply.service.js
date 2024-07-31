@@ -16,7 +16,7 @@ exports.AutoreplyService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const autoreplay_entity_1 = require("./autoreplay.entity");
+const autoreply_entity_1 = require("./autoreply.entity");
 let AutoreplyService = class AutoreplyService {
     constructor(autoReplyEntity) {
         this.autoReplyEntity = autoReplyEntity;
@@ -25,20 +25,57 @@ let AutoreplyService = class AutoreplyService {
         this.autoReplyFuzzyMatch = true;
     }
     async onModuleInit() {
-        this.loadAutoReplyList();
+        await this.loadAutoReplyList();
     }
     async loadAutoReplyList() {
-        const res = await this.autoReplyEntity.find({ where: { status: 1 }, select: ['prompt', 'answer'] });
+        const res = await this.autoReplyEntity.find({
+            where: { status: 1 },
+            select: ['prompt', 'answer', 'isAIReplyEnabled'],
+        });
         this.autoReplyMap = {};
-        res.forEach((t) => (this.autoReplyMap[t.prompt] = t.answer));
-        this.autoReplyKes = Object.keys(this.autoReplyMap);
+        this.autoReplyKes = [];
+        res.forEach((t) => {
+            this.autoReplyMap[t.prompt] = {
+                answer: t.answer,
+                isAIReplyEnabled: t.isAIReplyEnabled,
+            };
+            const keywords = t.prompt.split(' ').map((k) => k.trim());
+            this.autoReplyKes.push({ prompt: t.prompt, keywords });
+        });
     }
     async checkAutoReply(prompt) {
-        let question = prompt;
+        let answers = [];
+        let isAIReplyEnabled = 0;
+        const seenGroups = new Set();
         if (this.autoReplyFuzzyMatch) {
-            question = this.autoReplyKes.find((item) => item.includes(prompt));
+            for (const item of this.autoReplyKes) {
+                if (item.keywords.some((keyword) => prompt.includes(keyword))) {
+                    if (!seenGroups.has(item.prompt)) {
+                        answers.push(this.autoReplyMap[item.prompt].answer);
+                        seenGroups.add(item.prompt);
+                        if (this.autoReplyMap[item.prompt].isAIReplyEnabled === 1) {
+                            isAIReplyEnabled = 1;
+                        }
+                    }
+                }
+            }
         }
-        return question ? this.autoReplyMap[question] : '';
+        else {
+            const matches = this.autoReplyKes.filter((item) => item.prompt === prompt);
+            for (const match of matches) {
+                if (!seenGroups.has(match.prompt)) {
+                    answers.push(this.autoReplyMap[match.prompt].answer);
+                    seenGroups.add(match.prompt);
+                    if (this.autoReplyMap[match.prompt].isAIReplyEnabled === 1) {
+                        isAIReplyEnabled = 1;
+                    }
+                }
+            }
+        }
+        return {
+            answer: answers.join('\n'),
+            isAIReplyEnabled,
+        };
     }
     async queryAutoreply(query) {
         const { page = 1, size = 10, prompt, status } = query;
@@ -54,11 +91,6 @@ let AutoreplyService = class AutoreplyService {
         return { rows, count };
     }
     async addAutoreply(body) {
-        const { prompt } = body;
-        const a = await this.autoReplyEntity.findOne({ where: { prompt } });
-        if (a) {
-            throw new common_1.HttpException('该问题已存在,请检查您的提交信息', common_1.HttpStatus.BAD_REQUEST);
-        }
         await this.autoReplyEntity.save(body);
         await this.loadAutoReplyList();
         return '添加问题成功！';
@@ -88,7 +120,7 @@ let AutoreplyService = class AutoreplyService {
 };
 AutoreplyService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(autoreplay_entity_1.AutoReplyEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(autoreply_entity_1.AutoReplyEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository])
 ], AutoreplyService);
 exports.AutoreplyService = AutoreplyService;

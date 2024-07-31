@@ -8,16 +8,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoreplyModule = void 0;
 const common_1 = require("@nestjs/common");
-const autoreply_controller_1 = require("./autoreply.controller");
-const autoreply_service_1 = require("./autoreply.service");
 const typeorm_1 = require("@nestjs/typeorm");
-const autoreplay_entity_1 = require("./autoreplay.entity");
+const autoreply_controller_1 = require("./autoreply.controller");
+const autoreply_entity_1 = require("./autoreply.entity");
+const autoreply_service_1 = require("./autoreply.service");
 let AutoreplyModule = class AutoreplyModule {
 };
 AutoreplyModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([autoreplay_entity_1.AutoReplyEntity])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([autoreply_entity_1.AutoReplyEntity])],
         controllers: [autoreply_controller_1.AutoreplyController],
         providers: [autoreply_service_1.AutoreplyService],
         exports: [autoreply_service_1.AutoreplyService],

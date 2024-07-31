@@ -72,11 +72,11 @@ let ModelsService = class ModelsService {
         this.initCalcKey();
     }
     async getCurrentModelKeyInfo(model) {
-        const modelKeyInfo = await this.modelsEntity.findOne({
+        let modelKeyInfo = await this.modelsEntity.findOne({
             where: { model: model },
         });
         if (!modelKeyInfo) {
-            throw new common_1.HttpException('当前调用模型的key未找到，请重新选择模型！', common_1.HttpStatus.BAD_REQUEST);
+            return null;
         }
         return modelKeyInfo;
     }
@@ -92,7 +92,7 @@ let ModelsService = class ModelsService {
         const modifiedModel = Object.assign(Object.assign({}, firstMatchModel), { model: modifiedModelName });
         return modifiedModel;
     }
-    async getBaseConfig(appId) {
+    async getBaseConfig() {
         if (!this.modelTypes.length || !Object.keys(this.modelMaps).length)
             return;
         const { keyType, modelName, model, deductType, deduct, isFileUpload, modelAvatar, modelDescription, } = this.modelMaps[1][0];

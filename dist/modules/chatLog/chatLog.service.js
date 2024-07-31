@@ -283,7 +283,6 @@ let ChatLogService = class ChatLogService {
             return record;
         })
             .reverse();
-        common_1.Logger.debug('处理后的结果:', JSON.stringify(result, null, 2));
         return result;
     }
     async deleteChatLog(req, body) {
@@ -318,6 +317,22 @@ let ChatLogService = class ChatLogService {
             throw new common_1.HttpException('当前页面已经没有东西可以删除了！', common_1.HttpStatus.BAD_REQUEST);
         }
     }
+    async deleteChatsAfterId(req, body) {
+        const { id } = body;
+        const { id: userId } = req.user;
+        const chatLog = await this.chatLogEntity.findOne({ where: { id, userId } });
+        if (!chatLog) {
+            throw new common_1.HttpException('你删除的对话记录不存在、请检查！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        const { groupId } = chatLog;
+        const result = await this.chatLogEntity.update({ groupId, id: (0, typeorm_2.MoreThanOrEqual)(id) }, { isDelete: true });
+        if (result.affected > 0) {
+            return '删除对话记录成功！';
+        }
+        else {
+            throw new common_1.HttpException('当前页面已经没有东西可以删除了！', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
     async byAppId(req, body) {
         const { id } = req.user;
         const { appId, page = 1, size = 10 } = body;
@@ -330,8 +345,8 @@ let ChatLogService = class ChatLogService {
         return { rows, count };
     }
     async checkModelLimits(userId, model) {
-        const oneHourAgo = new Date(Date.now() - 3600 * 1000);
-        let adjustedUsageCount;
+        const ONE_HOUR_IN_MS = 3600 * 1000;
+        const oneHourAgo = new Date(Date.now() - ONE_HOUR_IN_MS);
         try {
             const usageCount = await this.chatLogEntity.count({
                 where: {
@@ -340,15 +355,24 @@ let ChatLogService = class ChatLogService {
                     createdAt: (0, typeorm_2.MoreThan)(oneHourAgo),
                 },
             });
-            adjustedUsageCount = Math.ceil(usageCount / 2);
-            common_1.Logger.debug(`用户ID: ${userId.id} 模型: ${model} 一小时内已调用: ${adjustedUsageCount} 次`);
+            const adjustedUsageCount = Math.ceil(usageCount / 2);
+            common_1.Logger.log(`用户ID: ${userId.id} 一小时内调用 ${model} 模型 ${adjustedUsageCount + 1} 次`, 'ChatLogService');
+            let modelInfo;
+            if (model.startsWith('gpt-4-gizmo')) {
+                modelInfo = await this.modelsService.getCurrentModelKeyInfo('gpts');
+            }
+            else {
+                modelInfo = await this.modelsService.getCurrentModelKeyInfo(model);
+            }
+            const modelLimits = Number(modelInfo.modelLimits);
+            common_1.Logger.log(`模型 ${model} 的使用次数限制为 ${modelLimits}`, 'ChatLogService');
+            if (adjustedUsageCount > modelLimits) {
+                return true;
+            }
+            return false;
         }
         catch (error) {
-            common_1.Logger.error(`查询数据库出错 - 用户ID: ${userId}, 模型: ${model}, 错误信息: ${error.message}`);
-        }
-        const modelInfo = await this.modelsService.getCurrentModelKeyInfo(model);
-        if (adjustedUsageCount > modelInfo.modelLimits) {
-            throw new common_1.HttpException('1 小时内请求次数过多，请稍后再试！', common_1.HttpStatus.TOO_MANY_REQUESTS);
+            common_1.Logger.error(`查询数据库出错 - 用户ID: ${userId.id}, 模型: ${model}, 错误信息: ${error.message}`, error.stack, 'ChatLogService');
         }
     }
 };

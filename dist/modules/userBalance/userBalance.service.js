@@ -171,11 +171,11 @@ let UserBalanceService = class UserBalanceService {
                     : null;
         if (b.packageId && b[memberKey] + b[baseKey] < amount) {
             if (b[baseKey] < amount) {
-                throw new common_1.HttpException(`您的账户余额不足,如果想继续体验服务,请联系管理员或购买专属套餐 ！`, common_1.HttpStatus.PAYMENT_REQUIRED);
+                throw new common_1.HttpException(`积分不足，继续体验服务，请按需选购套餐！`, common_1.HttpStatus.PAYMENT_REQUIRED);
             }
         }
         if (!b.packageId && b[baseKey] < amount) {
-            throw new common_1.HttpException(`您的账户余额不足,如果想继续体验服务,请联系管理员或购买专属套餐 ！`, common_1.HttpStatus.PAYMENT_REQUIRED);
+            throw new common_1.HttpException(`积分不足，继续体验服务，请按需选购套餐！`, common_1.HttpStatus.PAYMENT_REQUIRED);
         }
         return b;
     }
@@ -211,7 +211,7 @@ let UserBalanceService = class UserBalanceService {
             };
             data[baseKey] = data[baseKey] + amount;
             if (data[baseKey] > settings[baseKey]) {
-                throw new common_1.HttpException(`今日当前类型免费额度已经使用完毕、建议您注册账户体验更加完整的服务内容！`, common_1.HttpStatus.PAYMENT_REQUIRED);
+                throw new common_1.HttpException(`今日体验额度使用完毕，请注册使用完整服务！`, common_1.HttpStatus.PAYMENT_REQUIRED);
             }
             else {
                 await this.fingerprintLogEntity.save(data);
@@ -239,7 +239,7 @@ let UserBalanceService = class UserBalanceService {
                 data[baseKey] = data[baseKey] + amount;
             }
             if (data[baseKey] > settings[baseKey]) {
-                throw new common_1.HttpException(`今日当前类型免费额度已经使用完毕、建议您注册账户体验更加完整的服务内容！`, common_1.HttpStatus.PAYMENT_REQUIRED);
+                throw new common_1.HttpException(`今日体验额度使用完毕，请注册使用完整服务！`, common_1.HttpStatus.PAYMENT_REQUIRED);
             }
             else {
                 await this.fingerprintLogEntity.update({ fingerprint: id }, data);

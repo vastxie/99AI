@@ -13,9 +13,13 @@ exports.LumaVideoService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("axios");
 const chatLog_service_1 = require("../chatLog/chatLog.service");
+const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
+const upload_service_1 = require("../upload/upload.service");
 let LumaVideoService = class LumaVideoService {
-    constructor(chatLogService) {
+    constructor(chatLogService, globalConfigService, uploadService) {
         this.chatLogService = chatLogService;
+        this.globalConfigService = globalConfigService;
+        this.uploadService = uploadService;
     }
     async lumaVideo(inputs) {
         var _a, _b, _c;
@@ -32,12 +36,15 @@ let LumaVideoService = class LumaVideoService {
         let payloadJson = {};
         const headers = { Authorization: `Bearer ${apiKey}` };
         url = `${proxyUrl}/luma/generations/`;
-        const aspectRatio = '16:9';
+        const aspectRatio = extraParam.size || '16:9';
         payloadJson = {
             user_prompt: prompt,
             aspect_ratio: aspectRatio,
             expand_prompt: true,
         };
+        if (fileInfo) {
+            payloadJson['image_url'] = fileInfo;
+        }
         common_1.Logger.log(`正在准备发送请求到 ${url}，payload: ${JSON.stringify(payloadJson)}, headers: ${JSON.stringify(headers)}`, 'LumaService');
         try {
             response = await axios_1.default.post(url, payloadJson, { headers });
@@ -150,6 +157,25 @@ let LumaVideoService = class LumaVideoService {
                         result.taskId = responses.id;
                         result.taskData = JSON.stringify(responses);
                         result.fileInfo = responses.video.url;
+                        try {
+                            const localStorageStatus = await this.globalConfigService.getConfigs([
+                                'localStorageStatus',
+                            ]);
+                            if (Number(localStorageStatus)) {
+                                const now = new Date();
+                                const year = now.getFullYear();
+                                const month = String(now.getMonth() + 1).padStart(2, '0');
+                                const day = String(now.getDate()).padStart(2, '0');
+                                const currentDate = `${year}${month}/${day}`;
+                                result.fileInfo = await this.uploadService.uploadFileFromUrl({
+                                    url: responses.video.download_url,
+                                    dir: `video/luma/${currentDate}`,
+                                });
+                            }
+                        }
+                        catch (error) {
+                            common_1.Logger.error(`上传文件失败: ${error.message}`, 'LumaService');
+                        }
                         result.answer = `提示词: "${responses.prompt}"`;
                         onSuccess(result);
                         clearInterval(interval);
@@ -180,6 +206,8 @@ let LumaVideoService = class LumaVideoService {
 };
 LumaVideoService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [chatLog_service_1.ChatLogService])
+    __metadata("design:paramtypes", [chatLog_service_1.ChatLogService,
+        globalConfig_service_1.GlobalConfigService,
+        upload_service_1.UploadService])
 ], LumaVideoService);
 exports.LumaVideoService = LumaVideoService;
