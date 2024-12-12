@@ -14,9 +14,7 @@ const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
 const config_entity_1 = require("../globalConfig/config.entity");
 const mailer_service_1 = require("../mailer/mailer.service");
-const midjourney_entity_1 = require("../midjourney/midjourney.entity");
 const redisCache_service_1 = require("../redisCache/redisCache.service");
-const salesUsers_entity_1 = require("../sales/salesUsers.entity");
 const accountLog_entity_1 = require("../userBalance/accountLog.entity");
 const balance_entity_1 = require("../userBalance/balance.entity");
 const fingerprint_entity_1 = require("../userBalance/fingerprint.entity");
@@ -41,11 +39,9 @@ UserModule = __decorate([
                 config_entity_1.ConfigEntity,
                 cramiPackage_entity_1.CramiPackageEntity,
                 userBalance_entity_1.UserBalanceEntity,
-                salesUsers_entity_1.SalesUsersEntity,
                 fingerprint_entity_1.FingerprintLogEntity,
                 chatLog_entity_1.ChatLogEntity,
                 chatGroup_entity_1.ChatGroupEntity,
-                midjourney_entity_1.MidjourneyEntity,
             ]),
         ],
         controllers: [user_controller_1.UserController],

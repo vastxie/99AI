@@ -11,10 +11,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatGroupService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
+const axios_1 = require("axios");
+const pdf = require("pdf-parse");
 const typeorm_2 = require("typeorm");
 const app_entity_1 = require("../app/app.entity");
 const models_service_1 = require("../models/models.service");
@@ -27,13 +40,13 @@ let ChatGroupService = class ChatGroupService {
     }
     async create(body, req) {
         const { id } = req.user;
-        const { appId, modelConfig: bodyModelConfig } = body;
+        const { appId, modelConfig: bodyModelConfig, params } = body;
         let modelConfig = bodyModelConfig || (await this.modelsService.getBaseConfig());
         if (!modelConfig) {
             throw new common_1.HttpException('管理员未配置任何AI模型、请先联系管理员开通聊天模型配置！', common_1.HttpStatus.BAD_REQUEST);
         }
         modelConfig = JSON.parse(JSON.stringify(modelConfig));
-        const params = { title: '新对话', userId: id, appId };
+        const groupParams = { title: '新对话', userId: id, appId, params };
         if (appId) {
             const appInfo = await this.appEntity.findOne({ where: { id: appId } });
             if (!appInfo) {
@@ -59,10 +72,10 @@ let ChatGroupService = class ChatGroupService {
                 throw new common_1.HttpException('非法操作、您在使用一个未启用的应用！', common_1.HttpStatus.BAD_REQUEST);
             }
             if (name) {
-                params.title = name;
+                groupParams.title = name;
             }
         }
-        const newGroup = await this.chatGroupEntity.save(Object.assign(Object.assign({}, params), { config: JSON.stringify(modelConfig) }));
+        const newGroup = await this.chatGroupEntity.save(Object.assign(Object.assign({}, groupParams), { config: JSON.stringify(modelConfig) }));
         return newGroup;
     }
     async query(req) {
@@ -87,7 +100,7 @@ let ChatGroupService = class ChatGroupService {
         }
     }
     async update(body, req) {
-        const { title, isSticky, groupId, config } = body;
+        const { title, isSticky, groupId, config, fileUrl } = body;
         const { id } = req.user;
         const g = await this.chatGroupEntity.findOne({
             where: { id: groupId, userId: id },
@@ -110,12 +123,39 @@ let ChatGroupService = class ChatGroupService {
         title && (data['title'] = title);
         typeof isSticky !== 'undefined' && (data['isSticky'] = isSticky);
         config && (data['config'] = config);
+        fileUrl && (data['fileUrl'] = fileUrl);
         const u = await this.chatGroupEntity.update({ id: groupId }, data);
         if (u.affected) {
+            if (fileUrl) {
+                this.handlePdfExtraction(fileUrl, groupId);
+            }
             return true;
         }
         else {
             throw new common_1.HttpException('更新对话失败！', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async handlePdfExtraction(fileUrl, groupId) {
+        try {
+            const pdfText = await this.extractPdfText(fileUrl);
+            await this.chatGroupEntity.update({ id: groupId }, { pdfTextContent: pdfText });
+        }
+        catch (error) {
+            console.error('PDF 读取失败:', error);
+        }
+    }
+    async extractPdfText(fileUrl) {
+        try {
+            const response = await axios_1.default.get(fileUrl, {
+                responseType: 'arraybuffer',
+            });
+            const dataBuffer = Buffer.from(response.data);
+            const pdfData = await pdf(dataBuffer);
+            return pdfData.text;
+        }
+        catch (error) {
+            console.error('PDF 解析失败:', error);
+            throw new Error('PDF 解析失败');
         }
     }
     async updateTime(groupId) {
@@ -153,7 +193,19 @@ let ChatGroupService = class ChatGroupService {
     async getGroupInfoFromId(id) {
         if (!id)
             return;
-        return await this.chatGroupEntity.findOne({ where: { id } });
+        const groupInfo = await this.chatGroupEntity.findOne({ where: { id } });
+        if (groupInfo) {
+            const { pdfTextContent } = groupInfo, rest = __rest(groupInfo, ["pdfTextContent"]);
+            return rest;
+        }
+    }
+    async getGroupPdfText(groupId) {
+        const groupInfo = await this.chatGroupEntity.findOne({
+            where: { id: groupId },
+        });
+        if (groupInfo) {
+            return groupInfo.pdfTextContent;
+        }
     }
 };
 ChatGroupService = __decorate([

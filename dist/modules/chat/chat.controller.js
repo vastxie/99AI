@@ -18,11 +18,13 @@ const jwtAuth_guard_1 = require("../../common/auth/jwtAuth.guard");
 const chat_service_1 = require("./chat.service");
 const common_1 = require("@nestjs/common");
 const chatProcess_dto_1 = require("./dto/chatProcess.dto");
+const aiPPT_1 = require("../ai/aiPPT");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 let ChatController = class ChatController {
-    constructor(chatService, globalConfigService) {
+    constructor(chatService, globalConfigService, aiPptService) {
         this.chatService = chatService;
         this.globalConfigService = globalConfigService;
+        this.aiPptService = aiPptService;
     }
     chatProcess(body, req, res) {
         return this.chatService.chatProcess(body, req, res);
@@ -38,6 +40,9 @@ let ChatController = class ChatController {
     }
     ttsProcess(body, req, res) {
         return this.chatService.ttsProcess(body, req, res);
+    }
+    pptCover(body) {
+        return this.aiPptService.pptCover(body);
     }
 };
 __decorate([
@@ -98,10 +103,21 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", void 0)
 ], ChatController.prototype, "ttsProcess", null);
+__decorate([
+    (0, common_1.Post)('ppt-cover'),
+    (0, swagger_1.ApiOperation)({ summary: 'ppt封面获取' }),
+    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ChatController.prototype, "pptCover", null);
 ChatController = __decorate([
     (0, swagger_1.ApiTags)('chatgpt'),
     (0, common_1.Controller)('chatgpt'),
     __metadata("design:paramtypes", [chat_service_1.ChatService,
-        globalConfig_service_1.GlobalConfigService])
+        globalConfig_service_1.GlobalConfigService,
+        aiPPT_1.AiPptService])
 ], ChatController);
 exports.ChatController = ChatController;

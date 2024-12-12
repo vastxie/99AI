@@ -1,0 +1,710 @@
+[
+  {
+    "title": "英语翻译官",
+    "prompt": "我希望你能担任英语翻译、拼写校对和修辞改进的角色。我会用任何语言和你交流，你会识别语言，将其翻译并用更为优美和精炼的英语回答我。请将我简单的词汇和句子替换成更为优美和高雅的表达方式，确保意思不变，但使其更具文学性。请仅回答更正和改进的部分，不要写解释。我的第一句话是“how are you ?”，请翻译它。",
+    "icon": "ri:ai-generate"
+  },
+  {
+    "title": "心理学家",
+    "prompt": "我想让你扮演一个心理学家。我会告诉你我的想法。我希望你能给我科学的建议，让我感觉更好。我的第一个想法，{ 在这里输入你的想法，如果你解释得更详细，我想你会得到更准确的答案。}",
+    "icon": "ri:heart-line"
+  },
+  {
+    "title": "产品经理",
+    "prompt": "请确认我的以下请求。请您作为产品经理回复我。我将会提供一个主题，您将帮助我编写一份包括以下章节标题的PRD文档：主题、简介、问题陈述、目标与目的、用户故事、技术要求、收益、KPI指标、开发风险以及结论。在我要求具体主题、功能或开发的PRD之前，请不要先写任何一份PRD文档。",
+    "icon": "ri:projector-line"
+  },
+  {
+    "title": "如何学做菜",
+    "prompt": "我要你做我的私人厨师。我会告诉你我的饮食偏好和过敏，你会建议我尝试的食谱。你应该只回复你推荐的食谱，别无其他。不要写解释。我的第一个请求是“我是一名素食主义者，我正在寻找健康的晚餐点子。”",
+    "icon": "ri:restaurant-line"
+  },
+  {
+    "title": "规划一个去上海的旅游攻略 参观博物馆",
+    "prompt": "我想让你做一个旅游指南。我会把我的位置写给你，你会推荐一个靠近我的位置的地方。在某些情况下，我还会告诉您我将访问的地方类型。您还会向我推荐靠近我的第一个位置的类似类型的地方。我的第一个建议请求是“我在上海，我只想参观博物馆。”",
+    "icon": "ri:map-pin-line"
+  },
+  {
+    "title": "穿越时空",
+    "prompt": "如果你能穿越时空，你会去哪个时代？",
+    "icon": "ri:time-line"
+  },
+  {
+    "title": "量子力学",
+    "prompt": "解释一下量子力学是什么？",
+    "icon": "ri:flask-line"
+  },
+  {
+    "title": "人工智能",
+    "prompt": "介绍一下人工智能的历史",
+    "icon": "ri:robot-line"
+  },
+  {
+    "title": "深度学习",
+    "prompt": "讲解一下深度学习是如何工作的？",
+    "icon": "ri:brain-line"
+  },
+  {
+    "title": "冯诺依曼体系结构",
+    "prompt": "请举例说明什么是冯诺依曼体系结构？",
+    "icon": "ri:computer-line"
+  },
+  {
+    "title": "红楼梦情感分析",
+    "prompt": "请分析《红楼梦》中林黛玉与贾宝玉的情感关系。",
+    "icon": "ri:book-2-line"
+  },
+  {
+    "title": "100米短跑训练",
+    "prompt": "如何训练才能提高100米短跑成绩？",
+    "icon": "ri:run-line"
+  },
+  {
+    "title": "北京旅游攻略",
+    "prompt": "请推荐一份适合初次来中国的外国人的北京旅游攻略。",
+    "icon": "ri:road-map-line"
+  },
+  {
+    "title": "低GI饮食",
+    "prompt": "什么是低GI饮食？这种饮食有哪些好处？",
+    "icon": "ri:restaurant-2-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "全球环境问题",
+    "prompt": "请列出目前全球主要面临的三大环境问题，并简单阐述其影响和应对措施。",
+    "icon": "ri:earth-line"
+  },
+  {
+    "title": "提高社交影响力",
+    "prompt": "在社交场合，如何提高自己的感染力和影响力？",
+    "icon": "ri:team-line"
+  },
+  {
+    "title": "地中海地理特征",
+    "prompt": "请描述一下地中海的地理特征，以及这些特征对于古代世界的影响。",
+    "icon": "ri:map-pin-line"
+  },
+  {
+    "title": "《肖申克的救赎》影评",
+    "prompt": "请评价电影《肖申克的救赎》的剧情、角色塑造和拍摄手法。",
+    "icon": "ri:film-line"
+  },
+  {
+    "title": "苹果公司成功分析",
+    "prompt": "为什么苹果公司的产品总是比其他公司的产品更受欢迎？请从市场策略、产品设计、品牌形象等方面进行分析。",
+    "icon": "ri:apple-line"
+  },
+  {
+    "title": "健康饮食计划",
+    "prompt": "如何制定一份健康的饮食计划？",
+    "icon": "ri:heart-line"
+  },
+  {
+    "title": "编程学习指南",
+    "prompt": "怎样学习编程？",
+    "icon": "ri:code-line"
+  },
+  {
+    "title": "巴厘岛旅游景点",
+    "prompt": "在巴厘岛旅游有哪些值得参观的景点？",
+    "icon": "ri:map-pin-2-line"
+  },
+  {
+    "title": "处理亲密关系分歧",
+    "prompt": "如何处理亲密关系中的分歧？",
+    "icon": "ri:heart-2-line"
+  },
+  {
+    "title": "费马大定理证明",
+    "prompt": "如何证明费马大定理？",
+    "icon": "ri:function-line"
+  },
+  {
+    "title": "吸烟相关疾病预防",
+    "prompt": "长期吸烟引起的疾病有哪些？应该如何预防？",
+    "icon": "ri:lungs-line"
+  },
+  {
+    "title": "克服拖延症",
+    "prompt": "如何克服拖延症？",
+    "icon": "ri:time-line"
+  },
+  {
+    "title": "减少家庭垃圾",
+    "prompt": "如何减少家庭垃圾产生？",
+    "icon": "ri:recycle-line"
+  },
+  {
+    "title": "股票价值评估",
+    "prompt": "如何评估股票的价值？",
+    "icon": "ri:stock-line"
+  },
+  {
+    "title": "自信的社交表现",
+    "prompt": "如何在社交场合自信地表现自己？",
+    "icon": "ri:team-line"
+  },
+  {
+    "title": "推荐科幻电影",
+    "prompt": "给我一个最近评分不错的科幻电影的名字和简介",
+    "icon": "ri:movie-line"
+  },
+  {
+    "title": "英文翻译校对",
+    "prompt": "将下面这句英文翻译成中文并纠正其中的语法错误：'Me and him goes to the store yesterday.'",
+    "icon": "ri:translate-2",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "科技类大市值股票",
+    "prompt": "给我一些市值超过1000亿美元的科技类股票",
+    "icon": "ri:bar-chart-box-line"
+  },
+  {
+    "title": "商品销售量预测",
+    "prompt": "基于历史销售数据，预测下周某商品的销售量。",
+    "icon": "ri:line-chart-line",
+    "iconColor": "text-cyan-500"
+  },
+  {
+    "title": "思念诗歌创作",
+    "prompt": "请用七言绝句写一首表达思念之情的诗歌。",
+    "icon": "ri:quill-pen-line"
+  },
+  {
+    "title": "情侣约会餐厅推荐",
+    "prompt": "给我一个适合情侣约会的餐厅的名字和地址。",
+    "icon": "ri:restaurant-2-line"
+  },
+  {
+    "title": "西班牙旅游行程规划",
+    "prompt": "我计划去西班牙旅游，请帮我安排一个10天的行程。",
+    "icon": "ri:suitcase-3-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "电影分类归类",
+    "prompt": "将电影从爱情片、动作片和恐怖片三种分类中分别归类。",
+    "icon": "ri:film-line"
+  },
+  {
+    "title": "豆腐美食推荐",
+    "prompt": "推荐一道以豆腐为主要原料的美食，附上制作方法。",
+    "icon": "ri:restaurant-line"
+  },
+  {
+    "title": "流行华语歌曲推荐",
+    "prompt": "推荐最近流行的三首华语歌曲，并简要介绍它们的风格和歌词主题。",
+    "icon": "ri:music-line"
+  },
+  {
+    "title": "减少塑料污染生活指南",
+    "prompt": "请提供三条减少塑料污染的生活指南。",
+    "icon": "ri:leaf-line"
+  },
+  {
+    "title": "团队合作处理矛盾",
+    "prompt": "如何在团队合作中处理与同事之间的矛盾？",
+    "icon": "ri:team-line"
+  },
+  {
+    "title": "前景股票投资",
+    "prompt": "你认为现在买入哪些股票比较有前景？",
+    "icon": "ri:stock-line"
+  },
+  {
+    "title": "科幻片推荐",
+    "prompt": "你能否给我推荐一部最近上映的好看的科幻片？",
+    "icon": "ri:film-line"
+  },
+  {
+    "title": "三亚旅游攻略",
+    "prompt": "希望去三亚旅游，你能提供一份详细的旅游攻略吗？",
+    "icon": "ri:suitcase-2-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "意大利面烹饪技巧",
+    "prompt": "我想学做意大利面，你有什么简单易学的做法推荐吗？",
+    "icon": "ri:restaurant-line"
+  },
+  {
+    "title": "缓解焦虑的方法",
+    "prompt": "我感到很紧张，有什么方法能够缓解焦虑吗？",
+    "icon": "ri:heart-pulse-line"
+  },
+  {
+    "title": "电商平台投诉处理",
+    "prompt": "我在某电商平台购买的商品质量不佳，该如何向平台进行投诉处理？",
+    "icon": "ri:feedback-line"
+  },
+  {
+    "title": "有效学外语的方法",
+    "prompt": "你觉得学外语最有效的方法是什么？",
+    "icon": "ri:translate-2"
+  },
+  {
+    "title": "职场发展建议",
+    "prompt": "我正在寻找新的工作机会，有哪些职业领域前景较好？",
+    "icon": "ri:briefcase-line",
+    "iconColor": "text-cyan-500"
+  },
+  {
+    "title": "日本旅游攻略",
+    "prompt": "提供至少三个去日本旅游必去的景点，并描述其特色和适合的旅游时间。",
+    "icon": "ri:map-pin-line"
+  },
+  {
+    "title": "提高保险销售业绩",
+    "prompt": "如何提高保险销售员的业绩？",
+    "icon": "ri:money-dollar-box-line"
+  },
+  {
+    "title": "公司网站改版建议",
+    "prompt": "公司网站需要进行改版，请列举至少五个需要更新的页面元素并说明更新的理由。",
+    "icon": "ri:layout-5-line"
+  },
+  {
+    "title": "印度首都查询",
+    "prompt": "请问印度的首都是哪里？",
+    "icon": "ri:flag-line"
+  },
+  {
+    "title": "红旗渠修建历史",
+    "prompt": "请问红旗渠修建的时间和地点分别是什么？",
+    "icon": "ri:history-line"
+  },
+  {
+    "title": "DNA结构与功能",
+    "prompt": "请简要介绍一下DNA的结构及其功能。",
+    "icon": "ri:dna-line"
+  },
+  {
+    "title": "GDP定义与计算",
+    "prompt": "请问什么是GDP？如何计算GDP？",
+    "icon": "ri:bar-chart-2-line"
+  },
+  {
+    "title": "原子核组成",
+    "prompt": "请问原子核由哪些粒子组成？它们各自的电荷和质量分别是多少？",
+    "icon": "ri:leaf-line"
+  },
+  {
+    "title": "莫扎特代表作",
+    "prompt": "请问莫扎特的代表作有哪些？",
+    "icon": "ri:music-2-line"
+  },
+  {
+    "title": "汉字词源",
+    "prompt": "请问“汉字”这个词最早出现的时间和在哪本书中出现的？",
+    "icon": "ri:book-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "全运会历史",
+    "prompt": "请问全运会是哪年开始举办的？每隔几年举办一次？",
+    "icon": "ri:football-line"
+  },
+  {
+    "title": "石油用途",
+    "prompt": "请问石油的主要用途有哪些？",
+    "icon": "ri:oil-line"
+  },
+  {
+    "title": "心脏起搏器介绍",
+    "prompt": "请简要介绍一下心脏起搏器的原理和使用方法。",
+    "icon": "ri:heart-2-line",
+    "iconColor": "text-cyan-500"
+  },
+  {
+    "title": "观众情感分析",
+    "prompt": "这部电影的观众反应如何？",
+    "icon": "ri:emotion-laugh-line"
+  },
+  {
+    "title": "沙滩美景短文",
+    "prompt": "请写出一篇描述橙色阳光下沙滩美景的短文。",
+    "icon": "ri:sun-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "亚马逊财报数据查询",
+    "prompt": "亚马逊公司的年度财报数据是多少？",
+    "icon": "ri:money-dollar-box-line"
+  },
+  {
+    "title": "苹果新产品新闻",
+    "prompt": "请问最近有关于苹果公司新发布产品的新闻吗？",
+    "icon": "ri:apple-line"
+  },
+  {
+    "title": "一加与华为手机性能对比",
+    "prompt": "请比较一加手机和华为手机的性能差异。",
+    "icon": "ri:smartphone-line"
+  },
+  {
+    "title": "文章主要观点提取",
+    "prompt": "请从这篇文章中提取出主要观点。",
+    "icon": "ri:article-line"
+  },
+  {
+    "title": "用户意图分类",
+    "prompt": "用户输入“我想要预定机票”，它的意图是什么？",
+    "icon": "ri:question-line"
+  },
+  {
+    "title": "文章可读性修改",
+    "prompt": "请编辑这篇文章，使得它更易读。",
+    "icon": "ri:edit-line"
+  },
+  {
+    "title": "星期推理",
+    "prompt": "如果今天是星期三，那么后天是星期几？",
+    "icon": "ri:calendar-line",
+    "iconColor": "text-cyan-500"
+  },
+  {
+    "title": "微软创始人查询",
+    "prompt": "谁创办了微软公司？",
+    "icon": "ri:building-4-line"
+  },
+  {
+    "title": "电影类型分类",
+    "prompt": "这个电影是哪个类型的？",
+    "icon": "ri:film-line"
+  },
+  {
+    "title": "乐器描述",
+    "prompt": "描述一下你最喜欢的乐器。",
+    "icon": "ri:music-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "句子改写",
+    "prompt": "请改写这句话：“天空飘着几朵云彩。”",
+    "icon": "ri:edit-2-line"
+  },
+  {
+    "title": "书籍对比",
+    "prompt": "这本书和那本书有什么区别？",
+    "icon": "ri:book-line"
+  },
+  {
+    "title": "自然风景描写",
+    "prompt": "写一段自然风景的描写。",
+    "icon": "ri:landscape-line"
+  },
+  {
+    "title": "音乐年代分类",
+    "prompt": "这首歌曲属于哪个年代的音乐？",
+    "icon": "ri:music-2-line"
+  },
+  {
+    "title": "餐厅美食对比",
+    "prompt": "这家餐厅和那家餐厅哪家更好吃？",
+    "icon": "ri:restaurant-line"
+  },
+  {
+    "title": "电影喜好",
+    "prompt": "把这句话翻译成英文：“我喜欢看电影，尤其是科幻电影。”",
+    "icon": "ri:movie-line"
+  },
+  {
+    "title": "理想度假胜地描述",
+    "prompt": "描述一下你理想中的度假胜地。",
+    "icon": "ri:tree-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "动物分类",
+    "prompt": "这个动物属于哪个门类？",
+    "icon": "ri:bug-line"
+  },
+  {
+    "title": "新闻摘要生成",
+    "prompt": "请问如何利用 GPT-3.5 生成一篇 100 字左右的新闻摘要？",
+    "icon": "ri:newspaper-line"
+  },
+  {
+    "title": "自动翻译实现",
+    "prompt": "请问如何让 GPT-3.5 实现从中文到英文的自动翻译？",
+    "icon": "ri:translate"
+  },
+  {
+    "title": "全球医疗保健评价",
+    "prompt": "你如何评价当前全球范围内的医疗保健体系？",
+    "icon": "ri:stethoscope-line"
+  },
+  {
+    "title": "文化多样性保护",
+    "prompt": "请问有哪些国家在法律层面上保护本国的文化多样性？",
+    "icon": "ri:global-line"
+  },
+  {
+    "title": "新能源普及国家",
+    "prompt": "现今世界上使用新能源最为普及的国家是哪些？",
+    "icon": "ri:flashlight-line"
+  },
+  {
+    "title": "股市走势预测",
+    "prompt": "你认为全球股市未来一个季度会走势如何？",
+    "icon": "ri:line-chart-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "前沿科技研究",
+    "prompt": "请列举一些目前全球前沿的科技研究领域。",
+    "icon": "ri:rocket-line"
+  },
+  {
+    "title": "社交媒体影响",
+    "prompt": "社交媒体对年轻人的影响有哪些？",
+    "icon": "ri:chat-3-line"
+  },
+  {
+    "title": "电商平台市场份额",
+    "prompt": "当前哪些电商平台在全球拥有最大的市场份额？",
+    "icon": "ri:shopping-cart-line",
+    "iconColor": "text-cyan-500"
+  },
+  {
+    "title": "气候变化影响",
+    "prompt": "气候变化对世界各地造成了哪些影响？",
+    "icon": "ri:sun-cloudy-line"
+  },
+  {
+    "title": "全球顶尖大学排名",
+    "prompt": "请问哪些国家拥有全球最顶尖的大学排名？",
+    "icon": "ri:school-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "手机发明者",
+    "prompt": "手机是谁发明的？",
+    "icon": "ri:smartphone-line"
+  },
+  {
+    "title": "旅行故事创作",
+    "prompt": "给我写一个关于旅行的故事。",
+    "icon": "ri:suitcase-3-line"
+  },
+  {
+    "title": "文章情感分析",
+    "prompt": "这篇文章中的情感倾向是积极、消极还是中性？",
+    "icon": "ri:emotion-line"
+  },
+  {
+    "title": "拼写错误纠正",
+    "prompt": "句子中的哪个单词拼写有误：“昨天我去了餐馆，品尝了他们的招牌菜。”",
+    "icon": "ri:check-line"
+  },
+  {
+    "title": "文章摘要生成",
+    "prompt": "请为这篇长文章生成一段简要的摘要。",
+    "icon": "ri:file-text-line"
+  },
+  {
+    "title": "任务执行指令",
+    "prompt": "请告诉我现在怎么做。",
+    "icon": "ri:task-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "明朝社会阶层研究",
+    "prompt": "针对明朝时期的社会阶层结构，你能列出几种不同的人群并描述他们的特征吗？",
+    "icon": "ri:book-line",
+    "iconColor": "text-brown-500"
+  },
+  {
+    "title": "物种区别解释",
+    "prompt": "两个相似物种的区别在哪里？请用一种易于理解的方式解释。",
+    "icon": "ri:leaf-line"
+  },
+  {
+    "title": "政治参与度分析",
+    "prompt": "哪些因素影响政治参与度？你认为如何激发公民参与政治？",
+    "icon": "ri:government-line"
+  },
+  {
+    "title": "情感分析技术",
+    "prompt": "如何利用自然语言处理技术进行情感分析？您可以列举一些常见的情感分析算法和应用场景吗？",
+    "icon": "ri:emotion-line"
+  },
+  {
+    "title": "经济发展水平衡量",
+    "prompt": "如何衡量一个国家的经济发展水平？您如何评估不同国家之间的贸易关系？",
+    "icon": "ri:money-dollar-circle-line"
+  },
+  {
+    "title": "机器学习简介",
+    "prompt": "讲述一下什么是机器学习，以及它在现代计算机科学中扮演的角色。",
+    "icon": "ri:robot-line"
+  },
+  {
+    "title": "气候变化影响",
+    "prompt": "近年来，气候变化对我们的环境造成了哪些影响？未来还可能会引起哪些灾难？",
+    "icon": "ri:sun-cloudy-line"
+  },
+  {
+    "title": "创新教育方法",
+    "prompt": "教师应该如何培养学生的创新思维和实践能力？您认为有效的教育方法是什么？",
+    "icon": "ri:lightbulb-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "学习心理素质",
+    "prompt": "学习一门新技能需要哪些心理素质？如何在学习过程中保持积极的情绪状态？",
+    "icon": "ri:psychotherapy-line"
+  },
+  {
+    "title": "未来科技趋势",
+    "prompt": "未来科技发展的趋势是什么？您认为会有哪些领域会得到革命性的改变？",
+    "icon": "ri:rocket-line"
+  },
+  {
+    "title": "电影推荐",
+    "prompt": "根据我的口味推荐一部近期上映的电影。",
+    "icon": "ri:film-line"
+  },
+  {
+    "title": "手机产品比较",
+    "prompt": "请分析一下 iPhone 和 Android 手机的优缺点，说明它们适合不同的用户群体。",
+    "icon": "ri:smartphone-line"
+  },
+  {
+    "title": "新闻头条创作",
+    "prompt": "请为明天的头条新闻写一个简短但有吸引力的标题，并提出三个相关问题。",
+    "icon": "ri:newspaper-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "市场零食品牌分析",
+    "prompt": "请列举五种最受欢迎的零食品牌，并分析其在市场上的竞争优势。",
+    "icon": "ri:shopping-bag-line"
+  },
+  {
+    "title": "自然之美短文",
+    "prompt": "请根据以下关键词写一篇题为“自然之美”的 300 字左右的短文：山水、湖泊、森林、鸟儿、日出日落。",
+    "icon": "ri:palette-line"
+  },
+  {
+    "title": "英文文本编辑",
+    "prompt": "翻译以下这段英文，同时对其进行适当的调整和编辑：He was lay down.",
+    "icon": "ri:edit-line"
+  },
+  {
+    "title": "近期电影推荐",
+    "prompt": "可以给我推荐几部最近比较值得观看的电影吗？",
+    "icon": "ri:film-line"
+  },
+  {
+    "title": "马克思主义知识问答",
+    "prompt": "马克思主义的基本原理是什么？",
+    "icon": "ri:questionnaire-line"
+  },
+  {
+    "title": "北京旅游攻略",
+    "prompt": "如果想去北京旅游，有哪些必去的景点和美食呢？",
+    "icon": "ri:road-map-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "经济形势分析",
+    "prompt": "分析一下目前国内外经济形势，对未来的发展有何预测？",
+    "icon": "ri:line-chart-line"
+  },
+  {
+    "title": "文章情感分类",
+    "prompt": "这篇文章是正面的还是负面的？",
+    "icon": "ri:emotion-line"
+  },
+  {
+    "title": "写作效率提升方法",
+    "prompt": "有哪些方法可以提高写作效率？",
+    "icon": "ri:keyboard-box-line"
+  },
+  {
+    "title": "电子书与纸质书对比",
+    "prompt": "阅读电子书和纸质书有什么区别？",
+    "icon": "ri:book-2-line"
+  },
+  {
+    "title": "论文语法修改",
+    "prompt": "请帮我修改这篇论文中的语法错误。",
+    "icon": "ri:file-edit-line"
+  },
+  {
+    "title": "人工智能知识查询",
+    "prompt": "什么是人工智能？",
+    "icon": "ri:robot-line"
+  },
+  {
+    "title": "实体识别",
+    "prompt": "在这段文字中，'苹果'指的是手机品牌还是水果？",
+    "icon": "ri:barcode-box-line"
+  },
+  {
+    "title": "文章主题分类",
+    "prompt": "这篇文章的主题是什么？",
+    "icon": "ri:layout-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "文章摘要生成",
+    "prompt": "请用一句话概括这篇文章的核心内容。",
+    "icon": "ri:file-text-line"
+  },
+  {
+    "title": "新上映电影推荐",
+    "prompt": "有哪些值得一看的新上映电影？",
+    "icon": "ri:movie-line"
+  },
+  {
+    "title": "欧洲杯赛程",
+    "prompt": "请列出近期欧洲杯足球赛程表。",
+    "icon": "ri:trophy-line",
+    "iconColor": "text-gold-500"
+  },
+  {
+    "title": "健康饮食方案",
+    "prompt": "有哪些适合控制体重的健康饮食方案？",
+    "icon": "ri:restaurant-line",
+    "iconColor": "text-orange-500"
+  },
+  {
+    "title": "日本旅游攻略",
+    "prompt": "如果我想去日本旅游，应该怎样规划我的行程和预算？",
+    "icon": "ri:suitcase-line"
+  },
+  {
+    "title": "最新科技新闻",
+    "prompt": "有哪些最近的科技进展值得关注？",
+    "icon": "ri:news-line"
+  },
+  {
+    "title": "编程语言选择",
+    "prompt": "当你需要开发一个新项目时，该如何选择合适的编程语言？",
+    "icon": "ri:code-box-line"
+  },
+  {
+    "title": "健康饮食搭配",
+    "prompt": "请问在平衡健康饮食方面，应该怎样搭配膳食结构？",
+    "icon": "ri:restaurant-2-line"
+  },
+  {
+    "title": "科技公司伦理标准",
+    "prompt": "微软、谷歌等科技公司是否有明确的伦理标准？如果有，请简要列举这些标准。",
+    "icon": "ri:shield-check-line"
+  },
+  {
+    "title": "机器人研究方向",
+    "prompt": "机器人研究领域都包括哪些方向？",
+    "icon": "ri:robot-line"
+  },
+  {
+    "title": "气候变化影响",
+    "prompt": "你认为气候变化对人类有哪些不利影响？",
+    "icon": "ri:cloud-windy-line"
+  }
+]

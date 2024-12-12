@@ -130,14 +130,6 @@ let AppService = class AppService {
         }
         return { rows, count };
     }
-    async appSystemList() {
-        const where = { isSystemReserved: 1 };
-        const [rows, count] = await this.appEntity.findAndCount({
-            where,
-            order: { id: 'DESC' },
-        });
-        return { rows, count };
-    }
     async frontAppList(req, query, orderKey = 'id') {
         var _a;
         const { page = 1, size = 1000, name, catId, role } = query;
@@ -218,67 +210,6 @@ let AppService = class AppService {
         }
         return await this.appEntity.save(body);
     }
-    async customApp(body, req) {
-        const { id } = req.user;
-        const { name, catId, des, preset, coverImg, demoData, public: isPublic, appId, } = body;
-        if (appId) {
-            const a = await this.appEntity.findOne({
-                where: { id: appId, userId: id },
-            });
-            if (!a) {
-                throw new common_1.HttpException('您正在编辑一个不存在的应用！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            const data = {
-                name,
-                catId,
-                des,
-                preset,
-                coverImg,
-                demoData,
-                public: isPublic,
-                status: isPublic ? 3 : 1,
-            };
-            const res = await this.appEntity.update({ id: appId, userId: id }, data);
-            if (res.affected) {
-                return '修改成功';
-            }
-            else {
-                throw new common_1.HttpException('修改失败！', common_1.HttpStatus.BAD_REQUEST);
-            }
-        }
-        if (!appId) {
-            const c = await this.appCatsEntity.findOne({ where: { id: catId } });
-            if (!c) {
-                throw new common_1.HttpException('该分类不存在！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            const a = await this.appEntity.findOne({ where: { name } });
-            if (a) {
-                throw new common_1.HttpException('该应用名称已存在！', common_1.HttpStatus.BAD_REQUEST);
-            }
-            const data = {
-                name,
-                catId,
-                des,
-                preset,
-                coverImg,
-                status: isPublic ? 3 : 1,
-                demoData,
-                public: isPublic,
-                role: 'user',
-                userId: id,
-            };
-            const res = await this.appEntity.save(data);
-            const params = {
-                appId: res.id,
-                userId: id,
-                appType: 'user',
-                public: isPublic,
-                status: isPublic ? 3 : 1,
-                catId,
-            };
-            return this.userAppsEntity.save(params);
-        }
-    }
     async updateApp(body) {
         const { id, name, catId, status } = body;
         const a = await this.appEntity.findOne({ where: { name, id: (0, typeorm_2.Not)(id) } });
@@ -297,22 +228,6 @@ let AppService = class AppService {
         if (res.affected > 0)
             return '修改App信息成功';
         throw new common_1.HttpException('修改App信息失败！', common_1.HttpStatus.BAD_REQUEST);
-    }
-    async updateSystemApp(body) {
-        const { id, name } = body;
-        const existingApp = await this.appEntity.findOne({
-            where: { name, id: (0, typeorm_2.Not)(id) },
-        });
-        if (existingApp) {
-            common_1.Logger.warn(`应用名称已存在：${name}`);
-            throw new common_1.HttpException('该应用名称已存在！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const res = await this.appEntity.update({ id }, body);
-        if (res.affected > 0) {
-            return '修改系统应用信息成功';
-        }
-        common_1.Logger.error(`修改系统应用信息失败：${name}`);
-        throw new common_1.HttpException('修改系统应用信息失败！', common_1.HttpStatus.BAD_REQUEST);
     }
     async delApp(body) {
         const { id } = body;
@@ -345,18 +260,6 @@ let AppService = class AppService {
         await this.appEntity.update({ id }, { status: 5 });
         await this.userAppsEntity.update({ appId: id }, { status: 5 });
         return '应用审核拒绝完成';
-    }
-    async delMineApp(body, req) {
-        const { id } = body;
-        const a = await this.appEntity.findOne({
-            where: { id, userId: req.user.id },
-        });
-        if (!a) {
-            throw new common_1.HttpException('您正在操作一个不存在的资源！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        await this.appEntity.delete(id);
-        await this.userAppsEntity.delete({ appId: id, userId: req.user.id });
-        return '删除应用成功！';
     }
     async collect(body, req) {
         const { appId } = body;

@@ -13,11 +13,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatisticController = void 0;
-const statistic_service_1 = require("./statistic.service");
+const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const queryStatisticDto_dto_1 = require("./dto/queryStatisticDto.dto");
-const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
+const statistic_service_1 = require("./statistic.service");
 let StatisticController = class StatisticController {
     constructor(statisticService) {
         this.statisticService = statisticService;

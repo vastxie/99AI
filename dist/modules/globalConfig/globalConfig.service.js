@@ -130,7 +130,6 @@ let GlobalConfigService = class GlobalConfigService {
     }
     async queryFrontConfig(query, req) {
         const allowKeys = [
-            'vxNumber',
             'registerSendStatus',
             'registerSendModel3Count',
             'registerSendModel4Count',
@@ -140,13 +139,6 @@ let GlobalConfigService = class GlobalConfigService {
             'firstRregisterSendModel3Count',
             'firstRregisterSendModel4Count',
             'firstRregisterSendDrawMjCount',
-            'inviteSendStatus',
-            'inviteGiveSendModel3Count',
-            'inviteGiveSendModel4Count',
-            'inviteGiveSendDrawMjCount',
-            'invitedGuestSendModel3Count',
-            'invitedGuestSendModel4Count',
-            'invitedGuestSendDrawMjCount',
             'clientHomePath',
             'clientLogoPath',
             'clientFavoIconPath',
@@ -187,7 +179,6 @@ let GlobalConfigService = class GlobalConfigService {
             'mjHideNotBlock',
             'mjHideWorkIn',
             'isVerifyEmail',
-            'isHideSidebar',
             'showWatermark',
             'isHideTts',
             'isHideDefaultPreset',
@@ -202,6 +193,9 @@ let GlobalConfigService = class GlobalConfigService {
             'noVerifyRegister',
             'noticeInfo',
             'homeHtml',
+            'isAutoOpenAgreement',
+            'agreementInfo',
+            'agreementTitle',
         ];
         const data = await this.configEntity.find({
             where: { configKey: (0, typeorm_2.In)(allowKeys) },
@@ -223,42 +217,6 @@ let GlobalConfigService = class GlobalConfigService {
         const { wechatOfficialAppId, wechatOfficialAppSecret } = await this.getConfigs(['wechatOfficialAppId', 'wechatOfficialAppSecret']);
         const isUseWxLogin = !!(wechatOfficialAppId && wechatOfficialAppSecret);
         return Object.assign(Object.assign({}, publicConfig), { isUseWxLogin });
-    }
-    async queryGptKeys(req) {
-        const { role } = req.user;
-        const data = await this.configEntity.find({
-            where: { configKey: (0, typeorm_2.Like)(`%${'chatGptKey'}%`) },
-        });
-        if (role === 'super')
-            return data;
-        return data.map((t) => {
-            t.configVal = (0, utils_1.hideString)(t.configVal);
-            return t;
-        });
-    }
-    async setGptKeys(body) {
-        const effectiveConfig = body.configs.filter((t) => t.configVal);
-        const keys = effectiveConfig.map((t) => t.configKey);
-        for (const [index, value] of effectiveConfig.entries()) {
-            const { configKey, configVal, status } = value;
-            await this.createOrUpdate({
-                configKey: `chatGptKey:${index + 1}`,
-                configVal,
-                status,
-            });
-        }
-        const likeChatGptKeys = await this.configEntity.find({
-            where: { configKey: (0, typeorm_2.Like)(`%${'chatGptKey'}%`) },
-        });
-        const allKey = likeChatGptKeys.map((t) => t.configKey);
-        if (allKey.length > keys.length) {
-            const diffKey = (0, utils_1.getDiffArray)(allKey.length, keys.length, 'chatGptKey:');
-            for (const key of diffKey) {
-                await this.configEntity.delete({ configKey: key });
-            }
-        }
-        await this.initGetAllConfig();
-        return '操作完成！';
     }
     async queryConfig(body, req) {
         const { role } = req.user;
@@ -346,9 +304,6 @@ let GlobalConfigService = class GlobalConfigService {
     async queryNotice() {
         return await this.getConfigs(['noticeInfo', 'noticeTitle']);
     }
-    async getCopyright() {
-        return await this.getConfigs(['copyrightUrl', 'copyrightTitle']);
-    }
     async queryPayType() {
         const { payHupiStatus = 0, payEpayStatus = 0, payWechatStatus = 0, payMpayStatus = 0, payLtzfStatus = 0, } = await this.getConfigs([
             'payHupiStatus',
@@ -383,14 +338,12 @@ let GlobalConfigService = class GlobalConfigService {
         }
     }
     async getAuthInfo() {
-        const { siteName, qqNumber, vxNumber, registerBaseUrl, domain } = await this.getConfigs([
+        const { siteName, registerBaseUrl, domain } = await this.getConfigs([
             'siteName',
-            'qqNumber',
-            'vxNumber',
             'registerBaseUrl',
             'domain',
         ]);
-        return { siteName, qqNumber, vxNumber, registerBaseUrl, domain };
+        return { siteName, registerBaseUrl, domain };
     }
     async getPhoneVerifyConfig() {
         const { phoneLoginStatus, aliPhoneAccessKeyId, aliPhoneAccessKeySecret, aliPhoneSignName, aliPhoneTemplateCode, } = await this.getConfigs([

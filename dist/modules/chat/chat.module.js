@@ -9,6 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
+const aiPPT_1 = require("../ai/aiPPT");
+const cogVideo_service_1 = require("../ai/cogVideo.service");
+const fluxDraw_service_1 = require("../ai/fluxDraw.service");
 const lumaVideo_service_1 = require("../ai/lumaVideo.service");
 const midjourneyDraw_service_1 = require("../ai/midjourneyDraw.service");
 const openaiChat_service_1 = require("../ai/openaiChat.service");
@@ -22,10 +25,8 @@ const chatLog_service_1 = require("../chatLog/chatLog.service");
 const cramiPackage_entity_1 = require("../crami/cramiPackage.entity");
 const config_entity_1 = require("../globalConfig/config.entity");
 const mailer_service_1 = require("../mailer/mailer.service");
-const midjourney_entity_1 = require("../midjourney/midjourney.entity");
 const plugin_entity_1 = require("../plugin/plugin.entity");
 const redisCache_service_1 = require("../redisCache/redisCache.service");
-const salesUsers_entity_1 = require("../sales/salesUsers.entity");
 const user_entity_1 = require("../user/user.entity");
 const user_service_1 = require("../user/user.service");
 const accountLog_entity_1 = require("../userBalance/accountLog.entity");
@@ -56,9 +57,7 @@ ChatModule = __decorate([
                 chatGroup_entity_1.ChatGroupEntity,
                 app_entity_1.AppEntity,
                 userBalance_entity_1.UserBalanceEntity,
-                salesUsers_entity_1.SalesUsersEntity,
                 fingerprint_entity_1.FingerprintLogEntity,
-                midjourney_entity_1.MidjourneyEntity,
             ]),
         ],
         controllers: [chat_controller_1.ChatController],
@@ -76,6 +75,9 @@ ChatModule = __decorate([
             midjourneyDraw_service_1.MidjourneyService,
             openaiDraw_service_1.OpenAIDrawService,
             lumaVideo_service_1.LumaVideoService,
+            cogVideo_service_1.CogVideoService,
+            fluxDraw_service_1.FluxDrawService,
+            aiPPT_1.AiPptService,
         ],
         exports: [chat_service_1.ChatService],
     })

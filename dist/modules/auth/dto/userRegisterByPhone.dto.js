@@ -39,9 +39,4 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)({ message: '手机验证码不能为空！' }),
     __metadata("design:type", String)
 ], UserRegisterByPhoneDto.prototype, "phoneCode", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'SNINE', description: '用户邀请码', required: true }),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], UserRegisterByPhoneDto.prototype, "invitedBy", void 0);
 exports.UserRegisterByPhoneDto = UserRegisterByPhoneDto;

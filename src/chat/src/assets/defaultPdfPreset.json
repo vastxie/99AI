@@ -1,0 +1,32 @@
+[
+  {
+    "title": "文件概要总结",
+    "prompt": "为当前文件生成简短的概要，概述主要内容和关键点。",
+    "icon": "ri:booklet-line"
+  },
+  {
+    "title": "提取大纲结构",
+    "prompt": "自动提取文件中的章节和子章节，列出文件的大纲结构。",
+    "icon": "ri:layout-line"
+  },
+  {
+    "title": "文件内容解析",
+    "prompt": "解析文件的内容，并提供每一章节的详细说明。",
+    "icon": "ri:file-list-2-line"
+  },
+  {
+    "title": "文章主题分析",
+    "prompt": "分析文件的核心主题，提供简要描述。",
+    "icon": "ri:lightbulb-line"
+  },
+  {
+    "title": "快速浏览",
+    "prompt": "提供文件的快速浏览，包括主要段落的摘录和关键论点。",
+    "icon": "ri:eye-line"
+  },
+  {
+    "title": "总结要点",
+    "prompt": "从文件中提取出最重要的要点和核心思想。",
+    "icon": "ri:focus-2-line"
+  }
+]

@@ -46,6 +46,15 @@ let AuthController = class AuthController {
     async sendCode(parmas) {
         return this.authService.sendCode(parmas);
     }
+    async sendPhoneCode(parmas) {
+        return this.authService.sendPhoneCode(parmas);
+    }
+    async verifyIdentity(req, body) {
+        return this.authService.verifyIdentity(req, body);
+    }
+    async verifyPhoneIdentity(req, body) {
+        return this.authService.verifyPhoneIdentity(req, body);
+    }
 };
 __decorate([
     (0, common_1.Post)('register'),
@@ -114,6 +123,36 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "sendCode", null);
+__decorate([
+    (0, common_1.Post)('sendPhoneCode'),
+    (0, swagger_1.ApiOperation)({ summary: '发送手机验证码' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "sendPhoneCode", null);
+__decorate([
+    (0, common_1.Post)('verifyIdentity'),
+    (0, swagger_1.ApiOperation)({ summary: '验证身份' }),
+    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyIdentity", null);
+__decorate([
+    (0, common_1.Post)('verifyPhoneIdentity'),
+    (0, swagger_1.ApiOperation)({ summary: '验证手机号' }),
+    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyPhoneIdentity", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),

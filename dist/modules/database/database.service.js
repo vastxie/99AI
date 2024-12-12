@@ -20,7 +20,6 @@ let DatabaseService = class DatabaseService {
     async onModuleInit() {
         await this.checkSuperAdmin();
         await this.checkSiteBaseConfig();
-        await this.createSystemReservedApps();
     }
     async checkSuperAdmin() {
         const user = await this.connection.query(`SELECT * FROM users WHERE role = 'super'`);
@@ -63,13 +62,7 @@ let DatabaseService = class DatabaseService {
         }
     }
     async checkSiteBaseConfig() {
-        const keys = [
-            'siteName',
-            'qqNumber',
-            'vxNumber',
-            'robotAvatar',
-            'userDefautlAvatar',
-        ];
+        const keys = ['siteName', 'robotAvatar'];
         const result = await this.connection.query(`
   SELECT COUNT(*) AS count FROM config WHERE \`configKey\` IN (${keys
             .map((k) => `'${k}'`)
@@ -91,8 +84,6 @@ let DatabaseService = class DatabaseService {
 `;
             const defaultConfig = [
                 { configKey: 'siteName', configVal: '', public: 1, encry: 0 },
-                { configKey: 'qqNumber', configVal: '', public: 1, encry: 0 },
-                { configKey: 'vxNumber', configVal: '', public: 1, encry: 0 },
                 { configKey: 'robotAvatar', configVal: '', public: 1, encry: 0 },
                 {
                     configKey: 'userDefautlAvatar',
@@ -178,44 +169,16 @@ let DatabaseService = class DatabaseService {
                     public: 1,
                     encry: 0,
                 },
-                { configKey: 'inviteSendStatus', configVal: '1', public: 1, encry: 0 },
-                {
-                    configKey: 'inviteGiveSendModel3Count',
-                    configVal: '0',
-                    public: 1,
-                    encry: 0,
-                },
-                {
-                    configKey: 'inviteGiveSendModel4Count',
-                    configVal: '0',
-                    public: 1,
-                    encry: 0,
-                },
-                {
-                    configKey: 'inviteGiveSendDrawMjCount',
-                    configVal: '0',
-                    public: 1,
-                    encry: 0,
-                },
-                {
-                    configKey: 'invitedGuestSendModel3Count',
-                    configVal: '10',
-                    public: 1,
-                    encry: 0,
-                },
-                {
-                    configKey: 'invitedGuestSendModel4Count',
-                    configVal: '10',
-                    public: 1,
-                    encry: 0,
-                },
-                {
-                    configKey: 'invitedGuestSendDrawMjCount',
-                    configVal: '10',
-                    public: 1,
-                    encry: 0,
-                },
                 { configKey: 'isVerifyEmail', configVal: '1', public: 1, encry: 0 },
+                { configKey: 'model3Name', configVal: '普通积分', public: 1, encry: 0 },
+                { configKey: 'model4Name', configVal: '高级积分', public: 1, encry: 0 },
+                { configKey: 'drawMjName', configVal: '绘画积分', public: 1, encry: 0 },
+                {
+                    configKey: 'drawingStyles',
+                    configVal: '油画风格,像素风格,赛博朋克,动漫,日系,超现实主义,油画,卡通,插画,海报,写实,扁平,中国风,水墨画,唯美二次元,印象派,炫彩插画,像素艺术,艺术创想,色彩主义,数字艺术',
+                    public: 1,
+                    encry: 0,
+                },
             ];
             const res = await this.connection.query(`INSERT INTO config (configKey, configVal, public, encry) VALUES ${defaultConfig
                 .map((d) => `('${d.configKey}', '${d.configVal.replace(/'/g, "\\'")}', '${d.public}', '${d.encry}')`)
@@ -225,50 +188,6 @@ let DatabaseService = class DatabaseService {
         catch (error) {
             console.log('error: ', error);
             throw new common_1.HttpException('创建默认网站配置失败！', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async createSystemReservedApps() {
-        const systemApps = [
-            {
-                name: '提示词优化PromptOptimization',
-                catId: 9900,
-                des: 'PromptOptimization',
-                preset: "Translate any given phrase from any language into English. For instance, when I input '{可爱的熊猫}', you should output '{cute panda}', with no period at the end.",
-                appModel: 'gpt-3.5-turbo',
-                isFixedModel: 1,
-                isSystemReserved: 1,
-            },
-            {
-                name: '思维导图MindMap',
-                catId: 9900,
-                des: 'MindMap',
-                preset: '我希望你使用markdown格式回答我得问题、我的需求是得到一份markdown格式的大纲、尽量做的精细、层级多一点、不管我问你什么、都需要您回复我一个大纲出来、我想使用大纲做思维导图、除了大纲之外、不要无关内容和总结。',
-                appModel: 'gpt-3.5-turbo',
-                isFixedModel: 1,
-                isSystemReserved: 1,
-            },
-        ];
-        try {
-            for (const app of systemApps) {
-                const result = await this.connection.query(`SELECT COUNT(*) AS count FROM app WHERE name = ? AND des = ? AND isSystemReserved = ?`, [app.name, app.des, app.isSystemReserved]);
-                const count = parseInt(result[0].count, 10);
-                if (count === 0) {
-                    await this.connection.query(`INSERT INTO app (name, catId, des, preset, appModel, isFixedModel, isSystemReserved) VALUES (?, ?, ?, ?, ?, ?, ?)`, [
-                        app.name,
-                        app.catId,
-                        app.des,
-                        app.preset,
-                        app.appModel,
-                        app.isFixedModel,
-                        app.isSystemReserved,
-                    ]);
-                    common_1.Logger.log(`系统预留应用${app.name}创建成功`, 'DatabaseService');
-                }
-            }
-        }
-        catch (error) {
-            console.log('创建系统预留应用过程中出现错误: ', error);
-            throw new Error('创建系统预留应用失败！');
         }
     }
 };

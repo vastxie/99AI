@@ -29,6 +29,9 @@ let OpenAIChatService = class OpenAIChatService {
             errMsg: '',
             modelAvatar: modelAvatar,
         };
+        const data = Object.assign({ model, messages: messagesHistory }, (isFileUpload === 2 && { max_tokens: 2048 }));
+        data.stream = true;
+        data.temperature = temperature;
         const options = {
             method: 'POST',
             url: `${proxyUrl}/v1/chat/completions`,
@@ -38,9 +41,11 @@ let OpenAIChatService = class OpenAIChatService {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${apiKey}`,
             },
-            data: Object.assign({ stream: true, model, temperature: temperature, messages: messagesHistory }, (isFileUpload === 2 && { max_tokens: 2048 })),
+            data: data,
         };
-        console.log('请求配置:', JSON.stringify(options, null, 2), 'ChatService');
+        const sanitizedOptions = await this.sanitizeOptionsForLogging(options);
+        console.log('请求配置:', JSON.stringify(sanitizedOptions, null, 2), 'ChatService');
+        console.log('请求配置:', JSON.stringify(sanitizedOptions, null, 2), 'ChatService');
         try {
             const response = await (0, axios_1.default)(options);
             const stream = response.data;
@@ -91,6 +96,36 @@ let OpenAIChatService = class OpenAIChatService {
             onFailure(result);
             return result;
         }
+    }
+    async sanitizeOptionsForLogging(options) {
+        const sanitizedOptions = JSON.parse(JSON.stringify(options));
+        if (sanitizedOptions.headers && sanitizedOptions.headers.Authorization) {
+            const authHeader = sanitizedOptions.headers.Authorization;
+            if (authHeader.startsWith('Bearer ')) {
+                const token = authHeader.slice(7);
+                if (token.length > 10) {
+                    sanitizedOptions.headers.Authorization = `Bearer ${token.slice(0, 5)}****${token.slice(-4)}`;
+                }
+            }
+        }
+        if (sanitizedOptions.data &&
+            sanitizedOptions.data.messages &&
+            Array.isArray(sanitizedOptions.data.messages)) {
+            sanitizedOptions.data.messages = sanitizedOptions.data.messages.map((message) => {
+                if (message.content && Array.isArray(message.content)) {
+                    message.content = message.content.map((content) => {
+                        if (content.type === 'image_url' &&
+                            content.image_url &&
+                            content.image_url.url) {
+                            content.image_url.url = 'data:image/***;base64 ... ...';
+                        }
+                        return content;
+                    });
+                }
+                return message;
+            });
+        }
+        return sanitizedOptions;
     }
     async chatFree(prompt, systemMessage, messagesHistory) {
         const { openaiBaseUrl = '', openaiBaseKey = '', openaiBaseModel, } = await this.globalConfigService.getConfigs([

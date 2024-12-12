@@ -13,17 +13,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StableDiffusionService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("axios");
-const chatLog_service_1 = require("../chatLog/chatLog.service");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 const upload_service_1 = require("../upload/upload.service");
 let StableDiffusionService = StableDiffusionService_1 = class StableDiffusionService {
-    constructor(uploadService, globalConfigService, chatLogService) {
+    constructor(uploadService, globalConfigService) {
         this.uploadService = uploadService;
         this.globalConfigService = globalConfigService;
-        this.chatLogService = chatLogService;
         this.logger = new common_1.Logger(StableDiffusionService_1.name);
     }
-    async sdxl(messagesHistory, inputs) {
+    async sdxl(inputs) {
         const { onSuccess, onFailure, apiKey, model, proxyUrl, modelName, timeout, chatId, prompt, } = inputs;
         let result = {
             answer: '',
@@ -101,7 +99,6 @@ let StableDiffusionService = StableDiffusionService_1 = class StableDiffusionSer
 StableDiffusionService = StableDiffusionService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [upload_service_1.UploadService,
-        globalConfig_service_1.GlobalConfigService,
-        chatLog_service_1.ChatLogService])
+        globalConfig_service_1.GlobalConfigService])
 ], StableDiffusionService);
 exports.StableDiffusionService = StableDiffusionService;

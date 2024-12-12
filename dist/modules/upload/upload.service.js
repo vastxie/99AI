@@ -44,19 +44,27 @@ let UploadService = class UploadService {
         const timestamp = now.getTime();
         const randomString = Math.random().toString(36).substring(2, 6);
         const filename = `${timestamp}_${randomString}.${fileExtension}`;
-        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, } = await this.globalConfigService.getConfigs([
+        const { tencentCosStatus = 0, aliOssStatus = 0, cheveretoStatus = 0, localStorageStatus = 0, } = await this.globalConfigService.getConfigs([
             'tencentCosStatus',
             'aliOssStatus',
             'cheveretoStatus',
+            'localStorageStatus',
         ]);
-        common_1.Logger.log(`上传配置状态 - 腾讯云: ${tencentCosStatus}, 阿里云: ${aliOssStatus}, Chevereto: ${cheveretoStatus}`, 'UploadService');
+        common_1.Logger.log(`上传配置状态 - 腾讯云:本地存储: ${localStorageStatus}, ${tencentCosStatus}, 阿里云: ${aliOssStatus}, Chevereto: ${cheveretoStatus}`, 'UploadService');
         if (!Number(tencentCosStatus) &&
             !Number(aliOssStatus) &&
-            !Number(cheveretoStatus)) {
+            !Number(cheveretoStatus) &&
+            !Number(localStorageStatus)) {
             common_1.Logger.error('未配置任何上传方式', 'UploadService');
             throw new common_1.HttpException('请先前往后台配置上传图片的方式', common_1.HttpStatus.BAD_REQUEST);
         }
         try {
+            if (Number(localStorageStatus)) {
+                common_1.Logger.log('使用本地存储上传文件', 'UploadService');
+                const result = await this.uploadFileToLocal({ filename, buffer, dir });
+                common_1.Logger.log(`文件已上传到本地存储。访问 URL: ${result}`, 'UploadService');
+                return result;
+            }
             if (Number(tencentCosStatus)) {
                 common_1.Logger.log('使用腾讯云 COS 上传文件', 'UploadService');
                 const result = await this.uploadFileByTencentCos({

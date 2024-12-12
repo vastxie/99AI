@@ -1,0 +1,4 @@
+packages:
+  - chat
+  - admin
+  - service

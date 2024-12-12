@@ -13,13 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GlobalConfigController = void 0;
-const swagger_1 = require("@nestjs/swagger");
-const setConfig_dto_1 = require("./dto/setConfig.dto");
-const globalConfig_service_1 = require("./globalConfig.service");
-const common_1 = require("@nestjs/common");
-const queryConfig_dto_1 = require("./dto/queryConfig.dto");
 const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
 const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
+const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
+const queryConfig_dto_1 = require("./dto/queryConfig.dto");
+const setConfig_dto_1 = require("./dto/setConfig.dto");
+const globalConfig_service_1 = require("./globalConfig.service");
 let GlobalConfigController = class GlobalConfigController {
     constructor(globalConfigService) {
         this.globalConfigService = globalConfigService;
@@ -30,12 +30,6 @@ let GlobalConfigController = class GlobalConfigController {
     queryFrontConfig(query, req) {
         return this.globalConfigService.queryFrontConfig(query, req);
     }
-    queryGptKeys(req) {
-        return this.globalConfigService.queryGptKeys(req);
-    }
-    setGptKeys(body) {
-        return this.globalConfigService.setGptKeys(body);
-    }
     queryConfig(body, req) {
         return this.globalConfigService.queryConfig(body, req);
     }
@@ -44,9 +38,6 @@ let GlobalConfigController = class GlobalConfigController {
     }
     queryNotice() {
         return this.globalConfigService.queryNotice();
-    }
-    getCopyright() {
-        return this.globalConfigService.getCopyright();
     }
 };
 __decorate([
@@ -68,26 +59,6 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], GlobalConfigController.prototype, "queryFrontConfig", null);
-__decorate([
-    (0, swagger_1.ApiOperation)({ summary: '查询所有gpt的key' }),
-    (0, common_1.Get)('queryGptKeys'),
-    (0, common_1.UseGuards)(adminAuth_guard_1.AdminAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], GlobalConfigController.prototype, "queryGptKeys", null);
-__decorate([
-    (0, swagger_1.ApiOperation)({ summary: '设置gpt的key' }),
-    (0, common_1.Post)('setGptKeys'),
-    (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], GlobalConfigController.prototype, "setGptKeys", null);
 __decorate([
     (0, swagger_1.ApiOperation)({ summary: '查询所有配置' }),
     (0, common_1.Post)('query'),
@@ -116,13 +87,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], GlobalConfigController.prototype, "queryNotice", null);
-__decorate([
-    (0, swagger_1.ApiOperation)({ summary: '管理端查询版权信息' }),
-    (0, common_1.Get)('copyright'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], GlobalConfigController.prototype, "getCopyright", null);
 GlobalConfigController = __decorate([
     (0, swagger_1.ApiTags)('config'),
     (0, common_1.Controller)('config'),

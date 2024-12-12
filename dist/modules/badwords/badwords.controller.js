@@ -12,35 +12,35 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BadwordsController = void 0;
-const badwords_service_1 = require("./badwords.service");
+exports.BadWordsController = void 0;
+const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
+const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const badWords_service_1 = require("./badWords.service");
+const addBadWords_dto_1 = require("./dto/addBadWords.dto");
+const delBadWords_dto_1 = require("./dto/delBadWords.dto");
 const queryBadWords_dto_1 = require("./dto/queryBadWords.dto");
 const queryViolation_dto_1 = require("./dto/queryViolation.dto");
 const updateBadWords_dto_1 = require("./dto/updateBadWords.dto");
-const delBadWords_dto_1 = require("./dto/delBadWords.dto");
-const addBadWords_dto_1 = require("./dto/addBadWords.dto");
-const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
-const adminAuth_guard_1 = require("../../common/auth/adminAuth.guard");
-let BadwordsController = class BadwordsController {
-    constructor(badwordsService) {
-        this.badwordsService = badwordsService;
+let BadWordsController = class BadWordsController {
+    constructor(badWordsService) {
+        this.badWordsService = badWordsService;
     }
     queryBadWords(query) {
-        return this.badwordsService.queryBadWords(query);
+        return this.badWordsService.queryBadWords(query);
     }
     delBadWords(body) {
-        return this.badwordsService.delBadWords(body);
+        return this.badWordsService.delBadWords(body);
     }
     updateBadWords(body) {
-        return this.badwordsService.updateBadWords(body);
+        return this.badWordsService.updateBadWords(body);
     }
     addBadWord(body) {
-        return this.badwordsService.addBadWord(body);
+        return this.badWordsService.addBadWord(body);
     }
     violation(req, query) {
-        return this.badwordsService.violation(req, query);
+        return this.badWordsService.violation(req, query);
     }
 };
 __decorate([
@@ -50,7 +50,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [queryBadWords_dto_1.QueryBadWordsDto]),
     __metadata("design:returntype", void 0)
-], BadwordsController.prototype, "queryBadWords", null);
+], BadWordsController.prototype, "queryBadWords", null);
 __decorate([
     (0, common_1.Post)('del'),
     (0, swagger_1.ApiOperation)({ summary: '删除敏感词' }),
@@ -60,7 +60,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [delBadWords_dto_1.DelBadWordsDto]),
     __metadata("design:returntype", void 0)
-], BadwordsController.prototype, "delBadWords", null);
+], BadWordsController.prototype, "delBadWords", null);
 __decorate([
     (0, common_1.Post)('update'),
     (0, swagger_1.ApiOperation)({ summary: '更新敏感词' }),
@@ -70,7 +70,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [updateBadWords_dto_1.UpdateBadWordsDto]),
     __metadata("design:returntype", void 0)
-], BadwordsController.prototype, "updateBadWords", null);
+], BadWordsController.prototype, "updateBadWords", null);
 __decorate([
     (0, common_1.Post)('add'),
     (0, swagger_1.ApiOperation)({ summary: '新增敏感词' }),
@@ -80,7 +80,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [addBadWords_dto_1.AddBadWordDto]),
     __metadata("design:returntype", void 0)
-], BadwordsController.prototype, "addBadWord", null);
+], BadWordsController.prototype, "addBadWord", null);
 __decorate([
     (0, common_1.Get)('violation'),
     (0, swagger_1.ApiOperation)({ summary: '查询违规记录' }),
@@ -91,10 +91,10 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, queryViolation_dto_1.QueryViolationDto]),
     __metadata("design:returntype", void 0)
-], BadwordsController.prototype, "violation", null);
-BadwordsController = __decorate([
+], BadWordsController.prototype, "violation", null);
+BadWordsController = __decorate([
     (0, swagger_1.ApiTags)('badWords'),
-    (0, common_1.Controller)('badwords'),
-    __metadata("design:paramtypes", [badwords_service_1.BadwordsService])
-], BadwordsController);
-exports.BadwordsController = BadwordsController;
+    (0, common_1.Controller)('badWords'),
+    __metadata("design:paramtypes", [badWords_service_1.BadWordsService])
+], BadWordsController);
+exports.BadWordsController = BadWordsController;

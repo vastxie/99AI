@@ -18,6 +18,9 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const axios_1 = require("axios");
 const typeorm_2 = require("typeorm");
+const aiPPT_1 = require("../ai/aiPPT");
+const cogVideo_service_1 = require("../ai/cogVideo.service");
+const fluxDraw_service_1 = require("../ai/fluxDraw.service");
 const lumaVideo_service_1 = require("../ai/lumaVideo.service");
 const midjourneyDraw_service_1 = require("../ai/midjourneyDraw.service");
 const openaiChat_service_1 = require("../ai/openaiChat.service");
@@ -26,7 +29,7 @@ const stableDiffusion_service_1 = require("../ai/stableDiffusion.service");
 const suno_service_1 = require("../ai/suno.service");
 const app_entity_1 = require("../app/app.entity");
 const autoreply_service_1 = require("../autoreply/autoreply.service");
-const badwords_service_1 = require("../badwords/badwords.service");
+const badWords_service_1 = require("../badWords/badWords.service");
 const chatGroup_service_1 = require("../chatGroup/chatGroup.service");
 const chatLog_service_1 = require("../chatLog/chatLog.service");
 const config_entity_1 = require("../globalConfig/config.entity");
@@ -37,7 +40,7 @@ const upload_service_1 = require("../upload/upload.service");
 const user_service_1 = require("../user/user.service");
 const userBalance_service_1 = require("../userBalance/userBalance.service");
 let ChatService = class ChatService {
-    constructor(configEntity, appEntity, pluginEntity, sunoService, openAIChatService, chatLogService, midjourneyService, stableDiffusionService, userBalanceService, userService, uploadService, badwordsService, autoreplyService, globalConfigService, chatGroupService, modelsService, openAIDrawService, lumaVideoService) {
+    constructor(configEntity, appEntity, pluginEntity, sunoService, openAIChatService, chatLogService, midjourneyService, stableDiffusionService, userBalanceService, userService, uploadService, badWordsService, autoreplyService, globalConfigService, chatGroupService, modelsService, openAIDrawService, lumaVideoService, cogVideoService, fluxDrawService, aiPptService) {
         this.configEntity = configEntity;
         this.appEntity = appEntity;
         this.pluginEntity = pluginEntity;
@@ -49,16 +52,20 @@ let ChatService = class ChatService {
         this.userBalanceService = userBalanceService;
         this.userService = userService;
         this.uploadService = uploadService;
-        this.badwordsService = badwordsService;
+        this.badWordsService = badWordsService;
         this.autoreplyService = autoreplyService;
         this.globalConfigService = globalConfigService;
         this.chatGroupService = chatGroupService;
         this.modelsService = modelsService;
         this.openAIDrawService = openAIDrawService;
         this.lumaVideoService = lumaVideoService;
+        this.cogVideoService = cogVideoService;
+        this.fluxDrawService = fluxDrawService;
+        this.aiPptService = aiPptService;
     }
     async chatProcess(body, req, res) {
-        const { options = {}, usingPluginId, appId = null, specialModel, prompt, fileInfo, modelType, extraParam, model, drawId, customId, action, modelName, modelAvatar, } = body;
+        await this.userBalanceService.checkUserCertification(req.user.id);
+        const { options = {}, usingPluginId, appId = null, specialModel, prompt, fileInfo, extraParam, model, drawId, customId, action, modelName, modelAvatar, } = body;
         let appInfo;
         if (specialModel) {
             appInfo = await this.appEntity.findOne({
@@ -74,7 +81,7 @@ let ChatService = class ChatService {
             }
         }
         const { groupId, fileParsing } = options;
-        const { openaiTimeout, openaiBaseUrl, openaiBaseKey, systemPreMessage, isMjTranslate, mjTranslatePrompt, openaiTemperature, openaiBaseModel, } = await this.globalConfigService.getConfigs([
+        const { openaiTimeout, openaiBaseUrl, openaiBaseKey, systemPreMessage, isMjTranslate, mjTranslatePrompt, openaiTemperature, openaiBaseModel, isGeneratePromptReference, isConvertToBase64, isSensitiveWordFilter, } = await this.globalConfigService.getConfigs([
             'openaiTimeout',
             'openaiBaseUrl',
             'openaiBaseKey',
@@ -83,11 +90,21 @@ let ChatService = class ChatService {
             'mjTranslatePrompt',
             'openaiTemperature',
             'openaiBaseModel',
+            'isGeneratePromptReference',
+            'isConvertToBase64',
+            'isSensitiveWordFilter',
         ]);
         await this.userService.checkUserStatus(req.user);
         res &&
             res.setHeader('Content-type', 'application/octet-stream; charset=utf-8');
-        await this.badwordsService.checkBadWords(prompt, req.user.id);
+        if (isSensitiveWordFilter === '1') {
+            const triggeredWords = await this.badWordsService.checkBadWords(prompt, req.user.id);
+            if (triggeredWords.length > 0) {
+                const tips = `您提交的信息中包含违规的内容，我们已对您的账户进行标记，请合规使用！`;
+                throw new common_1.HttpException(tips, common_1.HttpStatus.BAD_REQUEST);
+            }
+        }
+        const autoReplyRes = await this.autoreplyService.checkAutoReply(prompt);
         let currentRequestModelKey = null;
         let appName = '';
         let setSystemMessage = '';
@@ -132,6 +149,7 @@ let ChatService = class ChatService {
             }
         }
         else {
+            const groupInfo = await this.chatGroupService.getGroupInfoFromId(groupId);
             if (usingPlugin && usingPlugin.isSystemPlugin === 0) {
                 let pluginPrompt = '';
                 try {
@@ -183,13 +201,13 @@ let ChatService = class ChatService {
                 title: groupInfo.title,
                 isSticky: false,
                 config: updatedConfig,
+                fileUrl: '',
             }, req);
         }
-        const { deduct, isTokenBased, tokenFeeRatio, deductType, key, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel, isFileUpload, } = currentRequestModelKey;
+        const { deduct, isTokenBased, tokenFeeRatio, deductType, key, id: keyId, maxRounds, proxyUrl, maxModelTokens, timeout, model: useModel, isFileUpload, keyType: modelType, } = currentRequestModelKey;
         if (await this.chatLogService.checkModelLimits(req.user, useModel)) {
             throw new common_1.HttpException('1 小时内对话次数过多，请切换模型或稍后再试！', common_1.HttpStatus.TOO_MANY_REQUESTS);
         }
-        common_1.Logger.debug(`原始用户提问: ${prompt}, 是否翻译: ${isMjTranslate}, 翻译提示: ${mjTranslatePrompt}, 模型: ${model}, 是否文件上传: ${isFileUpload}, 文件信息: ${fileInfo}`);
         if (isMjTranslate === '1' &&
             action === 'IMAGINE' &&
             model === 'midjourney') {
@@ -265,11 +283,35 @@ let ChatService = class ChatService {
         });
         const userLogId = userSaveLog.id;
         const assistantLogId = assistantSaveLog.id;
+        if (autoReplyRes.answer && res) {
+            if (autoReplyRes.isAIReplyEnabled === 0) {
+                const chars = autoReplyRes.answer.split('');
+                const sendCharByChar = (index) => {
+                    if (index < chars.length) {
+                        const msg = { text: chars[index] };
+                        res.write(`${JSON.stringify(msg)}\n`);
+                        setTimeout(() => sendCharByChar(index + 1), 10);
+                    }
+                    else {
+                        res.end();
+                    }
+                };
+                sendCharByChar(0);
+                await this.chatLogService.updateChatLog(assistantLogId, {
+                    answer: autoReplyRes.answer,
+                });
+                return;
+            }
+            else {
+                setSystemMessage = setSystemMessage + autoReplyRes.answer;
+            }
+        }
         const { messagesHistory } = await this.buildMessageFromParentMessageId(prompt, {
             groupId,
             systemMessage: setSystemMessage,
             maxModelTokens,
             maxRounds: maxRounds,
+            isConvertToBase64: isConvertToBase64,
             fileInfo: fileInfo,
             model: useModel,
             isFileUpload,
@@ -284,11 +326,15 @@ let ChatService = class ChatService {
                 let response;
                 let firstChunk = true;
                 try {
-                    if (useModel === 'dall-e-3' ||
+                    if ((useModel === 'dall-e-3' ||
                         useModel === 'midjourney' ||
-                        useModel.includes('suno') ||
+                        useModel === 'ai-ppt' ||
+                        useModel === 'suno-music' ||
                         useModel === 'luma-video' ||
-                        useModel.includes('stable-diffusion')) {
+                        useModel.includes('stable-diffusion') ||
+                        useModel.includes('cog-video') ||
+                        useModel.includes('flux')) &&
+                        modelType === 2) {
                         if (useModel === 'dall-e-3') {
                             response = this.openAIDrawService.dalleDraw({
                                 prompt: prompt,
@@ -318,7 +364,57 @@ let ChatService = class ChatService {
                                 answer: '绘制中',
                             });
                         }
-                        else if (useModel.includes('suno')) {
+                        else if (useModel === 'ai-ppt') {
+                            common_1.Logger.log('开始生成PPT', 'DrawService');
+                            response = this.aiPptService.aiPPT({
+                                usePrompt: usePrompt,
+                                prompt: prompt,
+                                apiKey: modelKey,
+                                proxyUrl: proxyResUrl,
+                                model: useModel,
+                                modelName: useModeName,
+                                drawId,
+                                customId,
+                                action,
+                                timeout: modelTimeout,
+                                assistantLogId,
+                                extraParam,
+                                fileInfo,
+                            });
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '生成中',
+                            });
+                        }
+                        else if (useModel.includes('flux')) {
+                            response = this.fluxDrawService.fluxDraw({
+                                prompt: prompt,
+                                extraParam: extraParam,
+                                apiKey: modelKey,
+                                proxyUrl: proxyResUrl,
+                                model: useModel,
+                                timeout: modelTimeout,
+                                modelName: useModeName,
+                                groupId: groupId,
+                                onSuccess: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        fileInfo: data === null || data === void 0 ? void 0 : data.fileInfo,
+                                        answer: (data === null || data === void 0 ? void 0 : data.answer) || prompt,
+                                        progress: '100%',
+                                        status: data.status,
+                                    });
+                                },
+                                onFailure: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        answer: '绘图失败',
+                                        status: data.status,
+                                    });
+                                },
+                            }, this.buildMessageFromParentMessageId);
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '绘制中',
+                            });
+                        }
+                        else if (useModel.includes('suno-music')) {
                             response = this.sunoService.suno({
                                 assistantLogId,
                                 apiKey: modelKey,
@@ -370,8 +466,46 @@ let ChatService = class ChatService {
                                 answer: '提交成功，视频生成中',
                             });
                         }
+                        else if (useModel.includes('cog-video')) {
+                            response = this.cogVideoService.cogVideo({
+                                fileInfo,
+                                extraParam,
+                                assistantLogId,
+                                apiKey: modelKey,
+                                action,
+                                prompt,
+                                model: useModel,
+                                timeout: modelTimeout,
+                                proxyUrl: proxyResUrl,
+                                taskData: customId,
+                                onGenerate: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        fileInfo: data === null || data === void 0 ? void 0 : data.fileInfo,
+                                        answer: (data === null || data === void 0 ? void 0 : data.answer) || prompt,
+                                        status: 2,
+                                    });
+                                },
+                                onSuccess: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        fileInfo: data === null || data === void 0 ? void 0 : data.fileInfo,
+                                        answer: (data === null || data === void 0 ? void 0 : data.answer) || prompt,
+                                        progress: '100%',
+                                        status: 3,
+                                    });
+                                },
+                                onFailure: async (data) => {
+                                    await this.chatLogService.updateChatLog(assistantLogId, {
+                                        answer: data.errMsg,
+                                        status: 4,
+                                    });
+                                },
+                            });
+                            await this.chatLogService.updateChatLog(assistantLogId, {
+                                answer: '提交成功，视频生成中',
+                            });
+                        }
                         else if (useModel.includes('stable-diffusion')) {
-                            response = this.stableDiffusionService.sdxl(messagesHistory, {
+                            response = this.stableDiffusionService.sdxl({
                                 chatId: assistantLogId,
                                 maxModelTokens,
                                 apiKey: modelKey,
@@ -481,14 +615,33 @@ let ChatService = class ChatService {
                             completionTokens: completionTokens,
                             totalTokens: promptTokens + completionTokens,
                         });
+                        let sanitizedAnswer = response.answer;
+                        if (isSensitiveWordFilter === '1') {
+                            const triggeredWords = await this.badWordsService.checkBadWords(response.answer, req.user.id);
+                            if (triggeredWords.length > 0) {
+                                const regex = new RegExp(triggeredWords.join('|'), 'gi');
+                                sanitizedAnswer = sanitizedAnswer.replace(regex, (matched) => '*'.repeat(matched.length));
+                            }
+                        }
                         await this.chatLogService.updateChatLog(assistantLogId, {
                             fileInfo: response === null || response === void 0 ? void 0 : response.fileInfo,
-                            answer: response.answer,
+                            answer: sanitizedAnswer,
                             promptTokens: promptTokens,
                             completionTokens: completionTokens,
                             totalTokens: promptTokens + completionTokens,
                             status: 3,
                         });
+                        try {
+                            if (isGeneratePromptReference === '1') {
+                                const promptReference = await this.openAIChatService.chatFree(`根据用户提问{${prompt}}以及 AI 的回答{${response.answer}}，生成三个更进入一步的提问，用{}包裹每个问题，不需要分行，不需要其他任何内容，单个提问不超过30个字`);
+                                await this.chatLogService.updateChatLog(assistantLogId, {
+                                    promptReference: promptReference,
+                                });
+                            }
+                        }
+                        catch (error) {
+                            common_1.Logger.error(`调用 chatFree 出错: ${error}`);
+                        }
                         if (isTokenBased === true) {
                             charge =
                                 deduct *
@@ -594,13 +747,14 @@ let ChatService = class ChatService {
                 title: chatTitle,
                 isSticky: false,
                 config: '',
+                fileUrl: '',
             }, req)
                 .then(() => common_1.Logger.log(`更新标题名称为: ${chatTitle}`, 'ChatService'))
                 .catch((error) => common_1.Logger.error(`更新对话组标题失败: ${error}`));
         }
     }
     async buildMessageFromParentMessageId(text, options, chatLogService) {
-        let { systemMessage = '', fileInfo, groupId, maxRounds = 5, maxModelTokens = 8000, isFileUpload = 0, } = options;
+        let { systemMessage = '', fileInfo, groupId, maxRounds = 5, maxModelTokens = 8000, isFileUpload = 0, isConvertToBase64, } = options;
         if (systemMessage.length > maxModelTokens) {
             common_1.Logger.log('系统消息超过最大长度，将被截断', 'ChatService');
             systemMessage = systemMessage.slice(0, maxModelTokens);
@@ -612,16 +766,21 @@ let ChatService = class ChatService {
         if (groupId) {
             const history = await chatLogService.chatHistory(groupId, maxRounds);
             let tempUserMessage = null;
-            history.forEach((record) => {
+            for (const record of history) {
                 try {
                     let content;
                     if ((isFileUpload === 2 || isFileUpload === 3) &&
                         record.fileInfo &&
                         record.role === 'user') {
-                        content = [
-                            { type: 'text', text: record.text },
-                            { type: 'image_url', image_url: { url: record.fileInfo } },
-                        ];
+                        const imageUrls = await Promise.all(record.fileInfo.split(',').map(async (url) => ({
+                            type: 'image_url',
+                            image_url: {
+                                url: isConvertToBase64 === '1'
+                                    ? await this.convertUrlToBase64(url.trim())
+                                    : url.trim(),
+                            },
+                        })));
+                        content = [{ type: 'text', text: record.text }, ...imageUrls];
                     }
                     else if (isFileUpload === 1 &&
                         record.fileInfo &&
@@ -648,14 +807,19 @@ let ChatService = class ChatService {
                 catch (error) {
                     common_1.Logger.error('处理历史记录时出错:', error, '记录:', JSON.stringify(record, null, 2));
                 }
-            });
+            }
         }
         let currentMessageContent;
         if ((isFileUpload === 2 || isFileUpload === 3) && fileInfo) {
-            currentMessageContent = [
-                { type: 'text', text },
-                { type: 'image_url', image_url: { url: fileInfo } },
-            ];
+            const imageUrls = await Promise.all(fileInfo.split(',').map(async (url) => ({
+                type: 'image_url',
+                image_url: {
+                    url: isConvertToBase64 === '1'
+                        ? await this.convertUrlToBase64(url.trim())
+                        : url.trim(),
+                },
+            })));
+            currentMessageContent = [{ type: 'text', text }, ...imageUrls];
         }
         else if (isFileUpload === 1 && fileInfo) {
             currentMessageContent = fileInfo + '\n' + text;
@@ -706,13 +870,30 @@ let ChatService = class ChatService {
             round: messages.length,
         };
     }
+    async convertUrlToBase64(url) {
+        try {
+            console.log(`正在尝试转换URL为Base64: ${url}`);
+            const response = await axios_1.default.get(url, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(response.data, 'binary');
+            console.log(`成功获取图片，正在转换为Base64: ${url}`);
+            const base64Data = `data:${response.headers['content-type']};base64,${buffer.toString('base64')}`;
+            console.log(`成功转换URL为Base64: ${url}`);
+            return base64Data;
+        }
+        catch (error) {
+            console.error('转换URL为Base64时发生错误:', error);
+            console.warn(`返回原始链接: ${url}`);
+            return url;
+        }
+    }
     async ttsProcess(body, req, res) {
         const { chatId, prompt } = body;
         const detailKeyInfo = await this.modelsService.getCurrentModelKeyInfo('tts-1');
-        const { openaiTimeout, openaiBaseUrl, openaiBaseKey } = await this.globalConfigService.getConfigs([
+        const { openaiTimeout, openaiBaseUrl, openaiBaseKey, openaiVoice } = await this.globalConfigService.getConfigs([
             'openaiTimeout',
             'openaiBaseUrl',
             'openaiBaseKey',
+            'openaiVoice',
         ]);
         const { key, proxyUrl, deduct, deductType, timeout } = detailKeyInfo;
         const useKey = key || openaiBaseKey;
@@ -732,7 +913,7 @@ let ChatService = class ChatService {
             data: {
                 model: 'tts-1',
                 input: prompt,
-                voice: 'onyx',
+                voice: openaiVoice || 'onyx',
             },
         };
         try {
@@ -773,12 +954,15 @@ ChatService = __decorate([
         userBalance_service_1.UserBalanceService,
         user_service_1.UserService,
         upload_service_1.UploadService,
-        badwords_service_1.BadwordsService,
+        badWords_service_1.BadWordsService,
         autoreply_service_1.AutoreplyService,
         globalConfig_service_1.GlobalConfigService,
         chatGroup_service_1.ChatGroupService,
         models_service_1.ModelsService,
         openaiDraw_service_1.OpenAIDrawService,
-        lumaVideo_service_1.LumaVideoService])
+        lumaVideo_service_1.LumaVideoService,
+        cogVideo_service_1.CogVideoService,
+        fluxDraw_service_1.FluxDrawService,
+        aiPPT_1.AiPptService])
 ], ChatService);
 exports.ChatService = ChatService;

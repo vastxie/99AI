@@ -22,6 +22,7 @@ const redisCache_service_1 = require("../redisCache/redisCache.service");
 const status_constant_1 = require("./../../common/constants/status.constant");
 const verifycation_entity_1 = require("./verifycation.entity");
 const Core = require("@alicloud/pop-core");
+const axios_1 = require("axios");
 let VerificationService = class VerificationService {
     constructor(verifycationEntity, globalConfigService, redisCacheService) {
         this.verifycationEntity = verifycationEntity;
@@ -99,6 +100,43 @@ let VerificationService = class VerificationService {
         }
         catch (error) {
             throw new common_1.HttpException(((_a = error === null || error === void 0 ? void 0 : error.data) === null || _a === void 0 ? void 0 : _a.Message) || '验证码发送失败！', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async verifyIdentity(identityInfo) {
+        const appCode = await this.globalConfigService.getConfigs(['appCode']);
+        const { name, idCard } = identityInfo;
+        if (!name || !idCard) {
+            throw new common_1.HttpException('缺少必要参数！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        common_1.Logger.debug(`Received identityInfo: ${name}, ${idCard}`);
+        const apiUrl = 'https://eid.shumaidata.com/eid/check';
+        const headers = {
+            Authorization: `APPCODE ${appCode}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        };
+        const params = new URLSearchParams({
+            name: name,
+            idcard: idCard,
+        });
+        try {
+            const response = await axios_1.default.post(apiUrl, params, { headers });
+            const responseString = JSON.stringify(response.data);
+            common_1.Logger.debug(`Received response: ${responseString}`);
+            switch (response.data.result.res) {
+                case '1':
+                    return true;
+                case '2':
+                    common_1.Logger.log('验证不一致', 'VerificationService');
+                case '3':
+                    common_1.Logger.log('实名认证异常', 'VerificationService');
+                default:
+                    common_1.Logger.log('未知的认证结果', 'VerificationService');
+            }
+            return false;
+        }
+        catch (error) {
+            common_1.Logger.error(`Error: ${error.message}`, error.stack, 'Verification');
+            return false;
         }
     }
 };

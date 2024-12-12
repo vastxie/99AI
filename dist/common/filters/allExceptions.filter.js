@@ -14,21 +14,32 @@ let AllExceptionsFilter = class AllExceptionsFilter {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse();
         const request = ctx.getRequest();
-        const exceptionRes = exception.getResponse() || 'Internal server error';
-        const message = (exceptionRes === null || exceptionRes === void 0 ? void 0 : exceptionRes.message)
-            ? Array.isArray(exceptionRes)
-                ? exceptionRes['message'][0]
-                : exceptionRes['message']
-            : exceptionRes;
         const status = exception instanceof common_1.HttpException
             ? exception.getStatus()
             : common_1.HttpStatus.INTERNAL_SERVER_ERROR;
+        let message = 'Internal server error';
+        if (exception instanceof common_1.HttpException) {
+            const exceptionRes = exception.getResponse();
+            message = (exceptionRes === null || exceptionRes === void 0 ? void 0 : exceptionRes.message)
+                ? Array.isArray(exceptionRes.message)
+                    ? exceptionRes.message[0]
+                    : exceptionRes.message
+                : exceptionRes;
+        }
+        else if (typeof exception.getResponse === 'function') {
+            const exceptionRes = exception.getResponse();
+            message = (exceptionRes === null || exceptionRes === void 0 ? void 0 : exceptionRes.message)
+                ? Array.isArray(exceptionRes.message)
+                    ? exceptionRes.message[0]
+                    : exceptionRes.message
+                : exceptionRes;
+        }
         if (status === common_1.HttpStatus.NOT_FOUND) {
             response.redirect('/');
         }
         else {
             const statusCode = status || 400;
-            response.status(status);
+            response.status(statusCode);
             response.header('Content-Type', 'application/json; charset=utf-8');
             response.send(result_1.Result.fail(statusCode, Array.isArray(message) ? message[0] : message));
         }

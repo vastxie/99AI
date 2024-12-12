@@ -43,7 +43,7 @@ let AuthService = class AuthService {
         this.getIp();
     }
     async register(body, req) {
-        const { password, contact, code, invitedBy } = body;
+        const { password, contact, code } = body;
         let email = '', phone = '';
         const isEmail = /\S+@\S+\.\S+/.test(contact);
         const isPhone = /^\d{10,}$/.test(contact);
@@ -111,7 +111,6 @@ let AuthService = class AuthService {
                 username,
                 password,
                 email: contact,
-                invitedBy,
                 status: user_constant_1.UserStatusEnum.ACTIVE,
             };
         }
@@ -122,7 +121,6 @@ let AuthService = class AuthService {
                 password,
                 email,
                 phone: contact,
-                invitedBy,
                 status: user_constant_1.UserStatusEnum.ACTIVE,
             };
         }
@@ -138,12 +136,7 @@ let AuthService = class AuthService {
         common_1.Logger.debug('保存新用户到数据库...');
         const u = await this.userService.createUser(newUser);
         common_1.Logger.debug(`用户创建成功，用户ID: ${u.id}`);
-        let inviteUser;
-        if (invitedBy) {
-            inviteUser = await this.userService.qureyUserInfoByInviteCode(invitedBy);
-            common_1.Logger.debug(`邀请人信息: ${inviteUser}`);
-        }
-        await this.userBalanceService.addBalanceToNewUser(u.id, inviteUser === null || inviteUser === void 0 ? void 0 : inviteUser.id);
+        await this.userBalanceService.addBalanceToNewUser(u.id);
         common_1.Logger.debug('完成新用户余额处理');
         return { success: true, message: '注册成功' };
     }
@@ -360,6 +353,34 @@ let AuthService = class AuthService {
             return `验证码发送成功、请填写验证码完成注册！`;
         }
     }
+    async sendPhoneCode(body) {
+        const { phone, isLogin } = body;
+        const code = (0, utils_1.createRandomCode)();
+        const isPhone = /^\d{10,}$/.test(phone);
+        if (!isPhone) {
+            throw new common_1.HttpException('请提供有效的邮箱地址或手机号码。', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (isLogin) {
+            if (isPhone) {
+                const isAvailable = await this.userService.verifyUserRegister({
+                    phone,
+                });
+                if (!isAvailable) {
+                    throw new common_1.HttpException('当前手机号已注册，请勿重复注册！', common_1.HttpStatus.BAD_REQUEST);
+                }
+            }
+        }
+        const nameSpace = await this.globalConfigService.getNamespace();
+        const key = `${nameSpace}:CODE:${phone}`;
+        const ttl = await this.redisCacheService.ttl(key);
+        if (ttl && ttl > 0 && isPhone) {
+            throw new common_1.HttpException(`${ttl}秒内不得重复发送验证码！`, common_1.HttpStatus.BAD_REQUEST);
+        }
+        const messageInfo = { phone, code };
+        await this.redisCacheService.set({ key, val: code }, 10 * 60);
+        await this.verificationService.sendPhoneCode(messageInfo);
+        return `验证码发送成功、请填写验证码完成认证！`;
+    }
     createTokenFromFingerprint(fingerprint) {
         const token = this.jwtService.sign({
             username: `游客${fingerprint}`,
@@ -370,6 +391,58 @@ let AuthService = class AuthService {
             client: null,
         });
         return token;
+    }
+    async verifyIdentity(req, body) {
+        common_1.Logger.debug('开始实名认证流程');
+        const { name, idCard } = body;
+        const { id } = req.user;
+        try {
+            const result = await this.verificationService.verifyIdentity(body);
+            common_1.Logger.debug(`实名认证结果: ${result}`);
+            if (!result) {
+                throw new common_1.HttpException('身份验证错误，请检查实名信息', common_1.HttpStatus.BAD_REQUEST);
+            }
+            await this.userService.saveRealNameInfo(id, name, idCard);
+            return '认证成功';
+        }
+        catch (error) {
+            common_1.Logger.error('验证过程出现错误', error);
+            throw new common_1.HttpException('认证失败，请检查相关信息', common_1.HttpStatus.BAD_REQUEST);
+        }
+    }
+    async verifyPhoneIdentity(req, body) {
+        common_1.Logger.debug('开始手机号认证流程');
+        const { phone, username, password, code } = body;
+        const { id } = req.user;
+        const nameSpace = this.globalConfigService.getNamespace();
+        const key = `${nameSpace}:CODE:${phone}`;
+        const redisCode = await this.redisCacheService.get({ key });
+        common_1.Logger.debug(`Retrieved redisCode for ${phone}: ${redisCode}`);
+        if (code === '') {
+            throw new common_1.HttpException('请输入验证码', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (!redisCode) {
+            common_1.Logger.log(`验证码过期: ${phone}`, 'authService');
+            throw new common_1.HttpException('验证码已过期，请重新发送！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (code !== redisCode) {
+            common_1.Logger.log(`验证码错误: ${phone} 输入的验证码: ${code}, 期望的验证码: ${redisCode}`, 'authService');
+            throw new common_1.HttpException('验证码填写错误，请重新输入！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (username) {
+            const usernameTaken = await this.userService.isUsernameTaken(body.username, id);
+            if (usernameTaken) {
+                throw new common_1.HttpException('用户名已存在！', common_1.HttpStatus.BAD_REQUEST);
+            }
+        }
+        try {
+            await this.userService.updateUserPhone(id, phone, username, password);
+            return '认证成功';
+        }
+        catch (error) {
+            common_1.Logger.error('验证过程出现错误', error);
+            throw new common_1.HttpException('身份验证错误，请检查相关信息', common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 AuthService = __decorate([

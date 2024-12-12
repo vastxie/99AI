@@ -6,23 +6,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BadwordsModule = void 0;
+exports.BadWordsModule = void 0;
 const common_1 = require("@nestjs/common");
-const badwords_service_1 = require("./badwords.service");
-const badwords_controller_1 = require("./badwords.controller");
 const typeorm_1 = require("@nestjs/typeorm");
-const badwords_entity_1 = require("./badwords.entity");
-const violationLog_entity_1 = require("./violationLog.entity");
 const user_entity_1 = require("../user/user.entity");
-let BadwordsModule = class BadwordsModule {
+const badWords_controller_1 = require("./badWords.controller");
+const badWords_entity_1 = require("./badWords.entity");
+const badWords_service_1 = require("./badWords.service");
+const violationLog_entity_1 = require("./violationLog.entity");
+let BadWordsModule = class BadWordsModule {
 };
-BadwordsModule = __decorate([
+BadWordsModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([badwords_entity_1.BadWordsEntity, violationLog_entity_1.ViolationLogEntity, user_entity_1.UserEntity])],
-        providers: [badwords_service_1.BadwordsService],
-        controllers: [badwords_controller_1.BadwordsController],
-        exports: [badwords_service_1.BadwordsService],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([badWords_entity_1.BadWordsEntity, violationLog_entity_1.ViolationLogEntity, user_entity_1.UserEntity]),
+        ],
+        providers: [badWords_service_1.BadWordsService],
+        controllers: [badWords_controller_1.BadWordsController],
+        exports: [badWords_service_1.BadWordsService],
     })
-], BadwordsModule);
-exports.BadwordsModule = BadwordsModule;
+], BadWordsModule);
+exports.BadWordsModule = BadWordsModule;

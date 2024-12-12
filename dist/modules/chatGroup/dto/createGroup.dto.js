@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateGroupDto = void 0;
-const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
 class CreateGroupDto {
 }
 __decorate([
@@ -20,7 +20,19 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateGroupDto.prototype, "appId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "", description: '对话模型配置项序列化的字符串', required: false }),
+    (0, swagger_1.ApiProperty)({
+        example: '',
+        description: '对话模型配置项序列化的字符串',
+        required: false,
+    }),
     __metadata("design:type", Object)
 ], CreateGroupDto.prototype, "modelConfig", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '',
+        description: '对话组参数序列化的字符串',
+        required: false,
+    }),
+    __metadata("design:type", String)
+], CreateGroupDto.prototype, "params", void 0);
 exports.CreateGroupDto = CreateGroupDto;

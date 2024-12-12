@@ -19,7 +19,6 @@ const superAuth_guard_1 = require("../../common/auth/superAuth.guard");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const queryAllUser_dto_1 = require("./dto/queryAllUser.dto");
-const queryInviteRecord_dto_1 = require("./dto/queryInviteRecord.dto");
 const queryOne_dto_1 = require("./dto/queryOne.dto");
 const resetUserPass_dto_1 = require("./dto/resetUserPass.dto");
 const updateUser_dto_1 = require("./dto/updateUser.dto");
@@ -32,15 +31,6 @@ let UserController = class UserController {
     }
     async update(body, req) {
         return await this.userService.updateInfo(body, req);
-    }
-    async genInviteCode(req) {
-        return await this.userService.genInviteCode(req);
-    }
-    async getInviteRecord(req, query) {
-        return await this.userService.getInviteRecord(req, query);
-    }
-    async inviteLink(code) {
-        return await this.userService.inviteLink(code);
     }
     async userRecharge(body) {
         return await this.userService.userRecharge(body);
@@ -69,35 +59,6 @@ __decorate([
     __metadata("design:paramtypes", [updateUser_dto_1.UpdateUserDto, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "update", null);
-__decorate([
-    (0, common_1.Post)('genInviteCode'),
-    (0, swagger_1.ApiOperation)({ summary: '生成邀请码' }),
-    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "genInviteCode", null);
-__decorate([
-    (0, common_1.Get)('inviteRecord'),
-    (0, swagger_1.ApiOperation)({ summary: '获取我的邀请记录' }),
-    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, queryInviteRecord_dto_1.queryInviteRecordDto]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "getInviteRecord", null);
-__decorate([
-    (0, common_1.Get)('inviteLink'),
-    (0, swagger_1.ApiOperation)({ summary: '邀请链接被点击' }),
-    __param(0, (0, common_1.Query)('code')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "inviteLink", null);
 __decorate([
     (0, common_1.Post)('recharge'),
     (0, swagger_1.ApiOperation)({ summary: '用户充值' }),

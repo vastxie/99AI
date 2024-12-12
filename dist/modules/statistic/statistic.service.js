@@ -14,7 +14,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatisticService = void 0;
 const balance_constant_1 = require("../../common/constants/balance.constant");
-const midjourney_constant_1 = require("../../common/constants/midjourney.constant");
 const date_1 = require("../../common/utils/date");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
@@ -23,16 +22,14 @@ const typeorm_2 = require("typeorm");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
 const config_entity_1 = require("../globalConfig/config.entity");
 const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
-const midjourney_entity_1 = require("../midjourney/midjourney.entity");
 const order_entity_1 = require("../order/order.entity");
 const user_entity_1 = require("../user/user.entity");
 let StatisticService = class StatisticService {
-    constructor(userEntity, chatLogEntity, configEntity, orderEntity, midjourneyEntity, globalConfigService) {
+    constructor(userEntity, chatLogEntity, configEntity, orderEntity, globalConfigService) {
         this.userEntity = userEntity;
         this.chatLogEntity = chatLogEntity;
         this.configEntity = configEntity;
         this.orderEntity = orderEntity;
-        this.midjourneyEntity = midjourneyEntity;
         this.globalConfigService = globalConfigService;
     }
     async getBaseStatistic() {
@@ -42,7 +39,6 @@ let StatisticService = class StatisticService {
         const newChatCount = await this.countNewChatsToday();
         const drawCount = await this.countDraws();
         const dellDrawCount = await this.countNewDrawsToday();
-        const mjDrawCount = await this.countNewMidhourneysToday();
         const orderCount = await this.countOrders();
         const newOrderCount = await this.countNewOrdersToday();
         return {
@@ -51,7 +47,7 @@ let StatisticService = class StatisticService {
             chatCount,
             newChatCount,
             drawCount,
-            newDrawCount: mjDrawCount + dellDrawCount,
+            newDrawCount: dellDrawCount,
             orderCount,
             newOrderCount,
         };
@@ -59,12 +55,11 @@ let StatisticService = class StatisticService {
     async getChatStatistic({ days = 7 }) {
         const chatData = await this.countChatsByTimeRange(days);
         const drawData = await this.countDrawsByTimeRange(days);
-        const mjDrawData = await this.countMjDrawsByTimeRange(days);
         return {
             date: chatData.map((item) => item.date),
             chat: chatData.map((item) => item.value),
             draw: drawData.map((item, index) => {
-                return item.value + mjDrawData[index].value;
+                return item.value;
             }),
         };
     }
@@ -123,17 +118,6 @@ let StatisticService = class StatisticService {
             .getCount();
         return drawCount;
     }
-    async countNewMidhourneysToday() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-        const queryBuilder = this.midjourneyEntity.createQueryBuilder('midjourney');
-        const midjourneyCount = await queryBuilder
-            .where('midjourney.createdAt >= :today', { today })
-            .andWhere('midjourney.createdAt < :tomorrow', { tomorrow })
-            .getCount();
-        return midjourneyCount;
-    }
     async countChatsByTimeRange(days) {
         var _a, _b;
         const today = new Date();
@@ -172,36 +156,6 @@ let StatisticService = class StatisticService {
             .select(`DATE(chatlog.createdAt) as date, COUNT(*) as count`)
             .where(`chatlog.type = :type`, { type: balance_constant_1.ChatType.PAINT })
             .andWhere('chatlog.createdAt >= :startDate', { startDate })
-            .groupBy('date')
-            .orderBy('date')
-            .getRawMany();
-        const dailyData = [];
-        const currentDate = startDate;
-        for (let i = 0; i < days; i++) {
-            const dateString = (0, date_1.formatDate)(new Date(currentDate), 'M.DD');
-            const count = (_b = (_a = result.find((r) => (0, date_1.formatDate)(new Date(r.date), 'M.DD') === dateString)) === null || _a === void 0 ? void 0 : _a.count) !== null && _b !== void 0 ? _b : 0;
-            if (count > 0) {
-                dailyData.push({ date: dateString, value: Number(count) });
-            }
-            else {
-                dailyData.push({ date: dateString, value: 0 });
-            }
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        return dailyData;
-    }
-    async countMjDrawsByTimeRange(days) {
-        var _a, _b;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const startDate = new Date(today.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
-        const queryBuilder = this.midjourneyEntity.createQueryBuilder('midjourney');
-        const result = await queryBuilder
-            .select(`DATE(midjourney.createdAt) as date, COUNT(*) as count`)
-            .where(`midjourney.status = :status`, {
-            status: midjourney_constant_1.MidjourneyStatusEnum.DRAWED,
-        })
-            .andWhere('midjourney.createdAt >= :startDate', { startDate })
             .groupBy('date')
             .orderBy('date')
             .getRawMany();
@@ -317,9 +271,7 @@ StatisticService = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(chatLog_entity_1.ChatLogEntity)),
     __param(2, (0, typeorm_1.InjectRepository)(config_entity_1.ConfigEntity)),
     __param(3, (0, typeorm_1.InjectRepository)(order_entity_1.OrderEntity)),
-    __param(4, (0, typeorm_1.InjectRepository)(midjourney_entity_1.MidjourneyEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

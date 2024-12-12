@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BadWordsEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let BadWordsEntity = class BadWordsEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([

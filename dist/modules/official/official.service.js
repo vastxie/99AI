@@ -32,10 +32,8 @@ let OfficialService = class OfficialService {
     async onModuleInit() {
         await this.globalConfigService.getWechatAccessToken(true);
     }
-    async getQRSceneStr(body) {
-        const { invitedBy } = body;
+    async getQRSceneStr() {
         let sceneStr = (0, utils_1.createRandomNonceStr)(32);
-        invitedBy && (sceneStr += `:${invitedBy}`);
         this.sceneStrMap[sceneStr] = true;
         return sceneStr;
     }
@@ -124,7 +122,8 @@ let OfficialService = class OfficialService {
             throw new common_1.HttpException('处理扫码事件时发生错误', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async loginBySceneStr(req, sceneStr) {
+    async loginBySceneStr(req, body) {
+        const { sceneStr } = body;
         if (!this.sceneStrMap[sceneStr])
             return;
         const userId = this.scanedSceneStrMap[sceneStr];

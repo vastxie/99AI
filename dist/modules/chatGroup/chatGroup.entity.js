@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatGroupEntity = void 0;
-const typeorm_1 = require("typeorm");
 const baseEntity_1 = require("../../common/entity/baseEntity");
+const typeorm_1 = require("typeorm");
 let ChatGroupEntity = class ChatGroupEntity extends baseEntity_1.BaseEntity {
 };
 __decorate([
@@ -38,6 +38,18 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '配置', nullable: true, default: null, type: 'text' }),
     __metadata("design:type", String)
 ], ChatGroupEntity.prototype, "config", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '附加参数', nullable: true, type: 'text' }),
+    __metadata("design:type", String)
+], ChatGroupEntity.prototype, "params", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '文件链接', nullable: true, default: null, type: 'text' }),
+    __metadata("design:type", String)
+], ChatGroupEntity.prototype, "fileUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: 'PDF中的文字内容', nullable: true, type: 'mediumtext' }),
+    __metadata("design:type", String)
+], ChatGroupEntity.prototype, "pdfTextContent", void 0);
 ChatGroupEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'chat_group' })
 ], ChatGroupEntity);

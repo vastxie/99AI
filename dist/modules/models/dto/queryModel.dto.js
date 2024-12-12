@@ -26,15 +26,27 @@ __decorate([
     __metadata("design:type", Number)
 ], QueryModelDto.prototype, "keyType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'dsadgadaorjoqm', description: '模型key', required: true }),
+    (0, swagger_1.ApiProperty)({
+        example: 'dsadgadaorjoqm',
+        description: '模型key',
+        required: true,
+    }),
     __metadata("design:type", String)
 ], QueryModelDto.prototype, "key", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: true, description: '是否开启当前key对应的模型', required: true }),
+    (0, swagger_1.ApiProperty)({
+        example: true,
+        description: '是否开启当前key对应的模型',
+        required: true,
+    }),
     __metadata("design:type", Boolean)
 ], QueryModelDto.prototype, "status", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'gpt-3.5', description: '当前key绑定的模型是多少 需要调用的模型', required: true }),
+    (0, swagger_1.ApiProperty)({
+        example: 'gpt-3.5',
+        description: '当前key绑定的模型是多少 需要调用的模型',
+        required: true,
+    }),
     __metadata("design:type", String)
 ], QueryModelDto.prototype, "model", void 0);
 exports.QueryModelDto = QueryModelDto;

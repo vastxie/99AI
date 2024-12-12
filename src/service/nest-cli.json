@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+	"packageManager": "pnpm",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "assets": ["src/common/mailTemplates/**/*","src/views/**/*","src/rpc/*"]
+  },
+  "defaults": {
+    "path": "modules"
+  }
+}

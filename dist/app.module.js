@@ -17,22 +17,19 @@ const path_1 = require("path");
 const app_module_1 = require("./modules/app/app.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const autoreply_module_1 = require("./modules/autoreply/autoreply.module");
-const badwords_module_1 = require("./modules/badwords/badwords.module");
+const badWords_module_1 = require("./modules/badWords/badWords.module");
 const chat_module_1 = require("./modules/chat/chat.module");
 const chatGroup_module_1 = require("./modules/chatGroup/chatGroup.module");
 const chatLog_module_1 = require("./modules/chatLog/chatLog.module");
 const crami_module_1 = require("./modules/crami/crami.module");
 const database_module_1 = require("./modules/database/database.module");
 const globalConfig_module_1 = require("./modules/globalConfig/globalConfig.module");
-const menu_module_1 = require("./modules/menu/menu.module");
-const midjourney_module_1 = require("./modules/midjourney/midjourney.module");
 const models_module_1 = require("./modules/models/models.module");
 const official_module_1 = require("./modules/official/official.module");
 const order_module_1 = require("./modules/order/order.module");
 const pay_module_1 = require("./modules/pay/pay.module");
 const plugin_module_1 = require("./modules/plugin/plugin.module");
 const redisCache_module_1 = require("./modules/redisCache/redisCache.module");
-const sales_module_1 = require("./modules/sales/sales.module");
 const signin_module_1 = require("./modules/signin/signin.module");
 const statistic_module_1 = require("./modules/statistic/statistic.module");
 const task_module_1 = require("./modules/task/task.module");
@@ -75,18 +72,15 @@ AppModule = __decorate([
             redisCache_module_1.RedisCacheModule,
             globalConfig_module_1.GlobalConfigModule,
             statistic_module_1.StatisticModule,
-            badwords_module_1.BadwordsModule,
+            badWords_module_1.BadWordsModule,
             autoreply_module_1.AutoreplyModule,
             app_module_1.AppModule,
             pay_module_1.PayModule,
             order_module_1.OrderModule,
             official_module_1.OfficialModule,
             task_module_1.TaskModule,
-            midjourney_module_1.MidjourneyModule,
             chatGroup_module_1.ChatGroupModule,
-            sales_module_1.SalesModule,
             signin_module_1.SigninModule,
-            menu_module_1.MenuModule,
             models_module_1.ModelsModule,
         ],
         providers: [

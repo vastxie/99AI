@@ -24,6 +24,7 @@ let SunoService = class SunoService {
     async suno(inputs) {
         var _a, _b, _c;
         const { apiKey, proxyUrl, action, prompt, timeout, assistantLogId, taskData, extraParam, } = inputs;
+        common_1.Logger.debug(`SunoService: ${JSON.stringify(inputs)}`, 'SunoService');
         let result = {
             text: '',
             fileInfo: '',
@@ -53,6 +54,7 @@ let SunoService = class SunoService {
         common_1.Logger.log(`正在准备发送请求到 ${url}，payload: ${JSON.stringify(payloadJson)}, headers: ${JSON.stringify(headers)}`, 'SunoService');
         try {
             response = await axios_1.default.post(url, payloadJson, { headers });
+            common_1.Logger.debug(`任务提交结果，状态码: ${response.status}, 状态消息: ${response.statusText}, 数据: ${JSON.stringify(response.data)}`);
         }
         catch (error) {
             common_1.Logger.error(`任务提交失败: ${error.message}`, 'SunoService');

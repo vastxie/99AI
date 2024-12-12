@@ -18,7 +18,6 @@ const utils_1 = require("../../common/utils");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const getQrCode_dto_1 = require("./dto/getQrCode.dto");
-const getQrSceneStr_dto_1 = require("./dto/getQrSceneStr.dto");
 const official_service_1 = require("./official.service");
 let OfficialController = class OfficialController {
     constructor(officialService) {
@@ -76,8 +75,8 @@ let OfficialController = class OfficialController {
         }
         return 'success';
     }
-    async getQRSceneStr(body) {
-        return this.officialService.getQRSceneStr(body);
+    async getQRSceneStr() {
+        return this.officialService.getQRSceneStr();
     }
     async getQRSceneStrByBind(req) {
         return this.officialService.getQRSceneStrByBind(req);
@@ -90,7 +89,7 @@ let OfficialController = class OfficialController {
         return `${Url}/cgi-bin/showqrcode?ticket=${encodeURIComponent(ticket)}`;
     }
     async loginBySceneStr(req, body) {
-        return this.officialService.loginBySceneStr(req, body.sceneStr);
+        return this.officialService.loginBySceneStr(req, body);
     }
     async bindWxBySceneStr(req, body) {
         return this.officialService.bindWxBySceneStr(req, body.sceneStr);
@@ -129,9 +128,8 @@ __decorate([
 __decorate([
     (0, common_1.Post)('getQRSceneStr'),
     (0, swagger_1.ApiOperation)({ summary: '获取登录二维码sceneStr' }),
-    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [getQrSceneStr_dto_1.GetQrSceneStrDto]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], OfficialController.prototype, "getQRSceneStr", null);
 __decorate([
@@ -157,7 +155,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, getQrCode_dto_1.GetQrCodeDto]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], OfficialController.prototype, "loginBySceneStr", null);
 __decorate([

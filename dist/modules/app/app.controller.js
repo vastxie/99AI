@@ -22,7 +22,6 @@ const app_service_1 = require("./app.service");
 const collectApp_dto_1 = require("./dto/collectApp.dto");
 const createApp_dto_1 = require("./dto/createApp.dto");
 const createCats_dto_1 = require("./dto/createCats.dto");
-const custonApp_dto_1 = require("./dto/custonApp.dto");
 const deleteApp_dto_1 = require("./dto/deleteApp.dto");
 const deleteCats_dto_1 = require("./dto/deleteCats.dto");
 const queryApp_dto_1 = require("./dto/queryApp.dto");
@@ -55,9 +54,6 @@ let AppController = class AppController {
     appList(req, query) {
         return this.appService.appList(req, query);
     }
-    appSystemList() {
-        return this.appService.appSystemList();
-    }
     list(req, query) {
         return this.appService.frontAppList(req, query);
     }
@@ -67,26 +63,11 @@ let AppController = class AppController {
     createApp(body) {
         return this.appService.createApp(body);
     }
-    customApp(body, req) {
-        return this.appService.customApp(body, req);
-    }
     updateApp(body) {
         return this.appService.updateApp(body);
     }
-    updateSystemApp(body) {
-        return this.appService.updateSystemApp(body);
-    }
     delApp(body) {
         return this.appService.delApp(body);
-    }
-    auditPass(body) {
-        return this.appService.auditPass(body);
-    }
-    auditFail(body) {
-        return this.appService.auditFail(body);
-    }
-    delMineApp(body, req) {
-        return this.appService.delMineApp(body, req);
     }
     collect(body, req) {
         return this.appService.collect(body, req);
@@ -162,15 +143,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "appList", null);
 __decorate([
-    (0, common_1.Get)('querySystemApp'),
-    (0, swagger_1.ApiOperation)({ summary: '获取系统App列表' }),
-    (0, common_1.UseGuards)(adminAuth_guard_1.AdminAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "appSystemList", null);
-__decorate([
     (0, common_1.Get)('list'),
     (0, swagger_1.ApiOperation)({ summary: '客户端获取App' }),
     __param(0, (0, common_1.Req)()),
@@ -198,17 +170,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "createApp", null);
 __decorate([
-    (0, common_1.Post)('customApp'),
-    (0, swagger_1.ApiOperation)({ summary: '添加自定义App' }),
-    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [custonApp_dto_1.CustomAppDto, Object]),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "customApp", null);
-__decorate([
     (0, common_1.Post)('updateApp'),
     (0, swagger_1.ApiOperation)({ summary: '修改App' }),
     (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
@@ -219,16 +180,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "updateApp", null);
 __decorate([
-    (0, common_1.Post)('updateSystemApp'),
-    (0, swagger_1.ApiOperation)({ summary: '修改系统App' }),
-    (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "updateSystemApp", null);
-__decorate([
     (0, common_1.Post)('delApp'),
     (0, swagger_1.ApiOperation)({ summary: '删除App' }),
     (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
@@ -238,37 +189,6 @@ __decorate([
     __metadata("design:paramtypes", [deleteApp_dto_1.OperateAppDto]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "delApp", null);
-__decorate([
-    (0, common_1.Post)('auditPass'),
-    (0, swagger_1.ApiOperation)({ summary: '审核通过App' }),
-    (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [deleteApp_dto_1.OperateAppDto]),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "auditPass", null);
-__decorate([
-    (0, common_1.Post)('auditFail'),
-    (0, swagger_1.ApiOperation)({ summary: '审核拒绝App' }),
-    (0, common_1.UseGuards)(superAuth_guard_1.SuperAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [deleteApp_dto_1.OperateAppDto]),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "auditFail", null);
-__decorate([
-    (0, common_1.Post)('delMineApp'),
-    (0, swagger_1.ApiOperation)({ summary: '删除个人App' }),
-    (0, common_1.UseGuards)(jwtAuth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [deleteApp_dto_1.OperateAppDto, Object]),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "delMineApp", null);
 __decorate([
     (0, common_1.Post)('collect'),
     (0, swagger_1.ApiOperation)({ summary: '收藏/取消收藏App' }),

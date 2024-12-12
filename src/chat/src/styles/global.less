@@ -1,0 +1,36 @@
+/* 引入 Tailwind CSS 的基础、组件和工具类 */
+// @import 'tailwindcss/base';
+// @import 'tailwindcss/components';
+// @import 'tailwindcss/utilities';
+
+html,
+body,
+#app {
+  height: 100%;
+  overflow: hidden;
+}
+
+// div {
+//   @apply text-gray-950 dark:text-gray-100;
+// }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+  @apply text-gray-950 dark:text-gray-100 !important;
+}
+
+
+
+// 全局焦点样式
+* :focus {
+  outline: none;
+}
+
+// 选中文本样式
+::selection {
+  // color: #fff;
+  // background: #798aae;
+}
+

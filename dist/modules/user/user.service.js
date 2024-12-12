@@ -39,15 +39,7 @@ let UserService = class UserService {
         this.configEntity = configEntity;
     }
     async createUserAndVerifycation(user, req) {
-        const { username, email, password, invitedBy, client = 0 } = user;
-        if (invitedBy) {
-            const b = await this.userEntity.findOne({
-                where: { inviteCode: invitedBy },
-            });
-            if (!b) {
-                throw new common_1.HttpException('无效的邀请码！', common_1.HttpStatus.BAD_REQUEST);
-            }
-        }
+        const { username, email, password, client = 0 } = user;
         const where = [{ username }, { email }];
         const u = await this.userEntity.findOne({ where: where });
         if (u && u.status !== user_constant_1.UserStatusEnum.PENDING) {
@@ -101,13 +93,9 @@ let UserService = class UserService {
                 console.log(`尝试发送邮件到: ${email}`);
             }
             else {
-                const { username, email, id, invitedBy } = n;
+                const { id } = n;
                 await this.updateUserStatus(id, user_constant_1.UserStatusEnum.ACTIVE);
-                let inviteUser;
-                if (invitedBy) {
-                    inviteUser = await this.qureyUserInfoByInviteCode(invitedBy);
-                }
-                await this.userBalanceService.addBalanceToNewUser(id, inviteUser === null || inviteUser === void 0 ? void 0 : inviteUser.id);
+                await this.userBalanceService.addBalanceToNewUser(id);
             }
             return n;
         }
@@ -196,7 +184,6 @@ let UserService = class UserService {
                 'role',
                 'email',
                 'sign',
-                'inviteCode',
                 'openId',
                 'consecutiveDays',
             ],
@@ -256,73 +243,6 @@ let UserService = class UserService {
             throw new common_1.HttpException('修改密码失败、请重新试试吧。', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async genInviteCode(req) {
-        const { id } = req.user;
-        const u = await this.userEntity.findOne({ where: { id } });
-        if (!u || u.inviteCode) {
-            throw new common_1.HttpException('已生成过邀请码、请勿重复生成', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const inviteCode = (0, utils_1.generateRandomString)();
-        const user = await this.userEntity.findOne({ where: { inviteCode } });
-        if (user) {
-            throw new common_1.HttpException('生成邀请码失败，请重新试一次吧！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const r = await this.userEntity.update({ id }, { inviteCode });
-        if (r.affected <= 0) {
-            throw new common_1.HttpException('生成邀请码失败，请重新试一次吧！', common_1.HttpStatus.BAD_REQUEST);
-        }
-        return inviteCode;
-    }
-    async getInviteRecord(req, query) {
-        try {
-            const { id } = req.user;
-            const { page = 1, size = 10 } = query;
-            const u = await this.userEntity.findOne({ where: { id } });
-            const { inviteCode } = u;
-            if (!inviteCode)
-                return [];
-            const invitedBy = inviteCode;
-            const [rows, count] = await this.userEntity.findAndCount({
-                where: { invitedBy },
-                order: { id: 'DESC' },
-                select: [
-                    'username',
-                    'email',
-                    'createdAt',
-                    'status',
-                    'avatar',
-                    'updatedAt',
-                ],
-                take: size,
-                skip: (page - 1) * size,
-            });
-            (0, utils_1.formatCreateOrUpdateDate)(rows).map((t) => {
-                t.email = (0, utils_1.maskEmail)(t.email);
-                return t;
-            });
-            return { rows, count };
-        }
-        catch (error) {
-            console.log('error: ', error);
-            throw new common_1.HttpException('获取邀请记录失败！', common_1.HttpStatus.BAD_REQUEST);
-        }
-    }
-    async inviteLink(code) {
-        const u = await this.userEntity.findOne({ where: { inviteCode: code } });
-        if (!u)
-            return 1;
-        const { inviteLinkCount = 0 } = u;
-        const res = await this.userEntity.update({ inviteCode: code }, { inviteLinkCount: inviteLinkCount + 1 });
-        if (res.affected) {
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-    async qureyUserInfoByInviteCode(inviteCode) {
-        return await this.userEntity.findOne({ where: { inviteCode } });
-    }
     async userRecharge(body) {
         const { userId, model3Count = 0, model4Count = 0, drawMjCount = 0 } = body;
         await this.userBalanceService.addBalanceToUser(userId, {
@@ -363,7 +283,6 @@ let UserService = class UserService {
             select: [
                 'username',
                 'avatar',
-                'inviteCode',
                 'role',
                 'sign',
                 'status',
@@ -372,6 +291,8 @@ let UserService = class UserService {
                 'createdAt',
                 'lastLoginIp',
                 'phone',
+                'realName',
+                'idCard',
             ],
         });
         const ids = rows.map((t) => t.id);
@@ -388,7 +309,7 @@ let UserService = class UserService {
     async queryOne({ id }) {
         return await this.userEntity.findOne({
             where: { id },
-            select: ['username', 'avatar', 'inviteCode', 'role', 'sign', 'status'],
+            select: ['username', 'avatar', 'role', 'sign', 'status'],
         });
     }
     async updateStatus(body) {
@@ -429,15 +350,13 @@ let UserService = class UserService {
     async getUserFromOpenId(openId, sceneStr) {
         const user = await this.userEntity.findOne({ where: { openId } });
         if (!user) {
-            const inviteCode = sceneStr ? sceneStr.split(':')[1] : '';
-            const inviteUser = await this.qureyUserInfoByInviteCode(inviteCode);
-            const user = await this.createUserFromOpenId(openId, inviteCode);
-            await this.userBalanceService.addBalanceToNewUser(user.id, inviteCode ? inviteUser === null || inviteUser === void 0 ? void 0 : inviteUser.id : null);
+            const user = await this.createUserFromOpenId(openId);
+            await this.userBalanceService.addBalanceToNewUser(user.id);
             return user;
         }
         return user;
     }
-    async createUserFromOpenId(openId, invitedBy) {
+    async createUserFromOpenId(openId) {
         const userDefautlAvatar = await this.globalConfigService.getConfigs([
             'userDefautlAvatar',
         ]);
@@ -447,14 +366,13 @@ let UserService = class UserService {
             status: user_constant_1.UserStatusEnum.ACTIVE,
             sex: 0,
             email: `${(0, utils_1.createRandomUid)()}@default.com`,
-            invitedBy,
             openId,
         };
         const user = await this.userEntity.save(userInfo);
         return user;
     }
     async createUserFromContact(params) {
-        const { username, email, phone, invitedBy } = params;
+        const { username, email, phone } = params;
         const userDefautlAvatar = await this.globalConfigService.getConfigs([
             'userDefautlAvatar',
         ]);
@@ -472,9 +390,6 @@ let UserService = class UserService {
         }
         if (phone) {
             userInfo.phone = phone;
-        }
-        if (invitedBy) {
-            userInfo.invitedBy = invitedBy;
         }
         const user = await this.userEntity.save(userInfo);
         return user;
@@ -571,6 +486,26 @@ let UserService = class UserService {
     }
     async createUser(userInfo) {
         return await this.userEntity.save(userInfo);
+    }
+    async saveRealNameInfo(userId, realName, idCard) {
+        const user = await this.userEntity.findOne({ where: { id: userId } });
+        if (!user) {
+            common_1.Logger.error('用户不存在');
+        }
+        await this.userEntity.update({ id: userId }, { realName, idCard });
+        return;
+    }
+    async updateUserPhone(userId, phone, username, password) {
+        const user = await this.userEntity.findOne({ where: { id: userId } });
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        if (!user) {
+            common_1.Logger.error('用户不存在');
+        }
+        if (!phone || !username || !hashedPassword) {
+            throw new common_1.HttpException('参数错误！', common_1.HttpStatus.BAD_REQUEST);
+        }
+        await this.userEntity.update({ id: userId }, { phone, username, password: hashedPassword });
+        return;
     }
 };
 UserService = __decorate([

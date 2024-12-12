@@ -12,17 +12,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BadwordsService = void 0;
+exports.BadWordsService = void 0;
 const utils_1 = require("../../common/utils");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const axios_1 = require("axios");
 const typeorm_2 = require("typeorm");
+const globalConfig_service_1 = require("../globalConfig/globalConfig.service");
 const user_entity_1 = require("../user/user.entity");
-const globalConfig_service_1 = require("./../globalConfig/globalConfig.service");
-const badwords_entity_1 = require("./badwords.entity");
+const badWords_entity_1 = require("./badWords.entity");
 const violationLog_entity_1 = require("./violationLog.entity");
-let BadwordsService = class BadwordsService {
+let BadWordsService = class BadWordsService {
     constructor(badWordsEntity, violationLogEntity, userEntity, globalConfigService) {
         this.badWordsEntity = badWordsEntity;
         this.violationLogEntity = violationLogEntity;
@@ -43,16 +43,15 @@ let BadwordsService = class BadwordsService {
         }
         if (triggeredWords.length) {
             await this.recordUserBadWords(userId, content, triggeredWords, ['自定义'], '自定义检测');
-            const tips = `您提交的信息中包含违规的内容、我们已对您的账户进行标记、请合规使用！`;
-            throw new common_1.HttpException(tips, common_1.HttpStatus.BAD_REQUEST);
         }
+        return triggeredWords;
     }
     async checkBadWords(content, userId) {
         const config = await this.globalConfigService.getSensitiveConfig();
         if (config) {
             await this.checkBadWordsByConfig(content, config, userId);
         }
-        await this.customSensitiveWords(content, userId);
+        return await this.customSensitiveWords(content, userId);
     }
     async checkBadWordsByConfig(content, config, userId) {
         const { useType } = config;
@@ -189,21 +188,21 @@ let BadwordsService = class BadwordsService {
             select: ['id', 'avatar', 'username', 'email', 'violationCount', 'status'],
         });
         rows.forEach((t) => {
-            const user = usersInfo.find((u) => u.id === t.userId);
+            const user = usersInfo.find((u) => u.id === t.userId) || {};
             role !== 'super' && (user.email = (0, utils_1.hideString)(user.email));
             t.userInfo = user;
         });
         return { rows, count };
     }
 };
-BadwordsService = __decorate([
+BadWordsService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(badwords_entity_1.BadWordsEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(badWords_entity_1.BadWordsEntity)),
     __param(1, (0, typeorm_1.InjectRepository)(violationLog_entity_1.ViolationLogEntity)),
     __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         globalConfig_service_1.GlobalConfigService])
-], BadwordsService);
-exports.BadwordsService = BadwordsService;
+], BadWordsService);
+exports.BadWordsService = BadWordsService;

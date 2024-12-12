@@ -101,6 +101,14 @@ __decorate([
     (0, typeorm_1.Column)({ comment: '用户违规记录次数', default: 0 }),
     __metadata("design:type", Number)
 ], UserEntity.prototype, "violationCount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '真实姓名', nullable: true }),
+    __metadata("design:type", String)
+], UserEntity.prototype, "realName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ comment: '身份证号', nullable: true }),
+    __metadata("design:type", String)
+], UserEntity.prototype, "idCard", void 0);
 UserEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'users' })
 ], UserEntity);

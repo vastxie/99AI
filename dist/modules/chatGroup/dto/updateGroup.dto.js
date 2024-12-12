@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateGroupDto = void 0;
-const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
 class UpdateGroupDto {
 }
 __decorate([
@@ -30,7 +30,16 @@ __decorate([
     __metadata("design:type", Boolean)
 ], UpdateGroupDto.prototype, "isSticky", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "", description: '对话模型配置项序列化的字符串', required: false }),
+    (0, swagger_1.ApiProperty)({ example: '', description: '对话组文件地址', required: false }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateGroupDto.prototype, "fileUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '',
+        description: '对话模型配置项序列化的字符串',
+        required: false,
+    }),
     __metadata("design:type", String)
 ], UpdateGroupDto.prototype, "config", void 0);
 exports.UpdateGroupDto = UpdateGroupDto;

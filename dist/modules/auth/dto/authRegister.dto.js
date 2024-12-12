@@ -31,15 +31,6 @@ __decorate([
 ], UserRegisterDto.prototype, "email", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        example: 'FRJDLJHFNV',
-        description: '用户填写的别人邀请码',
-        required: false,
-    }),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], UserRegisterDto.prototype, "invitedBy", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
         example: '',
         description: '用户头像',
         required: false,

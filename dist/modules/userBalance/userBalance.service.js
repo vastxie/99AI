@@ -27,28 +27,22 @@ const userBalance_entity_1 = require("./userBalance.entity");
 const date_1 = require("../../common/utils/date");
 const chatGroup_entity_1 = require("../chatGroup/chatGroup.entity");
 const chatLog_entity_1 = require("../chatLog/chatLog.entity");
-const midjourney_entity_1 = require("../midjourney/midjourney.entity");
-const sales_service_1 = require("../sales/sales.service");
-const salesUsers_entity_1 = require("../sales/salesUsers.entity");
 const user_entity_1 = require("../user/user.entity");
 const fingerprint_entity_1 = require("./fingerprint.entity");
 let UserBalanceService = class UserBalanceService {
-    constructor(balanceEntity, userBalanceEntity, accountLogEntity, cramiPackageEntity, configEntity, userEntity, salesUsersEntity, fingerprintLogEntity, chatGroupEntity, chatLogEntity, midjourneyEntity, salesService, globalConfigService) {
+    constructor(balanceEntity, userBalanceEntity, accountLogEntity, cramiPackageEntity, configEntity, userEntity, fingerprintLogEntity, chatGroupEntity, chatLogEntity, globalConfigService) {
         this.balanceEntity = balanceEntity;
         this.userBalanceEntity = userBalanceEntity;
         this.accountLogEntity = accountLogEntity;
         this.cramiPackageEntity = cramiPackageEntity;
         this.configEntity = configEntity;
         this.userEntity = userEntity;
-        this.salesUsersEntity = salesUsersEntity;
         this.fingerprintLogEntity = fingerprintLogEntity;
         this.chatGroupEntity = chatGroupEntity;
         this.chatLogEntity = chatLogEntity;
-        this.midjourneyEntity = midjourneyEntity;
-        this.salesService = salesService;
         this.globalConfigService = globalConfigService;
     }
-    async addBalanceToNewUser(userId, invitedId) {
+    async addBalanceToNewUser(userId) {
         try {
             const registerConfigs = await this.configEntity.find({
                 where: {
@@ -62,13 +56,6 @@ let UserBalanceService = class UserBalanceService {
                         'firstRregisterSendModel3Count',
                         'firstRregisterSendModel4Count',
                         'firstRregisterSendDrawMjCount',
-                        'inviteSendStatus',
-                        'inviteGiveSendModel3Count',
-                        'inviteGiveSendModel4Count',
-                        'inviteGiveSendDrawMjCount',
-                        'invitedGuestSendModel3Count',
-                        'invitedGuestSendDrawMjCount',
-                        'invitedGuestSendModel4Count',
                     ]),
                 },
             });
@@ -100,35 +87,6 @@ let UserBalanceService = class UserBalanceService {
                 drawMjCount,
                 model4Count,
             });
-            if (invitedId) {
-                if (Number(configMap.inviteSendStatus) === 1) {
-                    model3Count =
-                        model3Count + Number(configMap.invitedGuestSendModel3Count);
-                    model4Count =
-                        model4Count + Number(configMap.invitedGuestSendModel4Count);
-                    drawMjCount =
-                        drawMjCount + Number(configMap.invitedGuestSendDrawMjCount);
-                    await this.saveRecordRechargeLog({
-                        userId,
-                        rechargeType: balance_constant_1.RechargeType.INVITE_GIFT,
-                        model3Count: configMap.invitedGuestSendModel3Count,
-                        model4Count: configMap.invitedGuestSendModel4Count,
-                        drawMjCount: configMap.invitedGuestSendDrawMjCount,
-                    });
-                    await this.addBalanceToUser(invitedId, {
-                        model3Count: configMap.inviteGiveSendModel3Count,
-                        model4Count: configMap.inviteGiveSendModel4Count,
-                        drawMjCount: configMap.inviteGiveSendDrawMjCount,
-                    });
-                    await this.saveRecordRechargeLog({
-                        userId: invitedId,
-                        rechargeType: balance_constant_1.RechargeType.REFER_GIFT,
-                        model3Count: configMap.inviteGiveSendModel3Count,
-                        model4Count: configMap.inviteGiveSendModel4Count,
-                        drawMjCount: configMap.inviteGiveSendDrawMjCount,
-                    });
-                }
-            }
             await this.userBalanceEntity.save({
                 userId,
                 model3Count,
@@ -151,10 +109,6 @@ let UserBalanceService = class UserBalanceService {
         if (role === 'visitor') {
             return this.validateVisitorBalance(req, type, amount);
         }
-        const res = await this.configEntity.findOne({
-            where: { configKey: 'vxNumber' },
-        });
-        const vxNumber = res ? res.configVal : '---';
         const memberKey = type === 1
             ? 'memberModel3Count'
             : type === 2
@@ -476,30 +430,6 @@ let UserBalanceService = class UserBalanceService {
                 pkgName,
                 days,
             });
-            const userInfo = await this.userEntity.findOne({ where: { id: userId } });
-            const { invitedBy } = userInfo;
-            if (invitedBy) {
-                const inviteUserInfo = await this.userEntity.findOne({
-                    where: { inviteCode: invitedBy },
-                });
-                const inviteUserSalesInfo = await this.salesUsersEntity.findOne({
-                    where: { userId: inviteUserInfo.id },
-                });
-                if (!inviteUserInfo)
-                    return;
-                const { id: inviterUserId } = inviteUserInfo;
-                const { performanceRatio } = inviteUserSalesInfo;
-                const recordsInfo = {
-                    inviterUserId,
-                    inviteeUserId: userId,
-                    orderId: order.id,
-                    orderPrice: order.total,
-                    commissionPercentage: performanceRatio,
-                    commissionAmount: ((order.total * performanceRatio) / 100).toFixed(2),
-                };
-                await this.salesService.createSalesRecords(recordsInfo);
-                await this.salesService.saveCommissionAmount(inviterUserId, recordsInfo.commissionAmount);
-            }
         }
         catch (error) {
             console.log('error: ', error);
@@ -570,7 +500,6 @@ let UserBalanceService = class UserBalanceService {
         const { id: userId } = req.user;
         await this.chatLogEntity.update({ userId: Number(fingerprint) }, { userId });
         await this.chatGroupEntity.update({ userId: Number(fingerprint) }, { userId });
-        await this.midjourneyEntity.update({ userId: Number(fingerprint) }, { userId });
         return 1;
     }
     async getVisitorCount(req) {
@@ -581,10 +510,39 @@ let UserBalanceService = class UserBalanceService {
         const countChatGroup = await this.chatGroupEntity.count({
             where: { userId: fingerprint },
         });
-        const countMj = await this.midjourneyEntity.count({
-            where: { userId: fingerprint },
+        return countChat || countChatGroup || 0;
+    }
+    async checkUserCertification(userId) {
+        const userInfo = await this.userEntity.findOne({
+            where: { id: userId },
         });
-        return countChat || countChatGroup || countMj || 0;
+        const userBalance = await this.userBalanceEntity.findOne({
+            where: { userId },
+        });
+        if (!userInfo || !userBalance) {
+            return;
+        }
+        const { phoneValidationMessageCount, identityVerificationMessageCount, openIdentity, openPhoneValidation, } = await this.globalConfigService.getConfigs([
+            'phoneValidationMessageCount',
+            'identityVerificationMessageCount',
+            'openIdentity',
+            'openPhoneValidation',
+        ]);
+        const phoneValidationCount = Number(phoneValidationMessageCount);
+        const identityValidationCount = Number(identityVerificationMessageCount);
+        const model3Count = Number(userBalance.useModel3Count) || 0;
+        const model4Count = Number(userBalance.useModel4Count) || 0;
+        const totalTokens = model3Count + model4Count;
+        if (openPhoneValidation === '1' &&
+            totalTokens >= phoneValidationCount &&
+            !userInfo.phone) {
+            throw new common_1.HttpException('请完成手机号绑定', common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (openIdentity === '1' &&
+            totalTokens >= identityValidationCount &&
+            (!userInfo.realName || !userInfo.idCard)) {
+            throw new common_1.HttpException('请完成实名认证', common_1.HttpStatus.BAD_REQUEST);
+        }
     }
 };
 UserBalanceService = __decorate([
@@ -595,11 +553,9 @@ UserBalanceService = __decorate([
     __param(3, (0, typeorm_1.InjectRepository)(cramiPackage_entity_1.CramiPackageEntity)),
     __param(4, (0, typeorm_1.InjectRepository)(config_entity_1.ConfigEntity)),
     __param(5, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
-    __param(6, (0, typeorm_1.InjectRepository)(salesUsers_entity_1.SalesUsersEntity)),
-    __param(7, (0, typeorm_1.InjectRepository)(fingerprint_entity_1.FingerprintLogEntity)),
-    __param(8, (0, typeorm_1.InjectRepository)(chatGroup_entity_1.ChatGroupEntity)),
-    __param(9, (0, typeorm_1.InjectRepository)(chatLog_entity_1.ChatLogEntity)),
-    __param(10, (0, typeorm_1.InjectRepository)(midjourney_entity_1.MidjourneyEntity)),
+    __param(6, (0, typeorm_1.InjectRepository)(fingerprint_entity_1.FingerprintLogEntity)),
+    __param(7, (0, typeorm_1.InjectRepository)(chatGroup_entity_1.ChatGroupEntity)),
+    __param(8, (0, typeorm_1.InjectRepository)(chatLog_entity_1.ChatLogEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
@@ -609,9 +565,6 @@ UserBalanceService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository,
-        typeorm_2.Repository,
-        sales_service_1.SalesService,
         globalConfig_service_1.GlobalConfigService])
 ], UserBalanceService);
 exports.UserBalanceService = UserBalanceService;
