@@ -2,7 +2,9 @@
 
 可商业化的 AI Web 应用，旨在提供一个易部署、低门槛的集成化人工智能服务站点，支持多种部署方式。
 
-源码可商用，支持二开及分发，但不要仅改名后割韭菜，尽量保留[出处](https://github.com/vastxie/99AI)，有兴趣的小伙伴可共同维护。
+为了方便用户部署，项目已经 **打包完成**，可直接运行部署。源码支持商用、二次开发及分发，但请保留[出处](https://github.com/vastxie/99AI)，共同维护社区生态。
+
+**二次开发源码** 存放于 `src` 目录下，开发者可以根据需要自由修改和扩展。
 
 ## 项目介绍
 
@@ -12,7 +14,7 @@
 
 <img width="1444" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/dd373bec-674e-4a6c-8304-f6abd1a65e1e">
 
-- [x]  **多模态模型**：使用`gpt-4o`、`claude-3`等视觉模型，或`gpt-4-all`等逆向模型，完成图像、文件的识别分析。
+- [x] **多模态模型**：使用`gpt-4o`、`claude-3`等视觉模型，或`gpt-4-all`等逆向模型，完成图像、文件的识别分析。
 
 <img width="1443" alt="image" src="https://github.com/vastxie/99AI/assets/24899308/e1f1ed62-97e5-4412-9b72-5916d2337fdc">
 
@@ -66,179 +68,47 @@
 
 ## 版本说明
 
-| 特性         | 稳定版                                           | 开发版                                                       |
-| :----------- | :--------------------------------------------- | :--------------------------------------------------------- |
-| **商用许可** | 支持商用                                        | 支持商用                                                    |
-| **源码状态** | 未编译，支持自由修改                             | 已编译，代码不可二次开发                                     |
-| **获取方式** | 公开项目                             | 私有库，需赞助后获取                                         |
-| **页面特性** | 单对话页面                                       | 包含更多功能页面（如独立的绘画页面、思维导图页面、分销页面等） |
+| 特性         | 稳定版               | 开发版                                                         |
+| :----------- | :------------------- | :------------------------------------------------------------- |
+| **商用许可** | 支持商用             | 支持商用                                                       |
+| **源码状态** | 未编译，支持自由修改 | 已编译，代码不可二次开发                                       |
+| **获取方式** | 公开项目             | 私有库，需赞助后获取                                           |
+| **页面特性** | 单对话页面           | 包含更多功能页面（如独立的绘画页面、思维导图页面、分销页面等） |
 
-## 安装部署
+## 部署指南
 
-安装文档可能不是非常详细，但绝对够用。如果在安装或配置中遇到任何问题，可询问 AI、通过 [issue](https://github.com/vastxie/99AI/issues) 反馈或交流群内提问题。
+请参考完整的 [部署文档](./DEPLOYMENT.md) 了解详细信息。
 
-### Node.js 部署
+部署文档可能不是非常详细，但绝对够用。如果在安装或配置中遇到任何问题，可询问 AI、通过 [issue](https://github.com/vastxie/99AI/issues) 反馈或交流群内提问题。
 
-**1. 安装 Node.js 环境**
+## 项目开发
 
-推荐使用 `nvm` (Node Version Manager) 来安装 Node.js。
+请参考完整的 [开发文档](./src/DEVELOPMENT.md) 了解详细的开发流程和指引。
 
-- 首先，安装 `nvm`，你可以从 [nvm GitHub 仓库](https://github.com/nvm-sh/nvm) 找到安装指南。
+### 目录结构
 
-- 按照仓库中的安装说明进行操作，安装完成后，可能需要添加环境变量或重启终端。
-
-- 安装 Node.js 版本 18 或更高版本:
-
-  ```shell
-  nvm install 18
-  nvm use 18
-  ```
-
-- 验证 Node.js 是否安装成功:
-
-  ```shell
-  node -v
-  ```
-
-**2. 安装 PM2 / PNPM（YARN）**
-
-- 使用 npm 安装 PM2：
-
-  ```shell
-  npm install pm2 -g
-  ```
-
-- 使用 npm 安装 pnpm：
-
-  ```shell
-  npm install -g pnpm
-  ```
-
-- 确认 `PM2` 和 `pnpm` 都已正确安装并且可以运行：
-
-  ```
-  pm2 -v
-  pnpm -v
-  ```
-
-**3. 其他配置**
-
-- 需配置 Redis 数据库以及新建一个 MySQL 数据库。
-- 配置环境变量：
-  - 复制 `.env.example` 文件为 `.env`。
-  - 根据需要修改 `.env` 文件中的配置项。
-
-**4. 安装启动**
-
-- 安装依赖：(若安装缓慢可尝试使用国内源)
-
-  ```shell
-  pnpm install
-  ```
-
-- 启动进程：（默认使用 PM2 后台运行）
-
-  ```
-  pnpm start
-  ```
-
-- 查看运行日志：
-
-  ```shell
-  pnpm logs
-  ```
-
-- 项目默认在 `9520` 端口运行，也可在环境变量中自行修改。成功运行后可通过 `IP:端口` 访问，或者配置 Nginx 反向代理，通过域名访问。
-
-### 脚本部署
-
-**1. 部署方式及功能支持**
-
-- **全新安装 99AI**
-  - 自动安装环境
-  - 拉取源码
-  - 安装依赖
-  - 使用 PM2 监控运行
-- **更新与修改配置**
-  - 自动拉取更新
-  - 自动更新程序
-  - 自定义修改配置
-- **卸载 99AI**
-- **使用 Docker 部署**
-  - 自动安装环境
-  - 自定义配置
-- **添加快捷执行脚本**
-  - 后续仅需在服务器执行 `99ai` 即可再次进入脚本
-
-**2. Shell 执行脚本**
-
-请在项目的根目录下执行以下命令：
-
-```bash
-./deploy.sh
+```plaintext
+99AI/
+├── DEPLOYMENT.md          # 部署文档
+├── Dockerfile             # Docker 配置文件
+├── deploy.sh              # 一键部署脚本
+├── docker-compose.yml     # Docker Compose 配置文件
+├── dist/                  # 打包后的静态资源与后端代码
+├── logs/                  # 日志存储目录
+├── public/                # 前端公共静态资源
+└── src/                   # 源码目录
+    ├── admin/             # 管理端（基于 Fantastic Admin Basic 构建）
+    ├── chat/              # 用户端（用户对话页面）
+    ├── service/           # 后端服务（基于 NestJS 构建的核心 API 服务）
+    └── build.sh           # 一键打包脚本
 ```
-
-或使用：
-
-```bash
-bash <(curl -sL https://js.kengro.cn/99ai/onekey-cn-99ai.sh)
-```
-
-### Docker 部署
-
-**1. 安装 Docker 及 Docker-compose**
-
-- 使用 [Docker 官网](https://www.docker.com/) 提供的一键安装链接安装 Docker 及 Docker-compose。
-
-  ```bash
-  curl -fsSL https://get.docker.com | bash -s docker
-  ```
-
-- 也可以使用其他方式自行安装 Docker 及 Docker-compose。
-
-**2. 服务管理**
-
-- **后台启动服务**
-
-  ```shell
-  docker-compose up -d
-  ```
-
-- **查看日志**
-
-  ```shell
-  docker-compose logs
-  ```
-
-- **停止服务**
-
-  ```shell
-  docker-compose down
-  ```
-
-- **重新构建并启动服务**
-
-  ```shell
-  docker-compose up -d --build
-  ```
-
-## 项目管理
-
-普通管理员，可以预览后台非敏感信息，默认不激活。请使用超级管理员账号登入后台，并及时修改密码。
-
-- **管理端地址**：`项目链接/admin`
-
-- **普通管理员账号**：`admin`（默认不激活）
-
-- **超级管理员账号**：`super`
-
-- **密码**：`123456`
 
 ## 学习交流
 
 扫码添加微信备注 `99`，拉交流群。（不接受私聊技术咨询，有问题优先群内交流）
 
-<img src="https://github.com/vastxie/NineAIQuickDeploy/assets/24899308/ee20578f-063d-48d8-bff6-85ac3e38fe60" width="300">
+<img src="https://github.com/vastxie/99AI/assets/24899308/ee20578f-063d-48d8-bff6-85ac3e38fe60"
+     width="300" alt="WeChat QR code for joining the group">
 
 ## Star History
 

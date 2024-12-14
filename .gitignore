@@ -5,3 +5,4 @@ pnpm-lock.yaml
 /public/file
 .DS_Store
 data
+sql
