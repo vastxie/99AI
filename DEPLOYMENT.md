@@ -1,9 +1,5 @@
 # 部署指南
 
-请参考完整的 [部署文档](./DEPLOYMENT.md) 了解详细信息。
-
-部署文档可能不是非常详细，但绝对够用。如果在安装或配置中遇到任何问题，可询问 AI、通过 [issue](https://github.com/vastxie/99AI/issues) 反馈或交流群内提问题。
-
 ## Node.js 部署
 
 ### 1. 安装 Node.js 环境
@@ -135,3 +131,15 @@ curl -fsSL https://get.docker.com | bash -s docker
   ```shell
   docker-compose up -d --build
   ```
+
+## 项目管理
+
+普通管理员，可以预览后台非敏感信息，默认不激活。请使用超级管理员账号登入后台，并及时修改密码。
+
+- **管理端地址**：`项目链接/admin`
+
+- **普通管理员账号**：`admin`（默认不激活）
+
+- **超级管理员账号**：`super`
+
+- **密码**：`123456`
