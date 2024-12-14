@@ -31,6 +31,7 @@ services:
 
   99ai:
     build: ./
+    # image: vastxie/99ai:latest
     container_name: 99ai
     restart: always
     ports:

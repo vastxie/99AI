@@ -9,10 +9,8 @@ import { NestFactory } from '@nestjs/core';
 import * as compression from 'compression';
 import { randomBytes } from 'crypto';
 import * as Dotenv from 'dotenv';
-// import * as express from 'express';
 import * as xmlBodyParser from 'express-xml-bodyparser';
 import Redis from 'ioredis';
-// import { join } from 'path';
 import { AppModule } from './app.module';
 Dotenv.config({ path: '.env' });
 
