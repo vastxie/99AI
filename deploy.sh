@@ -31,26 +31,46 @@ check_cpu_arch() {
 }
 
 check_os() {
+  # 检测 macOS
   if [[ "$(uname)" == "Darwin" ]]; then
     os_name="macOS"
     InstallMethod="brew"
+
+  # 检测 Linux 系统
   else
     if command -v lsb_release >/dev/null; then
       DISTRO=$(lsb_release -i -s)
     else
       DISTRO=$(grep -oP '^ID=\K.*' /etc/*-release)
     fi
+
     case "$DISTRO" in
-      Debian|Ubuntu) os_name="${DISTRO}-based Linux"; InstallMethod="sudo apt-get" ;;
+      Debian|Ubuntu)
+        os_name="${DISTRO}-based Linux"
+        InstallMethod="sudo apt-get"
+        ;;
       centos)
+        # 区分 CentOS 7 和 CentOS 8
         if [[ "$(grep -oP '^VERSION_ID="\K[0-9]+' /etc/*-release)" == "7" ]]; then
-          os_name="CentOS 7"; InstallMethod="yum"
+          os_name="CentOS 7"
+          InstallMethod="yum"
         else
-          os_name="CentOS 8"; InstallMethod="dnf"
-        fi ;;
-      fedora) os_name="Fedora"; InstallMethod="dnf" ;;
-      opensuse-leap) os_name="openSUSE Leap"; InstallMethod="sudo zypper" ;;
-      *) echo "未知操作系统，脚本不支持"; exit 1 ;;
+          os_name="CentOS 8"
+          InstallMethod="dnf"
+        fi
+        ;;
+      fedora)
+        os_name="Fedora"
+        InstallMethod="dnf"
+        ;;
+      opensuse-leap)
+        os_name="openSUSE Leap"
+        InstallMethod="sudo zypper"
+        ;;
+      *)
+        echo "未知操作系统，脚本不支持"
+        exit 1
+        ;;
     esac
   fi
 }
