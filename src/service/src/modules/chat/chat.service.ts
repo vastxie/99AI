@@ -25,6 +25,7 @@ import { PluginEntity } from '../plugin/plugin.entity';
 import { UploadService } from '../upload/upload.service';
 import { UserService } from '../user/user.service';
 import { UserBalanceService } from '../userBalance/userBalance.service';
+import { netSearchService } from '../ai/netSearch.service';
 
 @Injectable()
 export class ChatService {
@@ -52,7 +53,8 @@ export class ChatService {
     private readonly lumaVideoService: LumaVideoService,
     private readonly cogVideoService: CogVideoService,
     private readonly fluxDrawService: FluxDrawService,
-    private readonly aiPptService: AiPptService
+    private readonly aiPptService: AiPptService,
+    private readonly netSearchService: netSearchService
   ) {}
 
   /* 有res流回复 没有同步回复 */
@@ -159,6 +161,7 @@ export class ChatService {
     let usePrompt;
     let useModelAvatar = '';
     let usingPlugin;
+    let searchResult;
 
     if (usingPluginId) {
       usingPlugin = await this.pluginEntity.findOne({
@@ -207,19 +210,63 @@ export class ChatService {
       }
     } else {
       const groupInfo = await this.chatGroupService.getGroupInfoFromId(groupId);
-      if (usingPlugin && usingPlugin.isSystemPlugin === 0) {
-        let pluginPrompt = '';
+      if (usingPlugin?.parameters === 'net-search') {
         try {
-          pluginPrompt = await this.usePlugin(prompt, usingPlugin.parameters);
-          Logger.log(`插件返回结果: ${pluginPrompt}`, 'ChatService');
+          // 获取搜索结果
+          searchResult = await this.netSearchService.webSearchPro(prompt);
         } catch (error) {
-          pluginPrompt = prompt; // 或者其他错误处理逻辑
-          Logger.error(`插件调用错误: ${error}`);
+          Logger.error('网络请求失败', error);
+          // 如果网络请求失败，可以设置一个默认值或备用数据
+          searchResult = null;
         }
-        setSystemMessage = pluginPrompt;
+
+        const now = new Date();
+        const options = {
+          timeZone: 'Asia/Shanghai', // 设置时区为 'Asia/Shanghai'（北京时间）
+          year: 'numeric' as 'numeric',
+          month: '2-digit' as '2-digit',
+          day: '2-digit' as '2-digit',
+          hour: '2-digit' as '2-digit',
+          minute: '2-digit' as '2-digit',
+          hour12: false, // 使用24小时制
+        };
+
+        const currentDate = new Intl.DateTimeFormat('zh-CN', options).format(
+          now
+        );
+
+        // 将 searchResult 转换为 JSON 字符串
+        let searchPrompt = '';
+        if (searchResult) {
+          searchPrompt = JSON.stringify(searchResult, null, 2); // 格式化为漂亮的 JSON 字符串
+        }
+
+        // 设置系统消息
+        setSystemMessage = `
+          你的任务是根据用户的问题，通过下面的搜索结果提供更精确、详细、具体的回答。
+          请在适当的情况下在对应部分句子末尾标注引用的链接，使用[[序号resultIndex](链接地址link)]格式，同时使用多个链接可连续使用比如[[2](链接地址)][[5](链接地址)]，
+          在回答的最后，使用 序号resultIndex.[title](链接地址link) 标记出所有的来源。
+          以下是搜索结果：
+            ${searchPrompt}
+            在回答时，请注意以下几点：
+              - 现在时间是: ${currentDate}。
+              - 并非搜索结果的所有内容都与用户的问题密切相关，你需要结合问题，对搜索结果进行甄别、筛选。
+              - 对于列举类的问题（如列举所有航班信息），尽量将答案控制在10个要点以内，并告诉用户可以查看搜索来源、获得完整信息。优先提供信息完整、最相关的列举项；如非必要，不要主动告诉用户搜索结果未提供的内容。
+              - 对于创作类的问题（如写论文），请务必在正文的段落中引用对应的参考编号。你需要解读并概括用户的题目要求，选择合适的格式，充分利用搜索结果并抽取重要信息，生成符合用户要求、极具思想深度、富有创造力与专业性的答案。你的创作篇幅需要尽可能延长，对于每一个要点的论述要推测用户的意图，给出尽可能多角度的回答要点，且务必信息量大、论述详尽。
+              - 如果回答很长，请尽量结构化、分段落总结。如果需要分点作答，尽量控制在5个点以内，并合并相关的内容。
+              - 对于客观类的问答，如果问题的答案非常简短，可以适当补充一到两句相关信息，以丰富内容。
+              - 你需要根据用户要求和回答内容选择合适、美观的回答格式，确保可读性强。
+              - 你的回答应该综合多个相关网页来回答，不能只重复引用一个网页。
+              - 除非用户要求，否则你回答的语言需要和用户提问的语言保持一致。
+            `;
+        // 获取当前的模型信息
         currentRequestModelKey =
           await this.modelsService.getCurrentModelKeyInfo(model);
-        // await this.chatLogService.checkModelLimits(req.user, model);
+      } else if (usingPlugin?.parameters === 'mind-map') {
+        setSystemMessage =
+          'Please provide a detailed outline in Markdown format: Use a multi-level structure with at least 3-4 levels. Include specific solutions or steps under each topic. Make it suitable for creating mind maps. Provide only the outline content without any irrelevant explanations. Start directly with the outline, no introduction needed. Use the language I asked in. Note: Use #, ##, ### etc. for different heading levels. Use - or * for list items. Use bold, italic etc. to emphasize key points. Use tables, code blocks etc. as needed. Please provide a clear, content-rich Markdown format outline based on these requirements.';
+        currentRequestModelKey =
+          await this.modelsService.getCurrentModelKeyInfo(model);
         Logger.log(`使用插件预设: ${setSystemMessage}`, 'ChatService');
       } else if (fileParsing) {
         setSystemMessage = `以下是我提供给你的知识库：【${fileParsing}】，在回答问题之前，先检索知识库内有没有相关的内容，尽量使用知识库中获取到的信息来回答我的问题，以知识库中的为准。`;

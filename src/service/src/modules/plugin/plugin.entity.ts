@@ -15,9 +15,6 @@ export class PluginEntity extends BaseEntity {
   @Column({ comment: '插件是否启用 0：禁用 1：启用', default: 1 })
   isEnabled: number;
 
-  @Column({ comment: '插件是否为系统插件 0：否 1：是', default: 0 })
-  isSystemPlugin: number;
-
   @Column({ comment: '调用参数', type: 'text' })
   parameters: string;
 

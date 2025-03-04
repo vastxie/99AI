@@ -141,11 +141,6 @@ export class GlobalConfigService implements OnModuleInit {
           `获取微信access_token失败、错误信息：${errmsg}`,
           'OfficialService'
         );
-      } else {
-        throw new HttpException(
-          '请配置正确的秘钥、当前秘钥检测不通过！',
-          HttpStatus.BAD_REQUEST
-        );
       }
       return '';
     }

@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "license": "MIT",
   "engines": {
     "node": "^18.18.0 || ^20.9.0 || >=21.1.0"

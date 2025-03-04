@@ -33,7 +33,7 @@ const bulkVisible = ref(false);
 const formInline = reactive({
   keyType: '',
   model: '',
-  status: null,
+  status: undefined,
   page: 1,
   size: 10,
 });

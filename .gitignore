@@ -1,6 +1,5 @@
 node_modules
 logs
-pnpm-lock.yaml
 .env
 /public/file
 .DS_Store

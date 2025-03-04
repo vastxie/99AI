@@ -23,6 +23,21 @@ const rules = ref<FormRules>({
   pluginKey: [{ required: true, trigger: 'blur', message: '请填写插件key' }],
 });
 
+const netWorkOptions = [
+  {
+    value: 'https://open.bigmodel.cn/api/paas/v4/tools',
+    label: '【智谱 web-search-pro】',
+  },
+  {
+    value: 'https://api.bochaai.com/v1/web-search',
+    label: '【博查 web-search】',
+  },
+  {
+    value: 'https://api.tavily.com/search',
+    label: '【Tavily 1000 次/月（免费）】',
+  },
+];
+
 const formRef = ref<FormInstance>();
 
 async function queryAllconfig() {
@@ -69,15 +84,19 @@ onMounted(() => {
       <template #content>
         <div class="text-sm/6">
           <div>
-            插件基础配置，包括插件地址、插件 Key、隐藏插件、插件优先显示等。
+            插件基础配置，包括联网插件地址、联网插件
+            Key、隐藏插件、插件优先显示等。
           </div>
           <div>
-            插件项目<a
-              href="https://github.com/vastxie/99AIPlugin"
-              target="_blank"
-              >开源地址</a
-            >
-            ，可自行部署，欢迎共同维护。
+            联网插件已支持多种方式：
+
+            <a href="https://bigmodel.cn" target="_blank">智谱 web-search-pro</a
+            >、
+            <a href="https://open.bochaai.com" target="_blank"
+              >博查 web-search</a
+            >、
+            <a href="https://app.tavily.com/home" target="_blank">Tavily</a>
+            需自行登录以上网站，获取对应的 Key（多个Key用英文逗号隔开）。
           </div>
         </div>
       </template>
@@ -96,22 +115,33 @@ onMounted(() => {
       >
         <el-row>
           <el-col :xs="24" :md="20" :lg="15" :xl="12">
-            <el-form-item label="插件地址" prop="pluginUrl">
-              <el-input
+            <el-form-item label="联网插件地址" prop="pluginUrl">
+              <el-select
                 v-model="formInline.pluginUrl"
-                placeholder="插件地址"
+                placeholder="请选择或输入联网搜索使用的地址"
                 clearable
-              />
+                filterable
+                allow-create
+              >
+                <el-option
+                  v-for="option in netWorkOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :xs="24" :md="20" :lg="15" :xl="12">
-            <el-form-item label="插件 Key" prop="pluginKey">
+            <el-form-item label="联网插件 Key" prop="pluginKey">
               <el-input
                 v-model="formInline.pluginKey"
                 placeholder="插件 Key"
                 clearable
+                password
+                show-password
               />
             </el-form-item>
           </el-col>

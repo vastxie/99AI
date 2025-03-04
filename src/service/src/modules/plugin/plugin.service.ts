@@ -38,28 +38,19 @@ export class PluginService {
     // 处理插件列表
     const processedRows = await Promise.all(
       rows.map(async (plugin) => {
-        if (plugin.isSystemPlugin === 1) {
-          try {
-            const parameters = await this.modelsService.getCurrentModelKeyInfo(
-              plugin.parameters
-            );
-            const deductType = parameters.deductType;
+        try {
+          const parameters = await this.modelsService.getCurrentModelKeyInfo(
+            plugin.parameters
+          );
+          const deductType = parameters.deductType;
 
-            // 将 parameters 和 deductType 作为附加参数返回
-            return {
-              ...plugin,
-              deductType,
-            };
-          } catch (error) {
-            // 出现异常时返回 deductType 为 0
-            return {
-              ...plugin,
-              deductType: 0,
-            };
-          }
-        } else {
-          // 非系统插件，直接返回 deductType 为 0
-
+          // 将 parameters 和 deductType 作为附加参数返回
+          return {
+            ...plugin,
+            deductType,
+          };
+        } catch (error) {
+          // 出现异常时返回 deductType 为 0
           return {
             ...plugin,
             deductType: 0,
@@ -77,16 +68,8 @@ export class PluginService {
 
   // 创建插件
   async createPlugin(body: any) {
-    const {
-      name,
-      pluginImg,
-      description,
-
-      isEnabled,
-      isSystemPlugin,
-      parameters,
-      sortOrder,
-    } = body;
+    const { name, pluginImg, description, isEnabled, parameters, sortOrder } =
+      body;
 
     // 检查插件名称是否存在
     const existingPlugin = await this.PluginEntity.findOne({
@@ -101,9 +84,7 @@ export class PluginService {
       name,
       pluginImg,
       description,
-
       isEnabled: isEnabled !== undefined ? isEnabled : 1, // 默认启用
-      isSystemPlugin: isSystemPlugin !== undefined ? isSystemPlugin : 0, // 默认非系统插件
       parameters,
       sortOrder: sortOrder !== undefined ? sortOrder : 0, // 默认排序值
     });
@@ -120,7 +101,6 @@ export class PluginService {
       pluginImg,
       description,
       isEnabled,
-      isSystemPlugin,
       parameters,
       sortOrder,
     } = body;
@@ -147,10 +127,6 @@ export class PluginService {
     existingPlugin.description = description;
     existingPlugin.isEnabled =
       isEnabled !== undefined ? isEnabled : existingPlugin.isEnabled;
-    existingPlugin.isSystemPlugin =
-      isSystemPlugin !== undefined
-        ? isSystemPlugin
-        : existingPlugin.isSystemPlugin;
     existingPlugin.parameters = parameters;
     existingPlugin.sortOrder =
       sortOrder !== undefined ? sortOrder : existingPlugin.sortOrder;

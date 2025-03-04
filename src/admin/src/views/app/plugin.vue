@@ -17,10 +17,6 @@ const formRef = ref<FormInstance>();
 const total = ref(0);
 const visible = ref(false);
 const loading = ref(false);
-const isSystemPluginMap = {
-  1: '内置插件',
-  0: '普通插件',
-};
 
 const parameterOptions: string[] = [
   'dall-e-3',
@@ -42,7 +38,6 @@ const formInline = reactive({
   description: '',
   demoData: '',
   isEnabled: 1,
-  isSystemPlugin: 0,
   parameters: '',
   sortOrder: 100,
   page: 1,
@@ -65,7 +60,6 @@ const formPackage = reactive({
   description: '',
   demoData: '',
   isEnabled: 1,
-  isSystemPlugin: 0,
   parameters: '',
   sortOrder: 100,
 });
@@ -89,14 +83,7 @@ const rules = reactive<FormRules>({
       trigger: 'change',
     },
   ],
-  isSystemPlugin: [
-    {
-      required: true,
-      type: 'number',
-      message: '请选择是否为系统插件',
-      trigger: 'change',
-    },
-  ],
+
   parameters: [{ required: true, message: '请填写调用参数', trigger: 'blur' }],
   sortOrder: [
     {
@@ -149,7 +136,6 @@ function handleUpdatePackage(row: any) {
     description,
     demoData,
     isEnabled,
-    isSystemPlugin,
     parameters,
     sortOrder,
   } = row;
@@ -160,7 +146,6 @@ function handleUpdatePackage(row: any) {
       description,
       demoData,
       isEnabled,
-      isSystemPlugin,
       parameters,
       sortOrder,
     });
@@ -286,19 +271,15 @@ onMounted(() => {
           </div>
           <div>插件系统包含，内置插件和普通插件两种。</div>
           <div>
-            内置插件已支持Suno音乐（参数：suno-music）、Midjourney绘图（参数：midjourney）、Stable
+            插件已支持Suno音乐（参数：suno-music）、Midjourney绘图（参数：midjourney）、Stable
             Diffusion绘图（参数：stable-diffusion）、
           </div>
           <div>
             Dalle绘画（参数：dall-e-3）、LumaVideo（参数：luma-video）、CogVideoX（参数：cog-video）、Flux绘画（参数：flux-draw），均需通过创意模型配置对应模型。
           </div>
           <div>
-            普通插件需外部插件系统支持，具体参数请查看<a
-              href="https://github.com/vastxie/99AIPlugin"
-              target="_blank"
-              >插件系统</a
-            >
-            。
+            联网插件(参数：net-search)、思维导图(参数：mind-map)。联网插件需在
+            插件应用基础配置 中单独配置联网地址。
           </div>
           <div>
             若内置插件参数不在支持列表内，将以插件参数作为模型，调用对应模型。
@@ -341,13 +322,6 @@ onMounted(() => {
             <div :style="{ maxHeight: '50px', cursor: 'pointer' }">
               {{ scope.row.description }}
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="isSystemPlugin" label="分类" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.isSystemPlugin === 1 ? 'success' : 'info'">
-              {{ scope.row.isSystemPlugin === 1 ? '内置插件' : '普通插件' }}
-            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="isEnabled" label="状态" width="100">
@@ -425,13 +399,6 @@ onMounted(() => {
             type="textarea"
             placeholder="请填写插件描述、用于对外展示..."
             :rows="4"
-          />
-        </el-form-item>
-        <el-form-item label="系统插件" prop="status">
-          <el-switch
-            v-model="formPackage.isSystemPlugin"
-            :active-value="1"
-            :inactive-value="0"
           />
         </el-form-item>
         <el-form-item label="插件参数" prop="parameters">

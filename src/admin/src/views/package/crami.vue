@@ -35,7 +35,7 @@ const selects = ref([]);
 const selectCramiList = ref<any[]>([]);
 
 const form = reactive({
-  packageId: null,
+  packageId: undefined,
   count: 1,
   drawMjCount: 0,
   model3Count: 0,

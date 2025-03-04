@@ -40,7 +40,7 @@ interface Package {
   coverImg?: string | null;
   price?: number | null;
   order?: number | null;
-  status?: number | null;
+  status: number;
   weight?: number | null;
   days?: number | null;
   model3Count: number | null;
@@ -57,7 +57,7 @@ const formPackage: Package = reactive({
   coverImg: null,
   price: null,
   order: null,
-  status: null,
+  status: 0,
   weight: null,
   days: null,
   model3Count: null,

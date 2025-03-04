@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8
+    command: --mysql-native-password=ON --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    # command: --default-authentication-plugin=caching_sha2_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    volumes:
+      - ./data/mysql/:/var/lib/mysql/
+      - ./sql/:/docker-entrypoint-initdb.d/ #数据库文件放此目录可自动导入
+    # ports:
+    #   - "3306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: "chatgpt"
+      MYSQL_USER: "chatgpt"
+      MYSQL_PASSWORD: "123456"
+
+  redis:
+    image: redis
+    # command: --requirepass "12345678" # redis库密码,不需要密码注释本行
+    restart: always
+    # ports:
+    #   - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai # 指定时区
+    volumes:
+      - ./data/redis/:/data/
+
+  99ai:
+    build: ./
+    # image: vastxie/99ai:latest
+    container_name: 99ai
+    restart: always
+    ports:
+      - "9520:9520"
+    volumes:
+      - ./.env.docker:/app/.env
+    environment:
+      - TZ=Asia/Shanghai
+    depends_on:
+      - mysql
+      - redis

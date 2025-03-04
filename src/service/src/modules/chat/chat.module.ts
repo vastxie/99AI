@@ -29,7 +29,7 @@ import { VerificationService } from '../verification/verification.service';
 import { VerifycationEntity } from '../verification/verifycation.entity';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-
+import { netSearchService } from '../ai/netSearch.service';
 @Global()
 @Module({
   imports: [
@@ -67,6 +67,7 @@ import { ChatService } from './chat.service';
     CogVideoService,
     FluxDrawService,
     AiPptService,
+    netSearchService,
   ],
   exports: [ChatService],
 })

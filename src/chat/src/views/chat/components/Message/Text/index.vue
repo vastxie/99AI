@@ -8,11 +8,14 @@ import {
   Close,
   Copy,
   Delete,
+  Down,
   Edit,
+  LoadingOne,
   PauseOne,
   Refresh,
   Rotation,
   Send,
+  Up,
   VoiceMessage,
 } from '@icon-park/vue-next';
 import mdKatex from '@traptitech/markdown-it-katex';
@@ -45,49 +48,35 @@ interface Emit {
   (ev: 'copy'): void;
 }
 
+interface TtsResponse {
+  ttsUrl: string;
+}
+
 const authStore = useAuthStore();
+const { isMobile } = useBasicLayout();
 const onConversation = inject<any>('onConversation');
 const handleRegenerate = inject<any>('handleRegenerate');
 
 const props = defineProps<Props>();
+const emit = defineEmits<Emit>();
 
 const modalVisible = ref(false);
 const editableText = ref(props.text);
-const isHideTts = computed(
-  () => Number(authStore.globalConfig?.isHideTts) === 1
-);
-
-const emit = defineEmits<Emit>();
-
-const { isMobile } = useBasicLayout();
-
+const showThinking = ref(true);
 const textRef = ref<HTMLElement>();
-
 const localTtsUrl = ref(props.ttsUrl);
 const htmlContent = ref<string>('');
 const isHtml = ref(false);
-
 const playbackState = ref('paused');
-let currentAudio: HTMLAudioElement | null = null;
-
-const editableContent = ref(props.text); // 新增一个引用来存储编辑后的内容
-const isEditable = ref(false); // 定义一个状态变量控制是否进入编辑模式
-
+const editableContent = ref(props.text);
+const isEditable = ref(false);
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
-function adjustTextareaHeight() {
-  if (textarea.value) {
-    textarea.value.style.height = 'auto';
-    textarea.value.style.height = textarea.value.scrollHeight + 'px';
-  }
-}
+let currentAudio: HTMLAudioElement | null = null;
 
-function cancelEdit() {
-  editableContent.value = props.text; // 重置已编辑的内容
-  isEditable.value = false; // 退出编辑模式
-}
-
-// 创建一个响应式引用来存储音频URL
+const isHideTts = computed(
+  () => Number(authStore.globalConfig?.isHideTts) === 1
+);
 
 const buttonGroupClass = computed(() => {
   return playbackState.value !== 'paused' || isEditable.value
@@ -95,26 +84,26 @@ const buttonGroupClass = computed(() => {
     : 'opacity-0 group-hover:opacity-100';
 });
 
-// 这个函数用于获取音频URL并播放音频
-async function handlePlay() {
-  if (playbackState.value === 'loading' || playbackState.value === 'playing') {
+const handlePlay = async () => {
+  if (playbackState.value === 'loading' || playbackState.value === 'playing')
     return;
-  }
-  // 使用localTtsUrl的值进行判断
   if (localTtsUrl.value) {
     playAudio(localTtsUrl.value);
     return;
   }
-  // 这里可以加入你的文本提示，或者根据组件内部的状态来确定
+
   playbackState.value = 'loading';
   try {
-    const res = await fetchTtsAPIProces({
+    if (!props.chatId) return;
+
+    const res = (await fetchTtsAPIProces({
       chatId: props.chatId,
       prompt: props.text,
-    });
-    const ttsUrl = res.ttsUrl; // 假设响应中包含ttsUrl
+    })) as TtsResponse;
+
+    const ttsUrl = res.ttsUrl;
     if (ttsUrl) {
-      localTtsUrl.value = ttsUrl; // 更新本地ttsUrl
+      localTtsUrl.value = ttsUrl;
       playAudio(ttsUrl);
     } else {
       throw new Error('TTS URL is undefined');
@@ -122,57 +111,54 @@ async function handlePlay() {
   } catch (error) {
     playbackState.value = 'paused';
   }
-}
+};
 
 function playAudio(audioSrc: string | undefined) {
-  // 如果之前已经有音频在播放，先停止它
   if (currentAudio) {
     currentAudio.pause();
   }
-  // 创建新的音频对象并播放
   currentAudio = new Audio(audioSrc);
   currentAudio
     .play()
     .then(() => {
-      playbackState.value = 'playing'; // 更新状态为播放中
+      playbackState.value = 'playing';
     })
     .catch((error) => {
-      playbackState.value = 'paused'; // 出错时更新状态为暂停
+      playbackState.value = 'paused';
     });
 
-  // 当音频播放结束时更新状态
   currentAudio.onended = () => {
-    playbackState.value = 'paused'; // 音频结束时更新状态为暂停
-    currentAudio = null; // 清除引用
+    playbackState.value = 'paused';
+    currentAudio = null;
   };
 }
 
 function pauseAudio() {
   if (currentAudio) {
-    currentAudio.pause(); // 暂停音频
-    playbackState.value = 'paused'; // 更新状态为暂停
+    currentAudio.pause();
+    playbackState.value = 'paused';
   }
 }
 
 function playOrPause() {
   if (playbackState.value === 'playing') {
-    pauseAudio(); // 如果当前是播放状态，则暂停
+    pauseAudio();
   } else {
-    handlePlay(); // 否则，尝试播放音频
+    handlePlay();
   }
 }
 
 const mdi = new MarkdownIt({
   linkify: true,
+  html: true,
   highlight(code, language) {
     const validLang = !!(language && hljs.getLanguage(language));
     if (validLang) {
       const lang = language ?? '';
-      // 检测到HTML代码块时，直接返回原始内容
       console.log('language', language);
       if (language === 'html') {
-        htmlContent.value = code; // 存储HTML内容
-        isHtml.value = true; // 标记为HTML内容
+        htmlContent.value = code;
+        isHtml.value = true;
         console.log('htmlContent', htmlContent.value);
       }
       return highlightBlock(
@@ -185,21 +171,169 @@ const mdi = new MarkdownIt({
   },
 });
 
-// 添加自定义渲染规则来处理图片
 mdi.renderer.rules.image = function (tokens, idx, options, env, self) {
   const token = tokens[idx];
   const src = token.attrGet('src');
   const title = token.attrGet('title');
   const alt = token.content;
 
-  // 使用普通的<img>标签，你可以根据需要添加或调整属性
-  return `<img src="${src}" alt="${alt}" title="${
-    title || alt
-  }" class="rounded-md" style=" max-width:100% ;max-height: 30vh; "/>`;
+  if (isMobile.value) {
+    return `<img src="${src}" alt="${alt}" title="${
+      title || alt
+    }" class="rounded-md"
+      style=" max-width:100% "
+      onclick="(function() {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = 0;
+        modal.style.left = 0;
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0, 0, 0, 1)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = 1000;
+        modal.style.overflow = 'hidden';
+
+        modal.onclick = (event) => {
+            document.body.removeChild(modal);
+        };
+
+        const img = document.createElement('img');
+        img.src = '${src}';
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '95%';
+        img.style.transform = 'scale(1) translate(0px, 0px)';
+        img.style.transition = 'transform 0.2s';
+
+        let scale = 1;
+        let posX = 0, posY = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        let initialDistance = null;
+        modal.addEventListener('touchmove', (event) => {
+          if (event.touches.length === 2) {
+            const touch1 = event.touches[0];
+            const touch2 = event.touches[1];
+            const currentDistance = Math.sqrt(
+              (touch2.clientX - touch1.clientX) ** 2 +
+              (touch2.clientY - touch1.clientY) ** 2
+            );
+
+            if (initialDistance === null) {
+              initialDistance = currentDistance;
+            } else {
+              const scaleChange = currentDistance / initialDistance;
+              scale = Math.max(0.5, Math.min(scale * scaleChange, 3));
+              img.style.transform = \`scale(\${scale}) translate(\${posX}px, \${posY}px)\`;
+              initialDistance = currentDistance;
+            }
+          }
+        });
+
+        modal.addEventListener('touchend', () => {
+          initialDistance = null;
+        });
+
+        modal.appendChild(img);
+        document.body.appendChild(modal);
+      })()"
+  />`;
+  } else {
+    return `<img src="${src}" alt="${alt}" title="${
+      title || alt
+    }" class="rounded-md"
+      style="max-width:100% ;max-height: 30vh;"
+      onclick="(function() {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = 0;
+        modal.style.left = 0;
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0, 0, 0, 0.5)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = 1000;
+        modal.style.overflow = 'hidden';
+
+        modal.onclick = (event) => {
+          if (event.target === modal) {
+            document.body.removeChild(modal);
+          }
+        };
+
+        const img = document.createElement('img');
+        img.src = '${src}';
+        img.style.maxWidth = '95%';
+        img.style.maxHeight = '95%';
+        img.style.borderRadius = '8px';
+        img.style.transform = 'scale(1) translate(0px, 0px)';
+        img.style.transition = 'transform 0.2s';
+
+        let scale = 1;
+        let posX = 0, posY = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        modal.addEventListener('wheel', (event) => {
+          event.preventDefault();
+          const zoomFactor = 0.1;
+          if (event.deltaY < 0) {
+            scale = Math.min(scale + zoomFactor, 3);
+          } else {
+            scale = Math.max(scale - zoomFactor, 0.5);
+          }
+          img.style.transform = \`scale(\${scale}) translate(\${posX}px, \${posY}px)\`;
+        });
+
+        let initialDistance = null;
+        modal.addEventListener('touchmove', (event) => {
+          if (event.touches.length === 2) {
+            const touch1 = event.touches[0];
+            const touch2 = event.touches[1];
+            const currentDistance = Math.sqrt(
+              (touch2.clientX - touch1.clientX) ** 2 +
+              (touch2.clientY - touch1.clientY) ** 2
+            );
+
+            if (initialDistance === null) {
+              initialDistance = currentDistance;
+            } else {
+              const scaleChange = currentDistance / initialDistance;
+              scale = Math.max(0.5, Math.min(scale * scaleChange, 3));
+              img.style.transform = \`scale(\${scale}) translate(\${posX}px, \${posY}px)\`;
+              initialDistance = currentDistance;
+            }
+          }
+        });
+
+        modal.addEventListener('touchend', () => {
+          initialDistance = null;
+        });
+
+        const close = document.createElement('span');
+        close.innerText = '×';
+        close.style.position = 'absolute';
+        close.style.top = '24px';
+        close.style.right = '24px';
+        close.style.color = 'white';
+        close.style.fontSize = '1.5rem';
+        close.style.cursor = 'pointer';
+        close.onclick = () => document.body.removeChild(modal);
+
+        modal.appendChild(img);
+        modal.appendChild(close);
+        document.body.appendChild(modal);
+      })()"
+  />`;
+  }
 };
 
 const fileInfo = computed(() => props.fileInfo);
-// 将 fileInfo 转换为数组
 const fileInfoArray = computed(() =>
   fileInfo?.value?.split(',').map((file) => file.trim())
 );
@@ -221,32 +355,72 @@ mdi.use(mdKatex, {
   errorColor: ' #cc0000',
 });
 
-const text = computed(() => {
-  const value = props.text ?? '';
+const mainContent = computed(() => {
+  let value = props.text || '';
 
-  // 使用正则表达式替换 \( 后面的空格和 \) 前面的空格，以及 \[ 和 \] 的情况
-  const modifiedValue = value
+  if (value.startsWith('<think>')) {
+    const endThinkTagIndex = value.indexOf('</think>');
+    if (endThinkTagIndex !== -1) {
+      value =
+        value.slice(0, value.indexOf('<think>')) +
+        value.slice(endThinkTagIndex + 8);
+    } else {
+      value = '';
+    }
+  }
+
+  let modifiedValue = value
+    .replace(/\\\(\s*/g, '$')
+    .replace(/\s*\\\)/g, '$')
+    .replace(/\\\[\s*/g, '$$')
+    .replace(/\s*\\\]/g, '$$')
+    .replace(
+      /\[\[(\d+)\]\((https?:\/\/[^\)]+)\)\]/g,
+      '<button class="bg-gray-500 text-white rounded-full w-4 h-4 mx-1 flex justify-center items-center text-sm hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 inline-flex" onclick="window.open(\'$2\', \'_blank\')">$1</button>'
+    );
+
+  if (!props.asRawText) {
+    return mdi.render(modifiedValue);
+  }
+
+  return modifiedValue;
+});
+
+const thinkingContent = computed<string>(() => {
+  let content = '';
+
+  if (props.text?.includes('<think>') && !props.text.includes('</think>')) {
+    content = props.text.replace(/<think>/g, '').trim();
+  } else {
+    const match = props.text?.match(/<think>([\s\S]*?)<\/think>/);
+    if (match) {
+      content = match[1];
+    }
+  }
+
+  const modifiedContent = content
     .replace(/\\\(\s*/g, '$')
     .replace(/\s*\\\)/g, '$')
     .replace(/\\\[\s*/g, '$$')
     .replace(/\s*\\\]/g, '$$');
 
   if (!props.asRawText) {
-    const renderedValue = mdi.render(modifiedValue);
-    return renderedValue;
+    return mdi.render(modifiedContent);
   }
 
-  return modifiedValue;
+  return modifiedContent;
 });
 
 function highlightBlock(str: string, lang?: string) {
-  return `<pre style=" max-width:100% " class="code-block-wrapper"><div class="code-block-header"><span class="code-block-header__lang">${lang}</span><span class="code-block-header__copy">${t(
+  return `<pre
+    style=" max-width:100%; background-color: #212121; "
+    class="code-block-wrapper"
+  ><div class="code-block-header "><span class="code-block-header__lang">${lang}</span><span class="code-block-header__copy">${t(
     'chat.copyCode'
   )}</span></div><code class="hljs code-block-body ${lang}">${str}</code></pre>`;
 }
 
 async function handleEdit() {
-  // await chatStore.queryActiveChatLogList();
   editableText.value = props.text;
   modalVisible.value = true;
 }
@@ -257,18 +431,18 @@ function closeModal() {
 
 async function handleEditMessage() {
   if (isEditable.value) {
-    const tempEditableContent = editableContent.value; // 存储编辑后的内容到临时变量
+    const tempEditableContent = editableContent.value;
     await onConversation({
-      msg: tempEditableContent, // 使用临时变量中的编辑后的内容
+      msg: tempEditableContent,
       chatId: props.chatId,
     });
 
-    isEditable.value = false; // 提交后退出编辑模式
+    isEditable.value = false;
   } else {
     editableContent.value = props.text;
-    isEditable.value = true; // 进入编辑模式
-    await nextTick(); // 确保 DOM 更新完成
-    adjustTextareaHeight(); // 调整高度
+    isEditable.value = true;
+    await nextTick();
+    adjustTextareaHeight();
   }
 }
 
@@ -286,6 +460,18 @@ function handleDelete() {
   emit('delete');
 }
 
+const cancelEdit = () => {
+  isEditable.value = false;
+  editableContent.value = props.text;
+};
+
+const adjustTextareaHeight = () => {
+  if (textarea.value) {
+    textarea.value.style.height = 'auto';
+    textarea.value.style.height = `${textarea.value.scrollHeight}px`;
+  }
+};
+
 defineExpose({ textRef });
 
 onMounted(() => {
@@ -300,6 +486,27 @@ onMounted(() => {
 <template>
   <div class="flex flex-col group w-full">
     <div class="text-wrap rounded-lg min-w-12 flex w-full flex-col">
+      <div
+        v-if="thinkingContent && !inversion"
+        @click="showThinking = !showThinking"
+        class="text-gray-600 flex items-center mb-1 text-base hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300 cursor-pointer"
+      >
+        <span>{{ mainContent || !loading ? '已深度思考' : '深度思考中' }}</span>
+        <LoadingOne
+          v-if="!mainContent && loading"
+          class="rotate-icon flex mx-1"
+        />
+        <Down v-if="!showThinking" size="20" class="mr-1 flex" />
+        <Up v-else size="20" class="mr-1 flex" />
+      </div>
+      <div
+        v-else-if="loading && thinkingContent && !inversion"
+        class="text-gray-600 flex items-center mb-1 text-base hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300 cursor-pointer"
+      >
+        <span>深度思考</span>
+        <LoadingOne class="rotate-icon flex mx-1" />
+      </div>
+
       <div ref="textRef" class="flex w-full">
         <div
           v-if="!inversion"
@@ -307,13 +514,26 @@ onMounted(() => {
           style="max-width: 100%"
         >
           <div class="w-full">
-            <span v-if="loading && !text" class="loading-anchor"></span>
+            <span
+              v-if="loading && !text"
+              class="inline-block w-3.5 h-3.5 ml-0.5 align-middle rounded-full animate-breathe dark:bg-gray-100 bg-gray-950"
+            ></span>
+            <div
+              v-if="thinkingContent && showThinking"
+              :class="[
+                'markdown-body text-gray-600 dark:text-gray-400 pl-5 mt-2 mb-4 border-l-2 border-gray-300 dark:border-gray-600 overflow-hidden transition-opacity duration-500 ease-in-out',
+                {
+                  'markdown-body-generate': loading && !mainContent,
+                },
+              ]"
+              v-html="thinkingContent"
+            ></div>
             <div
               :class="[
                 'markdown-body text-gray-950 dark:text-gray-100',
-                { 'markdown-body-generate': loading || !text },
+                { 'markdown-body-generate': loading || !mainContent },
               ]"
-              v-html="text"
+              v-html="mainContent"
             ></div>
           </div>
         </div>
@@ -326,7 +546,7 @@ onMounted(() => {
         >
           <div
             v-if="isEditable"
-            class="p-3 rounded-lg w-full bg-opacity dark:bg-gray-750 break-words"
+            class="p-3 rounded-2xl w-full bg-opacity dark:bg-gray-750 break-words"
             style="max-width: 100%"
           >
             <textarea
@@ -339,7 +559,7 @@ onMounted(() => {
           </div>
           <div
             v-else
-            class="p-3 rounded-lg text-base bg-opacity dark:bg-gray-750 break-words whitespace-pre-wrap text-gray-950 dark:text-gray-100"
+            class="p-3 rounded-2xl text-base bg-opacity dark:bg-gray-750 break-words whitespace-pre-wrap text-gray-950 dark:text-gray-100"
             v-text="text"
             style="max-width: 100%"
           />
@@ -388,7 +608,7 @@ onMounted(() => {
       <div class="flex justify-start">
         <button
           @click="handleEdit"
-          class="px-4 py-1 shadow-sm ring-1 ring-inset bg-white ring-gray-300 hover:bg-gray-50 text-gray-900 rounded-md mr-4 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:ring-gray-700 dark:hover:ring-gray-600"
+          class="px-4 py-1 shadow-sm ring-1 ring-inset bg-white ring-gray-300 hover:bg-gray-50 text-gray-900 rounded-lg mr-4 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:ring-gray-700 dark:hover:ring-gray-600"
         >
           预览代码
         </button>
@@ -403,12 +623,12 @@ onMounted(() => {
         v-for="(item, index) in promptReference
           ? promptReference
               .match(/{(.*?)}/g)
-              ?.map((str) => str.slice(1, -1))
+              ?.map((str: string | any[]) => str.slice(1, -1))
               .slice(0, 3)
           : []"
         :key="index"
-        @click="handleMessage(item)"
-        class="flex flex-row items-center my-3 px-2 py-2 shadow-sm bg-opacity hover:bg-gray-50 text-left text-gray-900 rounded-md overflow-hidden dark:bg-gray-750 dark:text-gray-400"
+        @click="handleMessage(item as string)"
+        class="flex flex-row items-center my-3 px-3 py-2 shadow-sm bg-opacity hover:bg-gray-50 text-left text-gray-900 rounded-full overflow-hidden dark:bg-gray-750 dark:text-gray-400"
       >
         {{ item }}
         <ArrowRight class="ml-1" />
@@ -571,22 +791,7 @@ onMounted(() => {
   }
 }
 
-.loading-anchor::after {
-  content: '';
-  /* 不使用文本内容 */
-  display: inline-block;
-  width: 0.875em;
-  /* 控制原点的大小 */
-  height: 0.875em;
-  /* 保持原点为圆形 */
-  margin-left: 2px;
-  background-color: #000;
-  /* 原点颜色 */
-  border-radius: 50%;
-  /* 使其成为圆形 */
+.animate-breathe {
   animation: breathe 2s infinite ease-in-out;
-  /* 应用呼吸效果动画 */
-  vertical-align: middle;
-  /* 根据需要调整垂直对齐 */
 }
 </style>
