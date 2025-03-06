@@ -224,6 +224,8 @@ export class UploadService implements OnModuleInit {
       accessKeyId,
       accessKeySecret,
       bucket: removeSpecialCharacters(bucket),
+      authorizationV4: true,
+      secure: true,
     });
     try {
       console.log('ali 开始上传');
