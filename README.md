@@ -45,10 +45,12 @@
 | -------- | -------------- | -------- |
 | 商用许可 | ✅ 支持        | ✅ 支持  |
 | 源码状态 | 未编译，可修改 | 已编译   |
-| 获取方式 | 开源免费       | 赞助获取 |
+| 获取方式 | 开源免费       |  需授权 |
 | 功能特性 | 基础功能       | 优先更新 |
 
 可在[更新日志](./docs/CHANGELOG.md)中查看比对详细的版本差异，或访问[LightAI 助手](https://asst.lightai.cloud)体验最新开发版
+
+授权方式可参阅[99AI 开发版商业化运作公告](https://mp.weixin.qq.com/s/kGCodiHUQSBn8cdJz7Plhg)
 
 ## 📦 项目结构
 
@@ -74,4 +76,4 @@
 
 添加微信备注「99」进群交流，作者不提供私聊技术咨询，请优先阅读群公告
 
-<img src="https://github.com/vastxie/99AI/assets/24899308/ee20578f-063d-48d8-bff6-85ac3e38fe60" width="200">
+<img src="https://github.com/user-attachments/assets/9fed8343-73ae-43b0-9ce7-dc1a4c30c7a5" width="200">
