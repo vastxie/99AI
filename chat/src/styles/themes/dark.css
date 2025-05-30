@@ -1,0 +1,42 @@
+:root[data-theme='dark'] {
+  /* ────────── Button Color ────────── */
+  --btn-bg-primary: #818cf8;
+  --btn-bg-primary-hover: #6366f1;
+  --btn-bg-primary-active: #4f46e5;
+  --btn-text-primary: #ffffff;
+  --btn-border-primary: transparent;
+
+  --btn-bg-secondary: #2f2f2f;
+  --btn-bg-secondary-hover: #424242;
+  --btn-bg-secondary-active: #676767;
+  --btn-text-secondary: #cdcdcd;
+  --btn-border-secondary: #424242;
+  --btn-border-secondary-hover: #676767;
+  --btn-border-secondary-active: #9b9b9b;
+
+  --btn-bg-ghost: transparent;
+  --btn-bg-ghost-hover: rgba(255, 255, 255, 0.08);
+  --btn-bg-ghost-active: rgba(255, 255, 255, 0.12);
+  --btn-text-ghost: #cdcdcd;
+
+  --btn-bg-danger: #f87171;
+  --btn-bg-danger-hover: #ef4444;
+  --btn-bg-danger-active: #dc2626;
+  --btn-text-danger: #ffffff;
+
+  /* ────────── Input Color ────────── */
+  --input-border: #424242;
+  --input-border-hover: #676767;
+  --input-border-focus: #818cf8;
+  --input-border-error: #f87171;
+  --input-bg: #2f2f2f;
+  --input-text: #cdcdcd;
+  --input-placeholder: #9b9b9b;
+
+  /* ────────── Tab Component ────────── */
+  --tab-group-bg-dark: #212121;
+  --tab-group-bg-filled-dark: #334155;
+  --tab-text-dark: #9ca3af;
+  --tab-active-bg-dark: #424242;
+  --tab-active-text-dark: #f3f4f6;
+}

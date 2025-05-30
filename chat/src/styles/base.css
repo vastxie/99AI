@@ -1,0 +1,10 @@
+/* Tailwind base reset 之外，自定义全局字体/排版 */
+html {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro SC',
+    'PingFang SC',
+    sans-serif;
+}

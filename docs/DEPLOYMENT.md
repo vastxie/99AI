@@ -21,8 +21,8 @@ cd AIWebQuickDeploy
 - 安装 Node.js 版本 18 或更高版本:
 
   ```shell
-  nvm install 18
-  nvm use 18
+  nvm install 22
+  nvm use 22
   ```
 
 - 验证 Node.js 是否安装成功:

@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "EditorConfig.EditorConfig",
+    "mikestead.dotenv",
+    "Vue.volar",
+    "antfu.unocss"
+  ]
+}

@@ -1,0 +1,59 @@
+appId: com.99ai.chat
+productName: 99AI
+copyright: Copyright © 2024 vastxie
+
+directories:
+  buildResources: resources
+  output: release
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+
+mac:
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+  darkModeSupport: true
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  entitlements: null
+  entitlementsInherit: null
+  artifactName: '${productName}-${version}-${arch}.${ext}'
+
+dmg:
+  background: resources/background.png
+  icon: resources/icon.icns
+  iconSize: 128
+  contents:
+    - x: 380
+      y: 240
+      type: link
+      path: /Applications
+    - x: 122
+      y: 240
+      type: file
+
+win:
+  icon: resources/icon.ico
+  target:
+    - nsis
+    - zip
+  artifactName: '${productName}-${version}-${arch}.${ext}'
+
+linux:
+  icon: resources
+  category: Office
+  target:
+    - AppImage
+    - deb
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: '99AI Chat'

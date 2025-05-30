@@ -1,89 +1,71 @@
-# 功能介绍及展示
+# 99AI 详细功能介绍
 
-功能介绍及展示为开发版页面，与稳定版仓库有一定差异。
+本文档详细介绍 99AI 平台的核心功能和特色，配合截图展示实际使用效果。
 
 ## 💬 AI 对话
 
 支持 OpenAI Chat 格式，后台可自定义模型名称、头像、介绍、代理、key、积分扣除方式、文件上传模式等参数。
 
-### 首页
+<img width="1444" alt="AI对话界面" src="https://github.com/vastxie/99AI/assets/24899308/dd373bec-674e-4a6c-8304-f6abd1a65e1e">
 
-<img width="1279" alt="iShot_2025-04-11_18 11 34" src="https://github.com/user-attachments/assets/93f2b5f1-9921-49fc-8c78-0f9e0ecbcd6e" />
+## 🖼️ 多模态模型
 
-<img width="1279" alt="iShot_2025-04-11_18 12 49" src="https://github.com/user-attachments/assets/4c9b1968-5c6b-404d-ae75-8d0737e016fc" />
+使用`gpt-4o`、`claude-3`等视觉模型，或`gpt-4-all`等逆向模型，完成图像、文件的识别分析。
 
-### 普通对话
+<img width="1443" alt="多模态模型分析" src="https://github.com/vastxie/99AI/assets/24899308/e1f1ed62-97e5-4412-9b72-5916d2337fdc">
 
-<img width="1279" alt="iShot_2025-04-11_18 14 06" src="https://github.com/user-attachments/assets/87890fc6-710e-41aa-8d00-359b24596f72" />
+## 📄 全模型文件分析
 
-### 思考推理
+<img width="1444" alt="文件分析功能" src="https://github.com/vastxie/99AI/assets/24899308/eedfd9fd-f3f3-4a37-8a82-b73e135e8dfe">
 
-<img width="1279" alt="iShot_2025-04-11_18 15 12" src="https://github.com/user-attachments/assets/c6cad1f9-08a6-4034-b669-2274401597b7" />
+## 💻 代码预览
 
-### 联网搜索
+`HTML` 代码的预览与编辑。
 
-<img width="1279" alt="iShot_2025-04-11_18 16 28" src="https://github.com/user-attachments/assets/9b10f0aa-fd36-41bc-910e-e15d9a1b4c36" />
+<img width="1444" alt="代码预览功能1" src="https://github.com/vastxie/99AI/assets/24899308/d7860dbf-0897-4f26-9d70-d304a270c05a">
 
-### MCP工具
+<img width="1444" alt="代码预览功能2" src="https://github.com/vastxie/99AI/assets/24899308/13e558fa-62a8-4fff-9e2b-c4820acefbc4">
 
-<img width="1279" alt="iShot_2025-04-11_18 18 10" src="https://github.com/user-attachments/assets/31055550-fb85-487a-9f8a-bbd99cbf61a5" />
+## 🔍 联网搜索
 
-<img width="1279" alt="iShot_2025-04-11_18 18 22" src="https://github.com/user-attachments/assets/2082a2b6-d7b0-4189-95a0-c53de21faa7a" />
+对接[插件系统](https://github.com/vastxie/99AIPlugin)，拓展 AI 功能边界。
 
-### 知识库问答
+<img width="1444" alt="联网搜索功能" src="https://github.com/vastxie/99AI/assets/24899308/6ad1bcbb-ac6b-4478-9d91-9ae8b71afa64">
 
-<img width="1279" alt="iShot_2025-04-11_19 02 18" src="https://github.com/user-attachments/assets/36762bc9-2454-4551-97eb-07a23d1dd42d" />
+## 🗺️ 思维导图
 
-### 应用对话
+<img width="1444" alt="思维导图功能1" src="https://github.com/vastxie/99AI/assets/24899308/d6eb861d-2e26-415a-acf6-e2d44fc29620">
 
-<img width="1279" alt="iShot_2025-04-11_18 21 04" src="https://github.com/user-attachments/assets/f912cbf6-499d-41e2-b48d-68b5b923ab33" />
+<img width="1445" alt="思维导图功能2" src="https://github.com/vastxie/99AI/assets/24899308/61f1b059-1eab-428a-91a7-3015ffdac970">
 
-<img width="1279" alt="iShot_2025-04-11_18 26 07" src="https://github.com/user-attachments/assets/5e45454b-0e66-479a-a917-333a975a6b2d" />
+## 🎨 AI 绘画
 
-<img width="1279" alt="iShot_2025-04-11_18 25 46" src="https://github.com/user-attachments/assets/fb81e23c-08c8-4d07-8647-d43dce4437e1" />
+对接 `midjourney` 、`dall-e`、`stable-diffusion` 等绘画模型。
 
-## 🧩 插件拓展
+<img width="1444" alt="AI绘画功能1" src="https://github.com/vastxie/99AI/assets/24899308/39728c39-ed98-4d77-bee8-f7548c5f4a28">
 
-### GPT-4o 绘图
+<img width="1444" alt="AI绘画功能2" src="https://github.com/vastxie/99AI/assets/24899308/4a70785d-bf66-49e2-a822-5c91a68bd667">
 
-<img width="1279" alt="iShot_2025-04-11_18 31 53" src="https://github.com/user-attachments/assets/c185191d-888a-4abb-b8e5-9e764a0b446f" />
+## 🎵 AI 音乐
 
-<img width="1279" alt="iShot_2025-04-11_18 32 51" src="https://github.com/user-attachments/assets/2f5aa55d-5446-45c1-925f-71c48475ede6" />
+对接 `suno-music` 完成音乐创作。
 
-### Midjourney 绘图
+<img width="1445" alt="AI音乐功能1" src="https://github.com/vastxie/99AI/assets/24899308/a2e42201-fad7-4498-9fb0-c107fcc2f683">
 
-<img width="1279" alt="iShot_2025-04-11_18 34 58" src="https://github.com/user-attachments/assets/759511e9-780a-42f0-aa36-772e38a01881" />
+<img width="1446" alt="AI音乐功能2" src="https://github.com/vastxie/99AI/assets/24899308/62e466d0-7866-4efb-b28e-03f6b088d043">
 
-<img width="1279" alt="iShot_2025-04-11_18 35 56" src="https://github.com/user-attachments/assets/ee002420-0950-454d-9d9a-be6537b70c84" />
+## 🎬 AI 视频
 
-### 思维导图
+对接 `luma-video` 文生视频。
 
-<img width="1279" alt="iShot_2025-04-11_18 38 30" src="https://github.com/user-attachments/assets/05e505a6-b4b7-42cd-89d7-d546c8c6c839" />
+<img width="1446" alt="AI视频功能1" src="https://github.com/vastxie/99AI/assets/24899308/365cc93e-6fc0-4107-ac4c-6b25f31f0f12">
 
-<img width="1279" alt="iShot_2025-04-11_18 38 35" src="https://github.com/user-attachments/assets/ccd700d1-084f-4add-9249-06a144c0ce2a" />
+<img width="1443" alt="AI视频功能2" src="https://github.com/vastxie/99AI/assets/24899308/734013e1-273b-4655-b18e-a8f138165130">
 
-### AI 音乐
+## 📚 知识库预设
 
-<img width="1279" alt="iShot_2025-04-11_18 41 23" src="https://github.com/user-attachments/assets/dfe481f5-e455-4034-8d44-b2a7d3cdde93" />
+<img width="1446" alt="知识库预设功能1" src="https://github.com/vastxie/99AI/assets/24899308/abe7fe07-535f-43cc-8bc5-5e49eb6271cf">
 
-<img width="1279" alt="iShot_2025-04-11_18 43 26" src="https://github.com/user-attachments/assets/3cbae14b-3dd6-4604-9a6e-73c3fa75364b" />
+<img width="1442" alt="知识库预设功能2" src="https://github.com/vastxie/99AI/assets/24899308/330be2fc-db83-446c-8518-d97f85ef0ec4">
 
-### AI 视频
-
-<img width="1279" alt="iShot_2025-04-11_18 47 05" src="https://github.com/user-attachments/assets/5ce141c6-3946-4bb9-b3d0-1f0c57255492" />
-
-
-## 📑 其他页面
-
-### 设置中心
-
-<img width="1279" alt="iShot_2025-04-11_18 57 11" src="https://github.com/user-attachments/assets/7cbad9a0-1929-4cb2-b484-8044ffc0b044" />
-
-<img width="1279" alt="iShot_2025-04-11_18 57 26" src="https://github.com/user-attachments/assets/daf6d6c4-748f-4547-98f1-9dd6675947ee" />
-
-### 后台管理
-
-<img width="1223" alt="image" src="https://github.com/user-attachments/assets/d7b3e205-6f3d-4df0-985f-c9088fb98e78" />
-
-
-
+<img width="1443" alt="知识库预设功能3" src="https://github.com/vastxie/99AI/assets/24899308/a341dc07-cd83-4594-bff7-c5b784f41eb1">

@@ -1,0 +1,51 @@
+:root,
+:root[data-theme='light'] {
+  /* ────────── Button Color ────────── */
+  --btn-bg-primary: #4f46e5;
+  --btn-bg-primary-hover: #6366f1;
+  --btn-bg-primary-active: #4338ca;
+  --btn-text-primary: #ffffff;
+  --btn-border-primary: transparent;
+  --btn-border-primary-hover: transparent;
+  --btn-border-primary-active: transparent;
+
+  --btn-bg-secondary: #ffffff;
+  --btn-bg-secondary-hover: #f9f9f9;
+  --btn-bg-secondary-active: #ececec;
+  --btn-text-secondary: #424242;
+  --btn-border-secondary: #e3e3e3;
+  --btn-border-secondary-hover: #cdcdcd;
+  --btn-border-secondary-active: #b4b4b4;
+
+  --btn-bg-ghost: transparent;
+  --btn-bg-ghost-hover: rgba(0, 0, 0, 0.04);
+  --btn-bg-ghost-active: rgba(0, 0, 0, 0.08);
+  --btn-text-ghost: #424242;
+  --btn-border-ghost: transparent;
+
+  --btn-bg-danger: #ef4444;
+  --btn-bg-danger-hover: #dc2626;
+  --btn-bg-danger-active: #b91c1c;
+  --btn-text-danger: #ffffff;
+  --btn-border-danger: transparent;
+
+  /* ────────── Button Size ────────── */
+  --btn-border-width: 1px; /* Secondary 用描边，Primary 可自行覆盖为 0 */
+
+  /* ────────── Input Color ────────── */
+  --input-border: #e3e3e3;
+  --input-border-hover: #cdcdcd;
+  --input-border-focus: #4f46e5;
+  --input-border-error: #ef4444;
+  --input-bg: #ffffff;
+  --input-text: #424242;
+  --input-placeholder: #9b9b9b;
+
+  /* ────────── Tab Component ────────── */
+  --tab-group-bg: #ececec;
+  --tab-group-bg-filled: #e2e8f0;
+  --tab-text: #424242;
+  --tab-active-bg: #ffffff;
+  --tab-active-text: #4f46e5;
+  --tab-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}

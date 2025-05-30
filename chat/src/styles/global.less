@@ -1,0 +1,255 @@
+/* 引入 Tailwind CSS 的基础、组件和工具类 */
+// @import 'tailwindcss/base';
+// @import 'tailwindcss/components';
+// @import 'tailwindcss/utilities';
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    'Noto Sans',
+    sans-serif,
+    'Helvetica Neue',
+    Arial,
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji';
+  // padding-bottom: constant(safe-area-inset-bottom);
+  // padding-bottom: env(safe-area-inset-bottom);
+  @apply text-gray-950 dark:text-gray-100 !important;
+}
+
+:root.dark body {
+  background-color: #212121;
+}
+
+#app {
+  height: 100%;
+  overflow: hidden;
+}
+
+// div {
+//   @apply text-gray-950 dark:text-gray-100;
+// }
+
+// 全局焦点样式
+* :focus {
+  outline: none;
+}
+
+/* 自定义滚动条样式 */
+.custom-scrollbar {
+  /* 现代浏览器：确保滚动条不占据宽度 */
+  scrollbar-gutter: stable both-edges;
+
+  /* Firefox 支持 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(209, 213, 219, 0.8) transparent;
+
+  /* 确保滚动条为overlay模式（不占据宽度） */
+  overflow: overlay; /* 虽然已废弃，但仍有浏览器支持 */
+}
+
+/* 当overflow: overlay不被支持时的回退 */
+@supports not (overflow: overlay) {
+  .custom-scrollbar {
+    overflow: auto;
+    /* 通过padding-right为可能出现的滚动条预留空间，然后用负margin抵消 */
+    padding-right: 8px;
+    margin-right: -8px;
+  }
+}
+
+/* Webkit内核浏览器的滚动条自定义 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  background-color: transparent;
+  /* 强制滚动条为overlay模式 */
+  position: absolute;
+}
+
+/* 隐藏横向滚动条 */
+.custom-scrollbar::-webkit-scrollbar:horizontal {
+  height: 0;
+  display: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(209, 213, 219, 0.8);
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  /* 确保滚动条thumb不会增加宽度 */
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+/* 滚动条悬停效果 */
+.custom-scrollbar:hover::-webkit-scrollbar {
+  width: 8px; /* 悬停时加宽 */
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.9); /* 悬停时颜色加深 */
+}
+
+/* 深色模式滚动条 */
+.dark .custom-scrollbar {
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 85, 99, 0.8) transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.8);
+}
+
+.dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.9);
+}
+
+/* 额外的兼容性处理：针对不同浏览器引擎 */
+
+/* Chrome 和基于 Chromium 的浏览器 */
+@supports (-webkit-appearance: none) {
+  .custom-scrollbar {
+    overflow: auto;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    /* 使用 overlay 样式 */
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Firefox 特殊处理 */
+@-moz-document url-prefix() {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(209, 213, 219, 0.8) transparent;
+    /* Firefox 的滚动条通常不占据宽度 */
+    overflow: auto;
+  }
+}
+
+/* 
+ * 终极方案：完全overlay滚动条
+ * 如果上面的方案仍有问题，可以使用这个类名：.overlay-scrollbar
+ * 这将完全隐藏原生滚动条并确保不占据任何宽度
+ */
+.overlay-scrollbar {
+  overflow: hidden;
+  position: relative;
+}
+
+.overlay-scrollbar:hover {
+  overflow: auto;
+}
+
+/* 完全隐藏滚动条但保持滚动功能 */
+.overlay-scrollbar::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+.overlay-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* 当鼠标悬停时显示滚动条 */
+.overlay-scrollbar:hover::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.overlay-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(209, 213, 219, 0.8);
+  border-radius: 6px;
+}
+
+/* Firefox 的overlay滚动条 */
+.overlay-scrollbar {
+  scrollbar-width: none; /* 完全隐藏 */
+}
+
+.overlay-scrollbar:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(209, 213, 219, 0.8) transparent;
+}
+
+/* 深色模式的overlay滚动条 */
+.dark .overlay-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.8);
+}
+
+.dark .overlay-scrollbar:hover {
+  scrollbar-color: rgba(75, 85, 99, 0.8) transparent;
+}
+
+/* 加载动画样式 */
+.loading-animation {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 20px;
+}
+
+.loading-animation:before,
+.loading-animation:after,
+.loading-animation span {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #6366f1;
+  animation: dotBounce 1.4s infinite ease-in-out;
+}
+
+.loading-animation:before {
+  left: 0;
+  animation-delay: 0s;
+}
+
+.loading-animation span {
+  left: 26px;
+  animation-delay: 0.2s;
+}
+
+.loading-animation:after {
+  left: 52px;
+  animation-delay: 0.4s;
+}
+
+@keyframes dotBounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(-50%) scale(0.6);
+    opacity: 0.6;
+  }
+  40% {
+    transform: translateY(-50%) scale(1);
+    opacity: 1;
+  }
+}

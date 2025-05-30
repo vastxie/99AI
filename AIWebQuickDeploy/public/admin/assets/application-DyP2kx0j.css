@@ -1,0 +1,8 @@
+
+/**
+ * 由 Fantastic-admin 提供技术支持
+ * Powered by Fantastic-admin
+ * https://fantastic-admin.github.io
+ */
+
+.prompt-template-editor[data-v-0b0108c2]{padding:5px}.field-grid[data-v-0b0108c2]{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;width:100%}.field-item[data-v-0b0108c2]{background-color:#fdfdfd;transition:box-shadow .2s ease-in-out;width:100%}.field-item[data-v-0b0108c2]:hover{box-shadow:var(--el-box-shadow-lighter)}.drag-handle[data-v-0b0108c2]{touch-action:none}.field-number[data-v-0b0108c2]{min-width:20px;text-align:right}.ghost[data-v-0b0108c2]{opacity:.5;background:#c8ebfb;border:1px dashed #409eff}[data-v-0b0108c2] .el-form-item__label{line-height:normal;margin-bottom:4px!important;padding:0!important}[data-v-0b0108c2] .el-form-item{margin-bottom:10px}.category-selector[data-v-de27d88a]{width:100%}.selected-categories[data-v-de27d88a]{min-height:32px;padding:4px 0}.category-options .el-tag[data-v-de27d88a]{transition:all .3s}.category-options .el-tag[data-v-de27d88a]:not(.is-disabled):hover{transform:scale(1.05)}.category-options .el-tag.is-disabled[data-v-de27d88a]{cursor:not-allowed;opacity:.6}
