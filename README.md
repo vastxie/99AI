@@ -17,6 +17,8 @@
 
 99AI 是一个**可商业化的 AI Web 平台**，提供一站式的人工智能服务解决方案。支持私有化部署，内置多用户管理，适合企业、团队或个人快速构建 AI 服务。
 
+<img width="1510" alt="image" src="https://github.com/user-attachments/assets/b6e7be3e-d754-4420-b088-9c30492adb21" />
+
 ### 🚀 核心优势
 
 - **开箱即用**：基于 Node.js 完整打包，支持 Docker 部署
@@ -28,10 +30,24 @@
 ### 💡 主要功能
 
 - 🤖 **AI 对话**：适配主流 AI 模型，支持自定义灵活配置
+  
+  <img width="1510" alt="image" src="https://github.com/user-attachments/assets/12c47a55-08e7-4cfb-abee-09f3c9c2e9db" />
+  
 - 💡 **深度思考**：支持深度思考模型，使用全局思考模型赋能普通模型，实现 Deep + Everything
+  
+  <img width="1510" alt="image" src="https://github.com/user-attachments/assets/8c09455a-2a84-4a6f-a1bd-78d8a1e2c88b" />
+
 - 🔍 **联网搜索**：实时信息获取，突破知识时效性限制
+  
+  <img width="1510" alt="image" src="https://github.com/user-attachments/assets/0228bb87-9cac-4187-817e-a6e15c321a53" />
+
 - 🗺️ **智能图表**：一句话生成可视化流程图/思维导图，智能匹配 10+ 种 Mermaid 图表类型
+  
+  <img width="1510" alt="image" src="https://github.com/user-attachments/assets/a348d8c4-0b97-40d6-b441-3654a378732b" />
+
 - 🔧 **应用广场**：自定义应用预设，灵活配置多场景 AI 智能体
+  
+  <img width="1510" alt="image" src="https://github.com/user-attachments/assets/af1dadcd-6097-46dc-a21b-71d1b07c3bff" />
 
 ## 🔥 版本对比
 
