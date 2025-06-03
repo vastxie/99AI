@@ -49,6 +49,11 @@
   
   <img width="1510" alt="image" src="https://github.com/user-attachments/assets/af1dadcd-6097-46dc-a21b-71d1b07c3bff" />
 
+- ⚙️ **后台管理**：支持多用户管理、多模型接入，集成敏感词过滤与支付风控体系。
+
+  <img width="1510" alt="image" src="https://github.com/user-attachments/assets/c5ac8699-f924-4675-846c-165f2803d771" />
+
+
 ## 🔥 版本对比
 
 | 特性     | 稳定版                                            | 开发版                                           |
