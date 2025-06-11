@@ -1,5 +1,6 @@
 import { handleError } from '@/common/utils';
 import { Injectable, Logger } from '@nestjs/common';
+import fetch from 'cross-fetch';
 import { GlobalConfigService } from '../../globalConfig/globalConfig.service';
 
 @Injectable()
