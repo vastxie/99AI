@@ -4,6 +4,7 @@ name: Web
 # packages/contracts 变更也会触发：web 通过 vite/tsconfig 别名直接消费其源码。
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'web/**'

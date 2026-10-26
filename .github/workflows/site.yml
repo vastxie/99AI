@@ -3,6 +3,7 @@ name: Site
 # 文档站门禁：VitePress 构建（含死链检查 ignoreDeadLinks: false）。
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'site/**'
