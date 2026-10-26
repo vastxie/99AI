@@ -3,6 +3,7 @@ name: Admin
 # 管理后台门禁：当前模型配置行为测试、设计规约、类型检查与生产构建。
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'admin/**'
