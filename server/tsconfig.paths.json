@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@99agent/contracts": ["../packages/contracts/src/index.ts"],
+      "@99agent/contracts/*": ["../packages/contracts/src/*"],
+      "@99agent/runtime-core": ["../packages/runtime-core/src/index.ts"],
+      "@/modules/*": ["./src/modules/*"],
+      "@/packs/*": ["./src/packs/*"],
+      "@/common/*": ["./src/common/*"],
+      "@/test/*": ["./src/test/*"]
+    }
+  }
+}

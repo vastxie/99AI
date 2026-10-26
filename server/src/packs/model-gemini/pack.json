@@ -1,0 +1,16 @@
+{
+  "id": "model-gemini",
+  "tier": "system",
+  "description": "Gemini Generate Content 协议的适配器、厂商预设与模型目录",
+  "flag": "MODEL_GEMINI_PACK_ENABLED",
+  "contributes": {
+    "modelProtocols": ["gemini_generate_content"]
+  },
+  "identifiers": [
+    "gemini_generate_content",
+    "gemini-generate-content",
+    "GeminiGenerateContent",
+    "MODEL_GEMINI",
+    "generateContent"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "email",
+  "tier": "system",
+  "description": "「登录配置」里的邮箱登录页签（SMTP / 腾讯云邮件）",
+  "flag": "VITE_EMAIL_ENABLED",
+  "identifiers": ["local_email", "EMAIL_ENABLED", "VITE_EMAIL"]
+}

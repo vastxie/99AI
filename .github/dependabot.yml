@@ -1,0 +1,75 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # NestJS 各包需要同版本一起升级，单独升级其中一个会产生对等依赖错配
+      nestjs:
+        patterns: ['@nestjs/*']
+      server-minor:
+        update-types: ['minor', 'patch']
+    ignore:
+      # TypeScript 7.0 没有 JS 编译器 API：ts-jest、@nestjs/cli 都还不能用；等工具链支持后再从 TS 6 迁移（届时 server 一并迁出 node10 模块解析）
+      - dependency-name: typescript
+        versions: ['>=7']
+      # 类型跟随运行时基线 Node 24 LTS，避免放行 25/26 才有的 API
+      - dependency-name: '@types/node'
+        versions: ['>=25']
+      # 四个产品 SDK 与 overrides 固定的 common 版本配套，生成 API 已逐项核对；升级时连同 common 一起人工核对
+      - dependency-name: 'tencentcloud-sdk-nodejs-*'
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      web-minor:
+        update-types: ['minor', 'patch']
+    ignore:
+      # vue-tsc（Volar）依赖 TypeScript 7.0 已移除的 JS API
+      - dependency-name: typescript
+        versions: ['>=7']
+      - dependency-name: '@types/node'
+        versions: ['>=25']
+      # Tailwind 4 需重写 1.4k 行配置与样式测试工具，并把浏览器下限提到 Safari 16.4 / Chrome 111；单独立项
+      - dependency-name: tailwindcss
+        versions: ['>=4']
+      - dependency-name: tailwind-scrollbar
+        versions: ['>=4']
+      # katex 0.17 起内部类名加前缀；消息里的公式 HTML 由仍依赖 katex ^0.16 的 markdown-it 插件生成，单独升级会样式错位
+      - dependency-name: katex
+        versions: ['>=0.17']
+      # vue-tsc 3.3.12 生成的检查代码会改写组件静态属性里的 `//`（如占位文字里的 https://），其后的模板类型检查失效；等修复版本发布后去掉
+      - dependency-name: vue-tsc
+        versions: ['3.3.12']
+
+  - package-ecosystem: npm
+    directory: /admin
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      admin-minor:
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: typescript
+        versions: ['>=7']
+      - dependency-name: '@types/node'
+        versions: ['>=25']
+      # vue-tsc 3.3.12 生成的检查代码会改写组件静态属性里的 `//`（如占位文字里的 https://），其后的模板类型检查失效；等修复版本发布后去掉
+      - dependency-name: vue-tsc
+        versions: ['3.3.12']
+
+  - package-ecosystem: npm
+    directory: /site
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

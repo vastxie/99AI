@@ -1,0 +1,67 @@
+name: Web
+
+# 用户端唯一门禁：类型检查、ESLint 最小规则集、Vitest 全量、设计规约守卫、生产构建、首屏体积预算。
+# packages/contracts 变更也会触发：web 通过 vite/tsconfig 别名直接消费其源码。
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'packages/contracts/**'
+      - '.github/workflows/web.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'web/**'
+      - 'packages/contracts/**'
+      - '.github/workflows/web.yml'
+      - '.github/actions/**'
+      - 'package.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install web dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Lint (Vue basics)
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Design guidelines guard
+        run: pnpm check:design
+
+      - name: Production build
+        run: pnpm build-only
+
+      - name: First-screen bundle budget
+        run: pnpm check:bundle

@@ -1,0 +1,6 @@
+# 99Agent 文档 robots.txt
+
+User-agent: *
+Allow: /
+
+Sitemap: https://docs.lightai.cloud/sitemap.xml

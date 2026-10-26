@@ -1,0 +1,15 @@
+{
+  "id": "github",
+  "tier": "system",
+  "description": "「登录配置」里的 GitHub 登录页签",
+  "flag": "VITE_GITHUB_ENABLED",
+  "identifiers": [
+    "oauth:github",
+    "provider: 'github'",
+    "GithubOAuth",
+    "github-oauth",
+    "GITHUB_PACK",
+    "VITE_GITHUB",
+    "github.com"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "github",
+  "tier": "system",
+  "description": "GitHub OAuth 登录 / 绑定",
+  "flag": "GITHUB_PACK_ENABLED",
+  "contributes": {
+    "configSections": [
+      "github"
+    ],
+    "loginProviders": [
+      "oauth:github"
+    ]
+  },
+  "identifiers": [
+    "oauth:github",
+    "provider: 'github'",
+    "GithubOAuth",
+    "github-oauth",
+    "GITHUB_PACK",
+    "VITE_GITHUB",
+    "github.com"
+  ]
+}

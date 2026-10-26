@@ -1,0 +1,7 @@
+{
+  "id": "phone",
+  "tier": "system",
+  "description": "「登录配置」里的手机号登录页签（腾讯云短信）",
+  "flag": "VITE_PHONE_ENABLED",
+  "identifiers": ["local_phone", "PHONE_ENABLED", "VITE_PHONE"]
+}

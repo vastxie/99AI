@@ -1,0 +1,181 @@
+/**
+ * Element Plus 主题覆盖层(设计准则:EP 变量只允许在此文件覆盖)。
+ *
+ * 取值引用 --u-* 设计 token;深色块把同一组声明再写一遍,是为了在特异性上压过
+ * element-plus dark/css-vars.css 里 `html.dark` 的静态取值(它不引用我们的 token)。
+ * 加载顺序约束:本文件必须在 element-plus dark/css-vars.css 之后引入
+ * (src/main.ts 里紧跟其后),靠源码顺序获胜,禁止提前或拆分。
+ *
+ * 配色定案(冷调蓝,与用户端同一支主色):
+ * --el-color-primary 即 --u-accent(浅色 #4176e6 / 深色 #679efe),主按钮、开关、
+ * 复选、分页激活、链接与聚焦态都走它;light-N 为主色与底色的静态混色,
+ * 按同一公式生成(浅色混白,深色混容器底 #161a21),dark-2 为反向 20% 混色;改主色时按公式重算。
+ * 语义色为低饱和定案:success / warning / danger / info,深色下取更亮一档。
+ */
+
+@mixin ep-tokens {
+  /* 字体:系统中文字体栈,与用户端一致 */
+  --el-font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI',
+    'Microsoft YaHei', sans-serif;
+
+  /* 圆角:控件 6 / 容器 8,与 token 对齐 */
+  --el-border-radius-base: var(--u-radius-m);
+  --el-border-radius-small: var(--u-radius-s);
+  --el-border-radius-round: var(--u-radius-round);
+
+  /* 阴影:弹层 / 卡片 / 对话框三档 */
+  --el-box-shadow: var(--u-shadow-l);
+  --el-box-shadow-light: var(--u-shadow-m);
+  --el-box-shadow-lighter: var(--u-shadow-s);
+  --el-box-shadow-dark: var(--u-shadow-l);
+
+  /* 边框色:接语义 token */
+  --el-border-color: var(--u-border);
+  --el-border-color-light: var(--u-border-light);
+  --el-border-color-lighter: var(--u-border-light);
+  --el-border-color-extra-light: var(--u-border-light);
+  --el-border-color-dark: var(--u-border);
+  --el-border-color-darker: var(--u-border);
+
+  /* 填充色:表头 / 斑马 / 轻底走 subtle,灰色块走 fill */
+  --el-fill-color: var(--u-bg-fill);
+  --el-fill-color-light: var(--u-bg-subtle);
+  --el-fill-color-lighter: var(--u-bg-subtle);
+  --el-fill-color-extra-light: var(--u-bg-subtle);
+  --el-fill-color-blank: var(--u-bg-container);
+
+  /* 文本色:与自写区域同源 */
+  --el-text-color-primary: var(--u-text-primary);
+  --el-text-color-regular: var(--u-text-regular);
+  --el-text-color-secondary: var(--u-text-secondary);
+  --el-text-color-placeholder: var(--u-text-placeholder);
+  --el-text-color-disabled: var(--u-text-placeholder);
+
+  /* 页面 / 容器 / 浮层底色 */
+  --el-bg-color: var(--u-bg-container);
+  --el-bg-color-page: var(--u-bg-page);
+  --el-bg-color-overlay: var(--u-bg-elevated);
+}
+
+:root {
+  --el-color-primary: #4176e6;
+  --el-color-primary-light-3: #7a9fee;
+  --el-color-primary-light-5: #a0baf2;
+  --el-color-primary-light-7: #c6d6f8;
+  --el-color-primary-light-8: #d9e4fa;
+  --el-color-primary-light-9: #ecf1fc;
+  --el-color-primary-dark-2: #345eb8;
+  --el-color-success: #16a34a;
+  --el-color-success-light-3: #5cbf80;
+  --el-color-success-light-5: #8ad1a4;
+  --el-color-success-light-7: #b9e3c9;
+  --el-color-success-light-8: #d0eddb;
+  --el-color-success-light-9: #e8f6ed;
+  --el-color-success-dark-2: #12823b;
+  --el-color-warning: #d97706;
+  --el-color-warning-light-3: #e4a051;
+  --el-color-warning-light-5: #ecbb82;
+  --el-color-warning-light-7: #f4d6b4;
+  --el-color-warning-light-8: #f7e4cd;
+  --el-color-warning-light-9: #fbf1e6;
+  --el-color-warning-dark-2: #ae5f05;
+  --el-color-danger: #dc2626;
+  --el-color-danger-light-3: #e66767;
+  --el-color-danger-light-5: #ee9292;
+  --el-color-danger-light-7: #f4bebe;
+  --el-color-danger-light-8: #f8d4d4;
+  --el-color-danger-light-9: #fce9e9;
+  --el-color-danger-dark-2: #b01e1e;
+  --el-color-error: #dc2626;
+  --el-color-error-light-3: #e66767;
+  --el-color-error-light-5: #ee9292;
+  --el-color-error-light-7: #f4bebe;
+  --el-color-error-light-8: #f8d4d4;
+  --el-color-error-light-9: #fce9e9;
+  --el-color-error-dark-2: #b01e1e;
+  --el-color-info: #6b7280;
+  --el-color-info-light-3: #979ca6;
+  --el-color-info-light-5: #b5b8c0;
+  --el-color-info-light-7: #d3d5d9;
+  --el-color-info-light-8: #e1e3e6;
+  --el-color-info-light-9: #f0f1f2;
+  --el-color-info-dark-2: #565b66;
+
+  @include ep-tokens;
+}
+
+html.dark {
+  --el-color-primary: #679efe;
+  --el-color-primary-light-3: #4f76bc;
+  --el-color-primary-light-5: #3e5c90;
+  --el-color-primary-light-7: #2e4263;
+  --el-color-primary-light-8: #26344d;
+  --el-color-primary-light-9: #1e2737;
+  --el-color-primary-dark-2: #85b1fe;
+  --el-color-success: #3ecf6a;
+  --el-color-success-light-3: #329954;
+  --el-color-success-light-5: #2a7446;
+  --el-color-success-light-7: #225037;
+  --el-color-success-light-8: #1e3e30;
+  --el-color-success-light-9: #1a2c28;
+  --el-color-success-dark-2: #65d988;
+  --el-color-warning: #f0a63a;
+  --el-color-warning-light-3: #af7c32;
+  --el-color-warning-light-5: #83602e;
+  --el-color-warning-light-7: #574428;
+  --el-color-warning-light-8: #423626;
+  --el-color-warning-light-9: #2c2824;
+  --el-color-warning-dark-2: #f3b861;
+  --el-color-danger: #f26b6b;
+  --el-color-danger-light-3: #b05355;
+  --el-color-danger-light-5: #844246;
+  --el-color-danger-light-7: #583237;
+  --el-color-danger-light-8: #422a30;
+  --el-color-danger-light-9: #2c2228;
+  --el-color-danger-dark-2: #f58989;
+  --el-color-error: #f26b6b;
+  --el-color-error-light-3: #b05355;
+  --el-color-error-light-5: #844246;
+  --el-color-error-light-7: #583237;
+  --el-color-error-light-8: #422a30;
+  --el-color-error-light-9: #2c2228;
+  --el-color-error-dark-2: #f58989;
+  --el-color-info: #8b94a5;
+  --el-color-info-light-3: #686f7d;
+  --el-color-info-light-5: #505763;
+  --el-color-info-light-7: #393f49;
+  --el-color-info-light-8: #2d323b;
+  --el-color-info-light-9: #22262e;
+  --el-color-info-dark-2: #a2a9b7;
+
+  @include ep-tokens;
+}
+
+/* 组件作用域变量:EP 在组件类上定义变量,元素自身声明优先于 :root 继承,
+   必须在同名组件选择器上覆盖才生效 */
+.el-card {
+  --el-card-border-radius: var(--u-radius-l);
+  --el-card-padding: 16px;
+}
+
+.el-table {
+  --el-table-header-bg-color: var(--u-bg-subtle);
+  --el-table-header-text-color: var(--u-text-secondary);
+  --el-table-row-hover-bg-color: var(--u-bg-fill);
+  --el-table-border-color: var(--u-border-light);
+
+  font-size: 13px;
+}
+
+.el-table th.el-table__cell {
+  font-weight: 500;
+}
+
+.el-dialog {
+  --el-dialog-border-radius: var(--u-radius-l);
+}
+
+.el-message-box {
+  --el-messagebox-border-radius: var(--u-radius-l);
+}

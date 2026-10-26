@@ -1,0 +1,23 @@
+{
+  "id": "storage-oss",
+  "tier": "system",
+  "description": "阿里云 OSS 对象存储",
+  "flag": "STORAGE_OSS_PACK_ENABLED",
+  "contributes": {
+    "configSections": [
+      "storage-oss"
+    ],
+    "storageProviders": [
+      "oss"
+    ]
+  },
+  "dependencies": ["ali-oss"],
+  "identifiers": [
+    "'oss'",
+    "OssStorage",
+    "oss-storage",
+    "STORAGE_OSS",
+    "VITE_STORAGE_OSS",
+    "aliOss"
+  ]
+}

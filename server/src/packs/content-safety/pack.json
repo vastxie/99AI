@@ -1,0 +1,25 @@
+{
+  "id": "content-safety",
+  "tier": "feature",
+  "description": "敏感词库 / 白名单 / 违规记录 / 腾讯云文本审核；实现内核内容过滤端口",
+  "flag": "CONTENT_SAFETY_PACK_ENABLED",
+  "contributes": {
+    "configSections": ["content-safety"],
+    "ports": ["CONTENT_FILTER_PORT"]
+  },
+  "dependencies": ["tencentcloud-sdk-nodejs-tms"],
+  "identifiers": [
+    "content-safety",
+    "contentSafety",
+    "ContentSafety",
+    "CONTENT_SAFETY",
+    "badWords",
+    "BadWords",
+    "isSensitiveWordFilter",
+    "sensitiveWord",
+    "SensitiveWord",
+    "TYPEORIGINLIST",
+    "recentViolations",
+    "/security/"
+  ]
+}

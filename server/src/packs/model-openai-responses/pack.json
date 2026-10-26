@@ -1,0 +1,16 @@
+{
+  "id": "model-openai-responses",
+  "tier": "system",
+  "description": "OpenAI Responses 协议（含豆包方舟兼容、原生联网搜索）的适配器、厂商预设与模型目录",
+  "flag": "MODEL_OPENAI_RESPONSES_PACK_ENABLED",
+  "contributes": {
+    "modelProtocols": ["openai_responses"]
+  },
+  "identifiers": [
+    "openai_responses",
+    "openai-responses",
+    "OpenAIResponses",
+    "MODEL_OPENAI_RESPONSES",
+    "/v1/responses"
+  ]
+}

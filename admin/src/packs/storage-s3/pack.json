@@ -1,0 +1,7 @@
+{
+  "id": "storage-s3",
+  "tier": "system",
+  "description": "「文件存储」里 S3 兼容存储的选项与配置字段",
+  "flag": "VITE_STORAGE_S3_ENABLED",
+  "identifiers": ["'s3'", "S3Storage", "s3Storage", "STORAGE_S3", "VITE_STORAGE_S3", "awsS3"]
+}

@@ -1,0 +1,1074 @@
+/*
+ * Shared component contract: components consume the semantic variables from
+ * tokens.css and the light / dark palettes (--app-*, --text-*, --dialog-*, --btn-*),
+ * never literal colors.
+ */
+
+/* 聊天主路径 surface */
+.chat-app-shell {
+  background: var(--app-canvas);
+  color: var(--text-primary);
+}
+
+.chat-header-surface {
+  background: var(--app-canvas);
+  color: var(--text-primary);
+}
+
+.chat-scroll-surface {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.chat-copyright-surface {
+  background: var(--app-canvas);
+}
+
+.type-dialog-title {
+  color: var(--text-primary);
+  font-size: var(--type-dialog-title-size);
+  font-weight: var(--type-dialog-title-weight);
+  line-height: var(--type-dialog-title-line-height);
+}
+
+.type-section-title {
+  color: var(--text-primary);
+  font-size: var(--type-section-title-size);
+  font-weight: var(--type-section-title-weight);
+  line-height: var(--type-section-title-line-height);
+}
+
+.type-field-title {
+  color: var(--text-primary);
+  font-size: var(--type-field-title-size);
+  font-weight: var(--type-field-title-weight);
+  line-height: var(--type-field-title-line-height);
+}
+
+.type-body {
+  font-size: var(--type-body-size);
+  font-weight: 400;
+  line-height: var(--type-body-line-height);
+}
+
+.type-body-sm {
+  font-size: var(--type-body-sm-size);
+  font-weight: 400;
+  line-height: var(--type-body-sm-line-height);
+}
+
+.type-control {
+  font-size: var(--type-control-size);
+  font-weight: var(--type-control-weight);
+  line-height: var(--type-control-line-height);
+}
+
+.type-caption {
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  line-height: var(--type-caption-line-height);
+}
+
+/* Phase 1 design-system primitives: preview-first global entries for later component migration */
+.ds-focus-ring:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+/* 分段控件的选项贴着轨道边缘：描边画在选项内侧，不被轨道裁掉 */
+.segmented-option.ds-focus-ring {
+  --focus-ring-offset: -2px;
+}
+
+/* Foreground state primitives. Pages choose a role, never a light/dark shade pair. */
+@layer utilities {
+  .fg-control {
+    color: var(--control-fg);
+  }
+
+  .fg-quiet {
+    color: var(--control-fg-quiet);
+  }
+
+  .fg-control:hover:not(:disabled):not([aria-disabled='true']),
+  .fg-control:focus-visible:not(:disabled):not([aria-disabled='true']),
+  .fg-quiet:hover:not(:disabled):not([aria-disabled='true']),
+  .fg-quiet:focus-visible:not(:disabled):not([aria-disabled='true']) {
+    color: var(--control-fg-hover);
+  }
+
+  .fg-link,
+  .settings-inline-action {
+    color: var(--text-link);
+  }
+
+  .fg-link-muted {
+    color: var(--control-fg-quiet);
+  }
+
+  .fg-link:hover:not(:disabled):not([aria-disabled='true']),
+  .fg-link:focus-visible:not(:disabled):not([aria-disabled='true']),
+  .fg-link-muted:hover:not(:disabled):not([aria-disabled='true']),
+  .fg-link-muted:focus-visible:not(:disabled):not([aria-disabled='true']),
+  .settings-inline-action:hover:not(:disabled),
+  .settings-inline-action:focus-visible:not(:disabled) {
+    color: var(--text-link-hover);
+  }
+
+  /* Disabled beats selected/danger/hover, including explicitly colored menu children. */
+  :is(
+    .btn,
+    .menu-button,
+    .menu-item,
+    .input,
+    .ds-form-control,
+    .fg-control,
+    .fg-quiet,
+    .fg-link,
+    .fg-link-muted,
+    .settings-inline-action,
+    .viewer-icon-button
+  ):is(:disabled, [aria-disabled='true']) {
+    color: var(--control-fg-disabled);
+    opacity: 1;
+    cursor: not-allowed;
+  }
+
+  .btn.btn:disabled:not(.btn-ghost),
+  .input.input:disabled,
+  .ds-form-control:disabled {
+    background: var(--control-bg-disabled);
+    border-color: var(--control-border-disabled);
+    color: var(--control-fg-disabled);
+  }
+
+  .btn.btn:disabled,
+  .menu-item.menu-item:is(:disabled, [aria-disabled='true']) {
+    color: var(--control-fg-disabled);
+  }
+
+  .btn.btn.btn-ghost:disabled {
+    background: transparent;
+  }
+
+  .menu-trigger-disabled {
+    color: var(--control-fg-disabled);
+    cursor: not-allowed;
+  }
+
+  .menu-trigger-disabled :is(button, svg) {
+    color: inherit;
+  }
+
+  :is(.btn, .menu-item):is(:disabled, [aria-disabled='true'])
+    :where(svg, span, div, .menu-item-title, .menu-item-description, .menu-item-accessory) {
+    color: inherit;
+  }
+}
+
+/* 统一加载指示（components/common/UiSpinner.vue）：环形，颜色跟随 currentColor；旋转与减弱动效见 motion.css */
+.ui-spinner {
+  display: inline-block;
+  flex: none;
+  width: var(--ui-spinner-size, 1rem);
+  height: var(--ui-spinner-size, 1rem);
+  vertical-align: middle;
+  border: var(--ui-spinner-stroke, 2px) solid color-mix(in srgb, currentColor 28%, transparent);
+  border-top-color: currentColor;
+  border-radius: var(--radius-full);
+}
+
+.ui-spinner-link {
+  color: var(--text-link);
+}
+
+.ui-spinner-inverse {
+  color: var(--text-on-accent);
+}
+
+.ds-chat-shell,
+.ds-chat-frame {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background: var(--app-canvas);
+  color: var(--text-primary);
+}
+
+.ds-chat-frame {
+  overflow: hidden;
+}
+
+.ds-chat-main {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: var(--app-canvas);
+}
+
+.ds-chat-header {
+  background: var(--app-canvas);
+  color: var(--text-primary);
+}
+
+.ds-chat-canvas {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: transparent;
+}
+
+.ds-chat-scroll-surface {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.chat-message {
+  padding-block: 0.375rem;
+}
+
+.chat-message-assistant {
+  padding-bottom: 0.75rem;
+}
+
+.chat-message-user {
+  padding-top: 0.75rem;
+}
+
+/* 贴着屏幕底边的输入区（及只读提示）：底部安全区只在这一层让出，里面的输入框不再叠加 */
+.ds-input-dock {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* 对话栏左右留白：横屏的刘海屏上不小于左右安全区 */
+.chat-content-inset {
+  padding-left: max(var(--chat-content-inset), var(--safe-left));
+  padding-right: max(var(--chat-content-inset), var(--safe-right));
+}
+
+.ds-workspace-surface {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--panel-bg);
+  color: var(--panel-text);
+}
+
+.ds-form-field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.ds-form-label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-secondary);
+  font-size: var(--type-control-size);
+  font-weight: var(--type-control-weight);
+  line-height: var(--type-control-line-height);
+}
+
+.ds-form-helper {
+  color: var(--text-muted);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-line-height);
+}
+
+.ds-form-control {
+  min-height: var(--input-height);
+  width: 100%;
+  padding: var(--input-padding-y) var(--input-padding-x);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-radius);
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-line-height);
+}
+
+.ds-form-control:hover:not(:disabled):not([readonly]) {
+  border-color: var(--input-border-hover);
+  background: var(--input-bg-hover);
+}
+
+.ds-form-control::placeholder {
+  color: var(--input-placeholder);
+}
+
+.ds-form-control[readonly] {
+  background: color-mix(in srgb, var(--input-bg) 84%, var(--app-border));
+  color: var(--text-secondary);
+}
+
+.ds-form-field[aria-busy='true'] .ds-form-control {
+  cursor: progress;
+}
+
+.ds-form-control-error,
+.ds-form-control[aria-invalid='true'],
+.input[aria-invalid='true'] {
+  border-color: var(--input-error-border);
+}
+
+.ds-form-control:disabled {
+  cursor: not-allowed;
+  color: var(--control-fg-disabled);
+}
+
+.ds-form-error {
+  color: var(--semantic-danger-text);
+}
+
+.ds-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ds-state-card {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-xl);
+  background: var(--app-surface);
+  color: var(--text-secondary);
+}
+
+.ds-state-card[aria-disabled='true'] {
+  color: var(--control-fg-disabled);
+}
+
+.ds-state-body {
+  min-width: 0;
+}
+
+.ds-state-title {
+  color: var(--text-primary);
+  font-size: var(--type-control-size);
+  font-weight: 600;
+  line-height: var(--type-control-line-height);
+}
+
+.ds-state-description {
+  color: var(--text-secondary);
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-line-height);
+}
+
+/* 通用弹窗与设置层级 */
+.dialog-surface {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  border: 0;
+  background: var(--dialog-shell-bg);
+  border-radius: var(--radius-dialog);
+  color: var(--text-primary);
+  box-shadow: var(--dialog-shell-shadow);
+  --settings-control-radius: var(--radius-control);
+}
+
+.dialog-shell-wide {
+  width: min(var(--dialog-wide-max-width), calc(100vw - var(--dialog-wide-viewport-gap)));
+  height: min(var(--dialog-wide-height), calc(100vh - 2rem));
+  padding: var(--dialog-shell-padding);
+}
+
+.dialog-shell-fullscreen {
+  width: 100%;
+  height: 100%;
+  padding: var(--dialog-shell-padding);
+  border-width: 0;
+  border-radius: 0;
+}
+
+/* 工作区弹窗壳：内容组件自带页头与留白，壳不再叠加内边距 */
+.workspace-modal-shell {
+  padding: 0;
+}
+
+.dialog-surface .border-app-border {
+  border-color: var(--dialog-divider);
+}
+
+.auth-dialog-surface.dialog-surface {
+  background: var(--dialog-shell-bg);
+  color: var(--text-primary);
+}
+
+/* 登录框：手机上整屏铺满（不要遮罩），桌面上与其它弹窗同一套遮罩（--scrim-bg 加模糊） */
+@media (min-width: 768px) {
+  .auth-dialog-backdrop {
+    background: var(--scrim-bg);
+    backdrop-filter: blur(var(--scrim-blur));
+    -webkit-backdrop-filter: blur(var(--scrim-blur));
+  }
+}
+
+@media (max-width: 767.9px) {
+  .auth-dialog-surface.dialog-surface {
+    border-width: 0;
+    border-radius: 0;
+  }
+}
+
+.settings-pane {
+  border-radius: var(--radius-card);
+  background: var(--dialog-pane-bg);
+  color: var(--text-secondary);
+}
+
+.settings-dialog-shell {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+/* 手机：单栏，页头贴边，内容自带留白 */
+.settings-dialog-shell-mobile {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+}
+
+.settings-dialog-shell-mobile .settings-dialog-content-header {
+  height: 4rem;
+  padding: 0 1rem;
+}
+
+.settings-dialog-sidebar {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 0.75rem;
+  border-right: 1px solid var(--dialog-divider);
+  background: var(--app-canvas-muted);
+}
+
+.settings-dialog-close-row {
+  display: flex;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.settings-dialog-close {
+  width: var(--control-height);
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 0;
+  border-radius: var(--radius-control);
+}
+
+.settings-dialog-nav {
+  margin-top: 0.75rem;
+  /* The scroll container must not clip the first row into a different corner shape. */
+  border-radius: 0;
+}
+
+.settings-dialog-content {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.settings-dialog-content-header {
+  display: flex;
+  height: 3.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--dialog-divider);
+}
+
+.settings-dialog-panel {
+  padding: 1.25rem 1.5rem;
+}
+
+.settings-dialog-panel .settings-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-nav-item {
+  border-radius: var(--settings-control-radius, 0.625rem);
+  min-height: var(--control-row-height);
+  padding: 0.375rem 0.625rem;
+  margin: 0.0625rem 0;
+  font-size: var(--type-control-size);
+  font-weight: var(--type-field-title-weight);
+  line-height: var(--type-field-title-line-height);
+  transition:
+    background-color var(--motion-duration-md) var(--motion-easing),
+    color var(--motion-duration-md) var(--motion-easing);
+}
+
+.settings-nav-item:hover {
+  background: var(--dialog-control-bg-hover);
+  color: var(--control-fg-hover);
+}
+
+.settings-nav-item-active,
+.settings-nav-item-active:hover {
+  background: var(--dialog-control-selected-bg);
+  color: var(--dialog-control-selected-text);
+  font-weight: 400;
+}
+
+/* 选中的页签不只靠底色：左侧加一道强调色竖条 */
+.settings-nav-item-active::before {
+  position: absolute;
+  top: 50%;
+  left: 0.25rem;
+  width: 3px;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  content: '';
+  transform: translateY(-50%);
+}
+
+/* 系统强制颜色（高对比度）会把底色换成系统色：竖条用系统的高亮色，选中项照样看得出来 */
+@media (forced-colors: active) {
+  .settings-nav-item-active::before {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+}
+
+.settings-section-title {
+  color: var(--text-primary);
+  font-size: var(--type-field-title-size);
+  font-weight: 600;
+  line-height: var(--type-section-title-line-height);
+}
+
+.settings-field-title {
+  color: var(--text-primary);
+  font-size: var(--type-control-size);
+  font-weight: var(--type-field-title-weight);
+  line-height: var(--type-field-title-line-height);
+}
+
+.settings-field-description {
+  color: var(--text-muted);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-line-height);
+}
+
+.settings-inline-action {
+  color: var(--text-link);
+  font-size: var(--type-control-size);
+  font-weight: 400;
+  line-height: var(--type-control-line-height);
+}
+
+.settings-control-icon {
+  border-radius: var(--settings-control-radius, 0.625rem);
+}
+
+.dialog-surface .input {
+  background: var(--dialog-input-bg);
+  border-color: var(--dialog-input-border);
+  color: var(--input-text);
+  border-radius: var(--input-radius);
+  box-shadow: none;
+}
+
+.dialog-surface .input:hover:not(:disabled) {
+  background: var(--dialog-input-bg-hover);
+  border-color: var(--dialog-input-border-hover);
+  box-shadow: none;
+}
+
+.dialog-surface .input:focus:not(:disabled),
+.dialog-surface .input:focus-within:not(:disabled) {
+  background: var(--dialog-input-bg-focus);
+  border-color: var(--dialog-input-border-focus);
+  box-shadow: 0 0 0 2px var(--dialog-focus-ring);
+}
+
+/*
+ * 出错的字段：边框保持错误色，悬停、聚焦也不换回去（弹窗里的输入框规则同样具体，要写在它们后面）。
+ * 验证码这类组合输入把 aria-invalid 挂在内层输入框上，外框一样变色
+ */
+.input:is([aria-invalid='true'], :has([aria-invalid='true'])),
+.input:is([aria-invalid='true'], :has([aria-invalid='true'])):hover:not(:disabled),
+.input:is([aria-invalid='true'], :has([aria-invalid='true'])):focus:not(:disabled),
+.input:is([aria-invalid='true'], :has([aria-invalid='true'])):focus-within:not(:disabled),
+.dialog-surface .input:is([aria-invalid='true'], :has([aria-invalid='true'])):not(:disabled) {
+  border-color: var(--input-error-border);
+}
+
+.ui-button.btn {
+  min-height: var(--control-height);
+  gap: var(--control-gap);
+  padding: var(--control-padding-y) var(--control-padding-x);
+  border-radius: var(--radius-control);
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-line-height);
+  font-weight: var(--type-action-weight);
+  transition:
+    background-color var(--motion-duration-xs) var(--motion-easing),
+    border-color var(--motion-duration-xs) var(--motion-easing),
+    color var(--motion-duration-xs) var(--motion-easing),
+    transform var(--motion-duration-md) var(--motion-easing);
+}
+.ui-button.btn-primary,
+.ui-button.btn-secondary,
+.ui-button.btn-danger {
+  border-radius: var(--btn-radius);
+  padding-inline: var(--action-padding-x);
+}
+.ui-button.ui-button-select {
+  border-radius: var(--radius-control);
+  font-weight: var(--type-control-weight);
+}
+.ui-button.ui-button-select[aria-expanded='true']:not(:disabled) {
+  background: var(--btn-bg-ghost-hover);
+  color: var(--control-fg-hover);
+}
+.ui-button.ui-button-icon {
+  --btn-text-ghost: var(--control-fg-quiet);
+  width: var(--control-height);
+  height: var(--control-height);
+  flex: 0 0 auto;
+  padding: 0;
+  border-radius: var(--radius-control);
+}
+.ui-button.ui-button-pill {
+  border-radius: var(--radius-pill);
+}
+.ui-button.ui-button-prominent {
+  min-height: var(--control-touch-size);
+}
+.ui-button > svg {
+  flex-shrink: 0;
+}
+.ui-button:disabled {
+  transform: none;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .ui-button-pill:hover:not(:disabled):not(.ui-button-no-scale) {
+    transform: scale(1.02);
+  }
+  .ui-button:active:not(:disabled):not(.ui-button-no-scale) {
+    transform: scale(0.98);
+  }
+}
+/* 触屏（手指点按）：按钮至少长到统一的触控尺寸，胶囊按钮靠 ::after 把热区外扩到同样大小 */
+@media (pointer: coarse) {
+  .ui-button.btn {
+    --control-height: var(--control-touch-size);
+  }
+  .ui-button.ui-button-pill {
+    --control-height: var(--control-row-height);
+    position: relative;
+  }
+  .ui-button.ui-button-pill::after {
+    content: '';
+    position: absolute;
+    inset: calc(
+      (var(--control-row-height) - var(--control-touch-size)) / 2 - var(--btn-border-width)
+    );
+    border-radius: inherit;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-button.btn {
+    transition: none;
+  }
+}
+
+/*
+ * 分段选择器（commerce 的 UiSegmentedControl）：一条胶囊轨道，选项等分排成一行，
+ * 底下垫一块滑块标出当前项。滑块的位置与宽度由组件测量后写入，移动动画由组件用 Web Animations 播放。
+ */
+.ui-segmented-control {
+  --segment-height: 2.25rem;
+  --segment-padding: 0.25rem;
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  width: max-content;
+  padding: var(--segment-padding);
+  border-radius: var(--radius-pill);
+  background: var(--segmented-track-bg);
+  isolation: isolate;
+}
+.ui-segmented-control .segmented-option {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 0;
+  height: var(--segment-height);
+  padding: 0 1rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  appearance: none;
+  background: transparent;
+  color: var(--segmented-text);
+  font-weight: var(--type-control-weight);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--segmented-text-duration) ease-out;
+}
+.ui-segmented-control .segmented-option[data-selected='true'] {
+  color: var(--control-fg-selected);
+}
+.ui-segmented-control .segmented-option:not([data-selected='true']):hover:not(:disabled) {
+  color: var(--control-fg-hover);
+}
+.ui-segmented-control .segmented-option:disabled {
+  color: var(--control-fg-disabled);
+  cursor: not-allowed;
+}
+.ui-segmented-control .segmented-thumb {
+  position: absolute;
+  top: var(--segment-padding);
+  left: 0;
+  z-index: 0;
+  height: var(--segment-height);
+  border-radius: var(--radius-pill);
+  background: var(--segmented-thumb-bg);
+  box-shadow: var(--segmented-thumb-shadow);
+  pointer-events: none;
+}
+/* 选中项还量不到尺寸（隐藏中、尚未布局）时先不显示滑块 */
+.ui-segmented-control .segmented-thumb.is-unplaced {
+  opacity: 0;
+}
+.ui-segmented-compact {
+  --segment-height: 1.75rem;
+}
+.ui-segmented-compact .segmented-option {
+  padding-inline: 0.875rem;
+}
+.ui-segmented-icons .segmented-option {
+  width: var(--segment-height);
+  padding: 0;
+}
+/* 柔和落点（按需开启）：滑块走得慢一点、到位时带一点回弹 */
+.ui-segmented-soft {
+  --segmented-slide-duration: var(--segmented-soft-slide-duration);
+  --segmented-slide-easing: var(--segmented-soft-slide-easing);
+}
+@media (pointer: coarse) {
+  .ui-segmented-control {
+    --segment-height: var(--control-touch-size);
+  }
+  .ui-segmented-control:not(.ui-segmented-icons) .segmented-option {
+    padding-inline: 0.75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-segmented-control .segmented-option {
+    transition: none;
+  }
+}
+
+.qr-scan-frame {
+  overflow: hidden;
+  border: 1px solid var(--dialog-qr-frame-border);
+  border-radius: var(--card-radius);
+  background: var(--dialog-qr-frame-bg);
+}
+
+.qr-scan-image {
+  background: var(--dialog-qr-paper-bg);
+}
+
+.qr-scan-placeholder {
+  background: var(--dialog-qr-frame-bg);
+}
+
+.qr-scan-overlay {
+  background: var(--dialog-qr-overlay-bg);
+}
+
+/* 后台公告 / 用户协议预览的收容层：挂在 SafeMarkdownPreview 的根节点上（class="settings-markdown-preview"）。
+   [style*=...] 系列压制内容里的内联定位与变形，只有 !important 能赢过 style 属性；
+   其余几条把宽内容收在预览框里，不撑破弹窗或设置面板 */
+.settings-markdown-preview {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  contain: layout paint;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+}
+
+.settings-markdown-preview * {
+  box-sizing: border-box;
+  max-width: 100% !important;
+  overflow-wrap: anywhere;
+}
+
+.settings-markdown-preview [style*='position' i] {
+  position: static !important;
+}
+
+.settings-markdown-preview [style*='z-index' i] {
+  z-index: auto !important;
+}
+
+.settings-markdown-preview [style*='transform' i] {
+  transform: none !important;
+}
+
+.settings-markdown-preview :not(pre):not(code)[style*='white-space' i] {
+  white-space: normal !important;
+}
+
+.settings-markdown-preview :is(img, video, canvas, svg) {
+  height: auto !important;
+}
+
+.menu-action.menu-items {
+  border-radius: var(--radius-popover);
+  padding: 0;
+}
+
+.menu-action .menu-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--menu-content-padding);
+}
+
+.menu-action .menu-action-meta {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 10.5rem;
+  padding: calc(0.25rem + 1px) 0.375rem 0.25rem;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--type-caption-size);
+  font-weight: 500;
+  line-height: 1rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-action.message-more-menu .menu-action-meta {
+  display: flex;
+  min-height: 1.5rem;
+  max-width: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem 0.25rem;
+  line-height: 1.25rem;
+}
+
+/* 菜单类别：账号面板，带用户信息头部，比普通设置菜单更紧凑 */
+.menu-account.menu-items {
+  border-color: transparent;
+  border-radius: var(--radius-popover);
+  padding: 0;
+  box-shadow: var(--menu-surface-shadow);
+}
+
+.menu-account .account-menu-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--menu-content-padding);
+}
+
+.menu-account .menu-item.account-menu-user {
+  min-height: 3rem;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0.375rem 0.5rem;
+}
+
+.menu-account .account-menu-divider {
+  height: 1px;
+  margin: 0.375rem 0.25rem;
+  background: var(--menu-divider-bg);
+}
+
+.menu-account .account-menu-user .menu-item-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.menu-account .account-menu-user .menu-item-title {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.menu-account .account-menu-user .menu-item-description {
+  margin-top: 0.0625rem;
+  color: var(--text-muted);
+  font-size: var(--type-caption-size);
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+/* 菜单类别：选择菜单，用于模型、语言等带当前态的列表 */
+.menu-select.menu-items {
+  border-radius: var(--radius-popover);
+  padding: 0;
+}
+
+.menu-select .menu-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--menu-content-padding);
+}
+
+@media (pointer: coarse) {
+  .dialog-surface {
+    --control-height: var(--control-touch-size);
+    --control-row-height: var(--control-touch-size);
+  }
+  .menu-items .menu-item {
+    min-height: var(--control-touch-size);
+  }
+}
+
+/* 非浮层但语义接近菜单列表的行，例如搜索弹窗结果 */
+.menu-list-row {
+  border-radius: var(--radius-control);
+  transition:
+    background-color var(--motion-duration-sm) ease,
+    box-shadow var(--motion-duration-sm) ease,
+    color var(--motion-duration-sm) ease;
+}
+
+.menu-list-row:hover,
+.menu-list-row.is-keyboard-active {
+  background: var(--menu-item-bg-hover);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-border) 55%, transparent);
+}
+
+/* 模型头像容器：品牌 SVG 保持资产自身颜色，外层使用主题 token */
+.model-avatar-shell {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--text-secondary);
+  box-shadow: var(--component-shadow-sm);
+}
+
+.model-avatar-fallback {
+  border: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--text-link) 12%, var(--app-surface));
+  color: var(--text-primary);
+}
+
+.model-avatar-loading {
+  background: color-mix(in srgb, var(--text-muted) 28%, transparent);
+}
+
+/* 通用弹窗遮罩 */
+.modal-backdrop {
+  background: var(--scrim-bg);
+  backdrop-filter: blur(var(--scrim-blur));
+  -webkit-backdrop-filter: blur(var(--scrim-blur));
+  will-change: opacity;
+}
+
+.modal-backdrop-soft {
+  background: color-mix(in srgb, var(--app-overlay) 72%, transparent);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 确认框进出最快：都取刻度里最短的一档 */
+.modal-confirm-layer {
+  --dialog-backdrop-duration: var(--motion-duration-xs);
+  --dialog-enter-duration: var(--motion-duration-xs);
+  --dialog-leave-duration: var(--motion-duration-xs);
+  --dialog-enter-y: 4px;
+  --dialog-enter-scale: 0.995;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity var(--dialog-backdrop-duration) var(--motion-easing);
+}
+
+.modal-fade-leave-active {
+  transition-duration: var(--dialog-leave-duration);
+  transition-timing-function: ease-in;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active .dialog-surface {
+  transition:
+    opacity var(--dialog-enter-duration) var(--motion-easing),
+    transform var(--dialog-enter-duration) var(--motion-easing);
+}
+
+.modal-fade-leave-active .dialog-surface {
+  transition:
+    opacity var(--dialog-leave-duration) ease-in,
+    transform var(--dialog-leave-duration) ease-in;
+}
+
+.modal-fade-enter-from .dialog-surface,
+.modal-fade-leave-to .dialog-surface {
+  opacity: 0;
+  transform: translateY(var(--dialog-enter-y)) scale(var(--dialog-enter-scale));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-fade-enter-active,
+  .modal-fade-leave-active,
+  .modal-fade-enter-active .dialog-surface,
+  .modal-fade-leave-active .dialog-surface {
+    transition-duration: 1ms;
+  }
+}
+
+/* 隐藏滚动条样式 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-list-row:active {
+  background: var(--menu-item-bg-active);
+}

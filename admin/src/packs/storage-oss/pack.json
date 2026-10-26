@@ -1,0 +1,7 @@
+{
+  "id": "storage-oss",
+  "tier": "system",
+  "description": "「文件存储」里阿里云 OSS 的选项与配置字段",
+  "flag": "VITE_STORAGE_OSS_ENABLED",
+  "identifiers": ["'oss'", "OssStorage", "ossStorage", "STORAGE_OSS", "VITE_STORAGE_OSS", "aliOss"]
+}

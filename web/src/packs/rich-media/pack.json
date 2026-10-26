@@ -1,0 +1,22 @@
+{
+  "id": "rich-media",
+  "tier": "system",
+  "description": "思维导图 / Mermaid 消息、HTML / Mermaid / MarkMap 预览、CodeMirror 代码面板、PDF / Office 文件预览",
+  "flag": "VITE_RICH_MEDIA_ENABLED",
+  "identifiers": [
+    "rich-media",
+    "richMedia",
+    "RICH_MEDIA",
+    "mermaid",
+    "Mermaid",
+    "markmap",
+    "MarkMap",
+    "MindMap",
+    "mind-map",
+    "freeMind",
+    "FreeMind",
+    "codemirror",
+    "pdfjs",
+    "mammoth"
+  ]
+}

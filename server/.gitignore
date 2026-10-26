@@ -1,0 +1,38 @@
+# compiled output
+/dist
+/node_modules
+/public
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# 本地环境文件（.env 与 .env.production、.env.bak 等变体）一律不入库，只保留模板
+.env
+.env.*
+!.env.example
+
+# 签名私钥等加密材料只保存在仓库外的密钥管理器里：整个 keys 目录不入库
+/keys/
+/root-pub.pem

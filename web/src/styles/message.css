@@ -1,0 +1,194 @@
+/* User bubbles have a single geometry owner. No duplicate Tailwind plugin padding. */
+.message-user-bubble {
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-dialog);
+  background: var(--chat-user-bubble);
+  color: var(--chat-user-text);
+}
+
+.message-user-bubble-content {
+  max-width: 100%;
+  overflow: hidden;
+  transition: max-height var(--motion-duration-sm) var(--motion-easing);
+  padding: 0.625rem 1rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--type-body-size);
+  line-height: 1.5rem;
+}
+
+.message-user-expand-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--type-meta-size);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-xs) var(--motion-easing),
+    color var(--motion-duration-xs) var(--motion-easing);
+}
+
+.message-user-expand-button:hover,
+.message-user-expand-button:focus-visible {
+  background: var(--interaction-bg-hover);
+  color: var(--control-fg-hover);
+}
+
+/*
+ * 消息操作按钮（复制、重新生成、编辑……）：平时隐藏，鼠标悬停在消息上、键盘焦点进入消息时显示；
+ * 触屏等没有悬停能力的设备上一直显示，否则根本点不到。
+ * 键盘焦点用 :has(:focus-visible) 而不是 :focus-within：鼠标点过复制按钮后焦点留在按钮上，
+ * :focus-within 会让操作栏一直显示。两条规则分开写，不支持 :has 的浏览器也不影响悬停显示
+ */
+.message-actions-reveal {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.message-hover-scope:hover .message-actions-reveal {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.message-hover-scope:has(:focus-visible) .message-actions-reveal {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 不支持 :has 的浏览器（Firefox 121 以前）退回 :focus-within：键盘聚焦时至少看得见 */
+@supports not selector(:has(*)) {
+  .message-hover-scope:focus-within .message-actions-reveal {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (hover: none) {
+  .message-actions-reveal {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/*
+ * 消息正文（.md-prose.chat-markdown）：离屏的长消息跳过渲染；横向裁剪（clip 不形成滚动容器，
+ * 代码块工具栏的 sticky 仍然有效）。只作用于聊天消息，文件预览等处的 .md-prose 不受影响。
+ */
+.md-prose.chat-markdown {
+  contain: content;
+  content-visibility: auto;
+  /* 离屏跳过渲染时按上次的实际高度占位（没渲染过时先按 400px）：滚动高度不塌、向上滚动时内容不弹开 */
+  contain-intrinsic-size: auto 400px;
+  max-width: 100%;
+  overflow-x: clip !important;
+  overflow-y: visible;
+}
+.md-prose.chat-markdown p {
+  margin-top: 0;
+  margin-bottom: 0.625rem;
+}
+.md-prose.chat-markdown h1,
+.md-prose.chat-markdown h2,
+.md-prose.chat-markdown h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.md-prose.chat-markdown h4,
+.md-prose.chat-markdown h5,
+.md-prose.chat-markdown h6 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.375rem;
+}
+.md-prose.chat-markdown ul,
+.md-prose.chat-markdown ol,
+.md-prose.chat-markdown blockquote,
+.md-prose.chat-markdown dl,
+.md-prose.chat-markdown details {
+  margin-top: 0;
+  margin-bottom: 0.625rem;
+}
+.md-prose.chat-markdown table {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.md-prose.chat-markdown a.chat-markdown-link {
+  display: inline-flex;
+  max-width: min(24rem, 100%);
+  align-items: center;
+  gap: 0.25rem;
+  vertical-align: -0.125em;
+  color: var(--text-link);
+  font-weight: 500;
+  text-decoration: none;
+  overflow-wrap: normal;
+}
+.md-prose.chat-markdown a.chat-markdown-link:hover {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.18em;
+}
+.md-prose.chat-markdown .chat-markdown-link-icon {
+  position: relative;
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+.md-prose.chat-markdown .chat-markdown-link-icon svg,
+.md-prose.chat-markdown .chat-markdown-link-icon img.chat-markdown-link-favicon {
+  width: 1em !important;
+  height: 1em !important;
+  max-width: 1em !important;
+  max-height: 1em !important;
+  flex: 0 0 auto !important;
+}
+.md-prose.chat-markdown .chat-markdown-link-icon img.chat-markdown-link-favicon {
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  border-radius: var(--radius-full);
+  background: var(--app-surface);
+  object-fit: contain;
+}
+.md-prose.chat-markdown .chat-markdown-link-icon img.chat-markdown-link-favicon-error {
+  display: none !important;
+}
+.md-prose.chat-markdown .chat-markdown-link-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-prose.chat-markdown img.chat-markdown-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(28rem, 100%);
+  max-height: 32vh;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transition: opacity var(--motion-duration-md) ease;
+}
+.md-prose.chat-markdown img.chat-markdown-image:hover {
+  opacity: 0.9;
+}
+
+/* 回复状态行里的「重试 / 重新连接 / 停止生成」：行高档位，和状态文字排在同一行 */
+.terminal-state-action {
+  height: var(--control-row-height);
+  gap: 0.25rem;
+  padding-inline: 0.625rem;
+}

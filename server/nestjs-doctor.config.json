@@ -1,0 +1,4 @@
+{
+  "include": ["src/**/*.ts"],
+  "minScore": 75
+}

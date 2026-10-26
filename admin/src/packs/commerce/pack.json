@@ -1,0 +1,28 @@
+{
+  "id": "commerce",
+  "tier": "feature",
+  "description": "套餐 / 订单 / 支付配置 / 账户明细 / 积分调整 / 注册与签到赠送的管理页面",
+  "flag": "VITE_COMMERCE_ENABLED",
+  "identifiers": [
+    "commerce",
+    "Commerce",
+    "COMMERCE",
+    "PAY_PLATFORM",
+    "PAY_STATUS",
+    "RECHARGE_TYPE",
+    "grantPackage",
+    "GrantPackage",
+    "rechargeUser",
+    "wechatPay",
+    "alipay",
+    "epay",
+    "paypal",
+    "stripe",
+    "registerSendCredits",
+    "registerSendStatus",
+    "signInCredits",
+    "signInStatus",
+    "visitorCreditsNum",
+    "balanceInfo"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "99agent-root",
+  "private": true,
+  "description": "仓库根：只承载扩展包检查脚本（scripts/）与根级格式化，没有依赖，不参与三端构建（web/admin/server 各自独立 install/build）",
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "packageManager": "pnpm@11.1.3",
+  "scripts": {
+    "check:packs": "node scripts/pack-scorecard.mjs --min-grade A",
+    "check:pack-removal": "node scripts/check-pack-removal.mjs --all",
+    "check:toolchain": "node scripts/check-toolchain.mjs",
+    "format": "pnpm dlx prettier@3 --write 'scripts/**/*.{js,mjs,json}' 'packages/*/src/**/*.ts' 'packages/*/tests/**/*.{ts,mjs}' 'packages/*/scripts/**/*.mjs' 'sandbox/**/*.{mjs,json}' '.github/**/*.yml'"
+  }
+}

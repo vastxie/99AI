@@ -1,0 +1,7 @@
+{
+  "serverKernelLines": 50496,
+  "webKernelLines": 36960,
+  "adminKernelLines": 13408,
+  "databaseTables": 21,
+  "serverRuntimeDependencies": 30
+}

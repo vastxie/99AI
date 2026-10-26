@@ -1,0 +1,509 @@
+#!/usr/bin/env bash
+# 99Agent 用户磁盘助手：每个登录用户一个稀疏 ext4 镜像，挂载后只把其中的 workspace/ 绑定进该用户的沙箱。
+#
+# 以 root 运行（server 非 root 时经 sudo 白名单调用，只放行 ensure / release / usage / list-mounted）。
+# 只接受白名单字符的站点名、32 位十六进制磁盘 key 与整数容量；根目录只从 root 拥有的配置文件读取，
+# 不信任调用方环境。只做挂载、统计与整盘复制，不读写用户文件内容。
+#
+# 每个站点（SANDBOX_NAME_PREFIX）一个独立子目录：<DISK_ROOT>/<站点>/{images,mnt,locks}，
+# 同一宿主上的多个站点互不可见、互不清理。
+#
+# 用法：
+#   ensure <站点> <key> <size-mb>        创建 / 扩容 / 检查并挂载，输出工作区路径
+#   release <站点> <key>                 卸载（保留镜像）
+#   usage <站点> <key>                   输出「块大小 总块 空闲块 可用块 总inode 空闲inode 宿主块大小 宿主可用块」
+#   list-mounted <站点>                  输出该站点已挂载的 key
+#   remove <站点> <key>                  卸载并删除镜像及其备份（仅管理员）
+#   backup                               备份所有站点未在使用且有变化的镜像
+#   list-backups <站点> <key>            列出备份
+#   restore <站点> <key> <备份名>        用备份替换镜像（须未在使用，保留替换前副本）
+#   key <站点> user-<id>                 计算磁盘 key
+
+set -euo pipefail
+umask 077
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export LC_ALL=C
+
+CONFIG_FILE=/etc/99agent/sandbox-disk.conf
+DISK_ROOT=/var/lib/99agent/sandbox-disks
+BACKUP_DIR=/var/backups/99agent-sandbox-disks
+BACKUP_KEEP=3
+BACKUP_MAX_AGE_HOURS=48
+HOST_MIN_FREE_MB=10240
+SANDBOX_UID=1000
+SANDBOX_GID=1000
+MIN_SIZE_MB=64
+MAX_SIZE_MB=1048576
+
+die() {
+  echo "99agent-sandbox-disk: $1" >&2
+  exit "${2:-1}"
+}
+
+# 权限位里组或其他人可写时返回成功
+writable_by_others() {
+  case "$(stat -c %a "$1")" in
+    *[2367]? | *[2367]) return 0 ;;
+  esac
+  return 1
+}
+
+load_config() {
+  [ -e "$CONFIG_FILE" ] || return 0
+  [ -f "$CONFIG_FILE" ] && [ ! -L "$CONFIG_FILE" ] || die "配置文件不是普通文件" 2
+  [ "$(stat -c %u "$CONFIG_FILE")" = 0 ] || die "配置文件必须属于 root" 2
+  ! writable_by_others "$CONFIG_FILE" || die "配置文件不能被其他用户写入" 2
+  local line name value
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in '' | '#'*) continue ;; esac
+    name="${line%%=*}"
+    value="${line#*=}"
+    case "$name" in
+      DISK_ROOT | BACKUP_DIR)
+        [[ "$value" =~ ^/[A-Za-z0-9._/-]+$ ]] && [[ "$value" != *..* ]] && [ "$value" != / ] ||
+          die "$name 必须是绝对路径" 2
+        printf -v "$name" '%s' "${value%/}"
+        ;;
+      BACKUP_KEEP | BACKUP_MAX_AGE_HOURS | HOST_MIN_FREE_MB | SANDBOX_UID | SANDBOX_GID)
+        [[ "$value" =~ ^[0-9]{1,7}$ ]] || die "$name 必须是整数" 2
+        printf -v "$name" '%s' "$value"
+        ;;
+      *) die "未知配置项 $name" 2 ;;
+    esac
+  done < "$CONFIG_FILE"
+  [ "$BACKUP_KEEP" -ge 1 ] || die "BACKUP_KEEP 至少为 1" 2
+}
+
+require_root() {
+  [ "$(id -u)" = 0 ] || die "必须以 root 运行" 2
+  # 挂载必须发生在宿主（PID 1）的挂载命名空间里，否则 dockerd 看不到，容器绑定不到用户磁盘。
+  [ "$(readlink /proc/self/ns/mnt)" = "$(readlink /proc/1/ns/mnt)" ] ||
+    die "当前进程不在宿主挂载命名空间（例如 systemd PrivateMounts），拒绝挂载" 2
+}
+
+valid_instance() {
+  [[ "${1:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]] || die "站点名无效" 2
+}
+
+valid_key() {
+  [[ "${1:-}" =~ ^[a-f0-9]{32}$ ]] || die "磁盘 key 无效" 2
+}
+
+valid_size() {
+  [[ "${1:-}" =~ ^[0-9]{1,7}$ ]] || die "容量必须是整数 MB" 2
+  [ "$1" -ge "$MIN_SIZE_MB" ] && [ "$1" -le "$MAX_SIZE_MB" ] || die "容量超出 ${MIN_SIZE_MB}-${MAX_SIZE_MB} MB" 2
+}
+
+# 从根到目标的每一级都必须是 root 拥有、不可被他人写入的真实目录，防止上级目录被替换。
+trusted_chain() {
+  local path="$1" current=""
+  local part
+  IFS='/' read -r -a parts <<<"${path#/}"
+  [ -d / ] && [ "$(stat -c %u /)" = 0 ] || die "根目录不可信" 2
+  for part in "${parts[@]}"; do
+    [ -n "$part" ] || continue
+    current="$current/$part"
+    [ -e "$current" ] || continue
+    [ -d "$current" ] && [ ! -L "$current" ] || die "路径 $current 不是真实目录" 2
+    [ "$(stat -c %u "$current")" = 0 ] || die "路径 $current 不属于 root" 2
+    ! writable_by_others "$current" || die "路径 $current 可被其他用户写入" 2
+  done
+}
+
+# 目录不存在时按 0700 创建；存在时必须是 root 拥有的真实目录
+safe_dir() {
+  local dir="$1"
+  if [ ! -e "$dir" ] && [ ! -L "$dir" ]; then
+    mkdir -m 0700 "$dir"
+  fi
+  [ -d "$dir" ] && [ ! -L "$dir" ] || die "目录不安全：不是真实目录" 2
+  [ "$(stat -c %u "$dir")" = 0 ] || die "目录不安全：不属于 root" 2
+  chmod 0700 "$dir"
+}
+
+prepare_root() {
+  local parent
+  parent="$(dirname "$DISK_ROOT")"
+  [ -d "$parent" ] || mkdir -p -m 0755 "$parent"
+  trusted_chain "$DISK_ROOT"
+  safe_dir "$DISK_ROOT"
+}
+
+prepare_instance() {
+  SITE="$DISK_ROOT/$1"
+  safe_dir "$SITE"
+  safe_dir "$SITE/images"
+  safe_dir "$SITE/mnt"
+  safe_dir "$SITE/locks"
+}
+
+prepare_backup_root() {
+  local parent
+  parent="$(dirname "$BACKUP_DIR")"
+  [ -d "$parent" ] || mkdir -p -m 0755 "$parent"
+  trusted_chain "$BACKUP_DIR"
+  safe_dir "$BACKUP_DIR"
+}
+
+image_of() { printf '%s/images/%s.img' "$SITE" "$1"; }
+mount_of() { printf '%s/mnt/%s' "$SITE" "$1"; }
+
+# 在该 key 的锁内执行其余参数；同一磁盘的助手调用互斥。
+with_lock() {
+  local key="$1"
+  shift
+  local lock="$SITE/locks/$key.lock"
+  [ ! -L "$lock" ] || die "锁文件不能是符号链接" 2
+  exec 9>>"$lock"
+  flock -w 110 9 || die "磁盘正忙，请稍后重试" 75
+  "$@"
+}
+
+is_mounted() { mountpoint -q "$1"; }
+
+host_free_bytes() { echo $(($(stat -f -c '%a * %S' "$1"))); }
+
+require_host_space() {
+  local need="$1" free
+  free="$(host_free_bytes "$2")"
+  [ "$free" -ge $((need + HOST_MIN_FREE_MB * 1024 * 1024)) ] ||
+    die "宿主磁盘剩余空间不足（低于 ${HOST_MIN_FREE_MB} MB 低水位）" 28
+}
+
+# 镜像必须是 root 拥有、0600、没有其他硬链接的普通文件
+check_image() {
+  local image="$1"
+  [ -f "$image" ] && [ ! -L "$image" ] || die "磁盘镜像不是普通文件" 2
+  [ "$(stat -c %u "$image")" = 0 ] || die "磁盘镜像不属于 root" 2
+  [ "$(stat -c %h "$image")" = 1 ] || die "磁盘镜像存在多个硬链接（恢复可能中断过），请管理员处理" 2
+  chmod 0600 "$image"
+}
+
+# 镜像是否仍关联 loop 设备：文件系统可能仍在某个容器的挂载命名空间里使用。
+# 查询本身失败时不能当成「已脱离」，直接拒绝（在当前 shell 里 die，不受调用处 set -e 失效影响）。
+loop_attached() {
+  local attached
+  attached="$(losetup -j "$1")" || die "无法查询磁盘的 loop 关联，已拒绝继续" 1
+  [ -n "$attached" ]
+}
+
+# 禁止对仍关联 loop 的镜像 fsck / 替换 / 删除。容器刚删除时运行时释放引用需要一点时间，最多等待 10 秒。
+wait_detached() {
+  local image="$1" tries=0
+  while loop_attached "$image"; do
+    tries=$((tries + 1))
+    [ "$tries" -le 20 ] || die "磁盘仍被占用，请稍后重试" 16
+    sleep 0.5
+  done
+}
+
+# 已挂载时核对挂载源确实是本 key 的镜像，避免把别的文件系统当成用户磁盘交给容器。
+verify_mount() {
+  local mnt="$1" image="$2" source backing
+  source="$(findmnt -n -o SOURCE --mountpoint "$mnt")" || die "读取挂载信息失败" 1
+  [[ "$source" =~ ^/dev/loop[0-9]+$ ]] || die "挂载源不是 loop 设备" 1
+  backing="$(losetup -n -O BACK-FILE "$source" | sed 's/[[:space:]]*$//')"
+  [ "$backing" = "$(readlink -f "$image")" ] || die "挂载源与磁盘镜像不一致" 1
+}
+
+prepare_workspace() {
+  local mnt="$1" workspace="$1/workspace"
+  chown root:root "$mnt"
+  chmod 0711 "$mnt"
+  if [ ! -e "$workspace" ] && [ ! -L "$workspace" ]; then
+    mkdir "$workspace"
+  fi
+  [ -d "$workspace" ] && [ ! -L "$workspace" ] || die "工作区目录异常" 1
+  chown "$SANDBOX_UID:$SANDBOX_GID" "$workspace"
+  chmod 0700 "$workspace"
+}
+
+check_filesystem() {
+  local status=0
+  e2fsck "$@" >/dev/null 2>&1 || status=$?
+  # 0 无错误，1 已修复；其余表示需要人工处理，拒绝继续。
+  [ "$status" -le 1 ] || die "磁盘文件系统需要管理员修复（e2fsck 退出码 $status）" 1
+}
+
+create_image() {
+  local image="$1" size="$2" tmp="$1.creating"
+  require_host_space 0 "$SITE"
+  rm -f -- "$tmp"
+  truncate -s "${size}M" "$tmp"
+  # 新建的稀疏文件读出来全是 0：跳过日志与 inode 表的清零，空盘只占几 MB 实际空间。
+  mkfs.ext4 -q -F -m 0 -E lazy_itable_init=1,lazy_journal_init=1,nodiscard "$tmp" >/dev/null
+  chmod 0600 "$tmp"
+  mv -f -- "$tmp" "$image"
+}
+
+filesystem_bytes() {
+  dumpe2fs -h "$1" 2>/dev/null |
+    awk -F: '/^Block count:/ { count = $2 } /^Block size:/ { size = $2 } END { printf "%.0f\n", count * size }'
+}
+
+# 按文件系统实际容量判断是否扩容：扩容中断后重试不会因为镜像文件已变大而被跳过。
+grow_image() {
+  local image="$1" size="$2" wanted
+  wanted=$((size * 1024 * 1024))
+  [ "$(filesystem_bytes "$image")" -lt "$wanted" ] || return 0
+  require_host_space 0 "$SITE"
+  [ "$(stat -c %s "$image")" -ge "$wanted" ] || truncate -s "${size}M" "$image"
+  check_filesystem -f -p "$image"
+  resize2fs "$image" >/dev/null 2>&1 || die "磁盘扩容失败" 1
+}
+
+ensure_locked() {
+  local key="$1" size="$2" image mnt
+  image="$(image_of "$key")"
+  mnt="$(mount_of "$key")"
+  if is_mounted "$mnt"; then
+    verify_mount "$mnt" "$image"
+    prepare_workspace "$mnt"
+    printf '%s/workspace\n' "$mnt"
+    return 0
+  fi
+  [ ! -L "$image" ] || die "磁盘镜像不能是符号链接" 2
+  if [ -e "$image" ]; then
+    check_image "$image"
+    wait_detached "$image"
+  else
+    create_image "$image" "$size"
+  fi
+  check_filesystem -p "$image"
+  grow_image "$image" "$size"
+  safe_dir "$mnt"
+  # discard：盘内删除文件时把空间还给宿主（稀疏镜像打洞）
+  mount -t ext4 -o loop,nosuid,nodev,noatime,noinit_itable,discard,errors=remount-ro "$image" "$mnt" ||
+    die "磁盘挂载失败" 1
+  verify_mount "$mnt" "$image"
+  prepare_workspace "$mnt"
+  printf '%s/workspace\n' "$mnt"
+}
+
+release_locked() {
+  local key="$1" image mnt
+  image="$(image_of "$key")"
+  mnt="$(mount_of "$key")"
+  if is_mounted "$mnt"; then
+    verify_mount "$mnt" "$image"
+    umount "$mnt" || die "磁盘卸载失败（仍在使用）" 16
+  fi
+}
+
+usage_of() {
+  local key="$1" mnt
+  mnt="$(mount_of "$key")"
+  is_mounted "$mnt" || die "磁盘未挂载" 3
+  verify_mount "$mnt" "$(image_of "$key")"
+  printf '%s %s\n' "$(stat -f -c '%S %b %f %a %c %d' "$mnt/workspace")" "$(stat -f -c '%S %a' "$SITE")"
+}
+
+list_mounted() {
+  local dir key
+  for dir in "$SITE"/mnt/*; do
+    [ -d "$dir" ] || continue
+    key="$(basename "$dir")"
+    [[ "$key" =~ ^[a-f0-9]{32}$ ]] || continue
+    if is_mounted "$dir"; then printf '%s\n' "$key"; fi
+  done
+}
+
+remove_locked() {
+  local instance="$1" key="$2" image
+  image="$(image_of "$key")"
+  release_locked "$key"
+  if [ -e "$image" ]; then wait_detached "$image"; fi
+  rm -f -- "$image" "$image.creating" "$image.restoring" "$image.before-restore"
+  rmdir -- "$(mount_of "$key")" 2>/dev/null || true
+  if [ -d "$BACKUP_DIR/$instance/$key" ] && [ ! -L "$BACKUP_DIR/$instance/$key" ]; then
+    rm -rf -- "${BACKUP_DIR:?}/$instance/$key"
+  fi
+}
+
+# 在 backup_all 的 `( … ) || …` 里运行，set -e 不生效：每一步都显式检查，任何失败都不轮换旧备份。
+backup_one() {
+  local instance="$1" key="$2" image dir latest stamp allocated partial
+  image="$(image_of "$key")"
+  [ -f "$image" ] && [ ! -L "$image" ] || return 0
+  if is_mounted "$(mount_of "$key")" || loop_attached "$image"; then
+    echo "skip $instance $key (in use)"
+    return 0
+  fi
+  dir="$BACKUP_DIR/$instance/$key"
+  safe_dir "$BACKUP_DIR/$instance"
+  safe_dir "$dir"
+  latest="$(find "$dir" -maxdepth 1 -type f -name '*.img' | sort | tail -n 1)" || return 1
+  if [ -n "$latest" ] && [ ! "$image" -nt "$latest" ]; then
+    return 0
+  fi
+  allocated="$(stat -c '%b * %B' "$image")" || return 1
+  require_host_space "$((allocated))" "$BACKUP_DIR"
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)" || return 1
+  partial="$dir/$stamp.img.partial"
+  rm -f -- "$partial" || return 1
+  if ! cp --sparse=always -- "$image" "$partial" || ! sync -- "$partial" ||
+    ! mv -f -- "$partial" "$dir/$stamp.img"; then
+    rm -f -- "$partial"
+    echo "fail $instance $key (copy)" >&2
+    return 1
+  fi
+  echo "backup $instance $key $stamp"
+  # 新备份完整写入后才轮换旧备份；轮换失败（列举或删除）也报告失败，便于发现备份占用持续增长
+  local expired old
+  expired="$(find "$dir" -maxdepth 1 -type f -name '*.img' | sort | head -n "-$BACKUP_KEEP")" || {
+    echo "fail $instance $key (rotate)" >&2
+    return 1
+  }
+  while IFS= read -r old; do
+    [ -n "$old" ] || continue
+    rm -f -- "$old" || {
+      echo "fail $instance $key (rotate)" >&2
+      return 1
+    }
+  done <<<"$expired"
+}
+
+# 最近一次成功备份超过 BACKUP_MAX_AGE_HOURS 的磁盘（例如一直在使用），输出 stale 供监控告警。
+report_stale() {
+  local instance="$1" key="$2" latest age
+  latest="$(find "$BACKUP_DIR/$instance/$key" -maxdepth 1 -type f -name '*.img' 2>/dev/null | sort | tail -n 1)"
+  if [ -z "$latest" ]; then
+    echo "stale $instance $key never"
+    return 1
+  fi
+  age=$((($(date +%s) - $(stat -c %Y "$latest")) / 3600))
+  if [ "$age" -ge "$BACKUP_MAX_AGE_HOURS" ] && [ "$(image_of "$key")" -nt "$latest" ]; then
+    echo "stale $instance $key ${age}h"
+    return 1
+  fi
+}
+
+# 退出码：0 全部完成；3 有磁盘超期未备份（或从未备份）；4 有备份失败（优先于 3）
+backup_all() {
+  prepare_backup_root
+  local site image key instance stale=0 failed=0
+  for site in "$DISK_ROOT"/*/; do
+    instance="$(basename "$site")"
+    [[ "$instance" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]] || continue
+    prepare_instance "$instance"
+    for image in "$SITE"/images/*.img; do
+      [ -f "$image" ] || continue
+      key="$(basename "$image" .img)"
+      [[ "$key" =~ ^[a-f0-9]{32}$ ]] || continue
+      (
+        exec 9>>"$SITE/locks/$key.lock"
+        # 正在开机或卸载的盘下次再备，不阻塞用户。
+        flock -n 9 || { echo "skip $instance $key (busy)"; exit 0; }
+        backup_one "$instance" "$key"
+      ) || {
+        echo "fail $instance $key"
+        failed=1
+      }
+      report_stale "$instance" "$key" || stale=1
+    done
+  done
+  [ "$failed" = 0 ] || exit 4
+  [ "$stale" = 0 ] || exit 3
+}
+
+restore_locked() {
+  local instance="$1" key="$2" name="$3" image source allocated
+  [[ "$name" =~ ^[0-9]{8}T[0-9]{6}Z\.img$ ]] || die "备份名无效" 2
+  source="$BACKUP_DIR/$instance/$key/$name"
+  [ -f "$source" ] && [ ! -L "$source" ] || die "备份不存在" 2
+  image="$(image_of "$key")"
+  ! is_mounted "$(mount_of "$key")" || die "磁盘正在使用，请先停止该用户的沙箱" 16
+  if [ -e "$image" ]; then
+    check_image "$image"
+    wait_detached "$image"
+  fi
+  allocated=$(($(stat -c '%b * %B' "$source")))
+  require_host_space "$allocated" "$SITE"
+  # 先完整复制并校验，再原子替换：任何一步失败，原镜像都保持原样
+  rm -f -- "$image.restoring"
+  cp --sparse=always -- "$source" "$image.restoring"
+  chmod 0600 "$image.restoring"
+  sync -- "$image.restoring"
+  check_filesystem -n -f "$image.restoring"
+  if [ -e "$image" ]; then ln -f -- "$image" "$image.before-restore"; fi
+  mv -f -- "$image.restoring" "$image"
+  echo "restored $instance $key from $name"
+}
+
+main() {
+  local command="${1:-}"
+  if [ "$command" = key ]; then
+    [ "$#" -eq 3 ] || die "用法：key <站点> user-<id>" 2
+    valid_instance "$2"
+    [[ "$3" =~ ^user-[1-9][0-9]{0,15}$ ]] || die "账号格式应为 user-<id>" 2
+    printf '%s\0%s' "$2" "$3" | sha256sum | cut -c1-32
+    return 0
+  fi
+  require_root
+  load_config
+  prepare_root
+  case "$command" in
+    ensure)
+      [ "$#" -eq 4 ] || die "用法：ensure <站点> <key> <size-mb>" 2
+      valid_instance "$2"
+      valid_key "$3"
+      valid_size "$4"
+      prepare_instance "$2"
+      with_lock "$3" ensure_locked "$3" "$4"
+      ;;
+    release)
+      [ "$#" -eq 3 ] || die "用法：release <站点> <key>" 2
+      valid_instance "$2"
+      valid_key "$3"
+      prepare_instance "$2"
+      with_lock "$3" release_locked "$3"
+      ;;
+    usage)
+      [ "$#" -eq 3 ] || die "用法：usage <站点> <key>" 2
+      valid_instance "$2"
+      valid_key "$3"
+      prepare_instance "$2"
+      usage_of "$3"
+      ;;
+    list-mounted)
+      [ "$#" -eq 2 ] || die "用法：list-mounted <站点>" 2
+      valid_instance "$2"
+      prepare_instance "$2"
+      list_mounted
+      ;;
+    remove)
+      [ "$#" -eq 3 ] || die "用法：remove <站点> <key>" 2
+      valid_instance "$2"
+      valid_key "$3"
+      prepare_instance "$2"
+      prepare_backup_root
+      with_lock "$3" remove_locked "$2" "$3"
+      ;;
+    backup)
+      [ "$#" -eq 1 ] || die "用法：backup" 2
+      backup_all
+      ;;
+    list-backups)
+      [ "$#" -eq 3 ] || die "用法：list-backups <站点> <key>" 2
+      valid_instance "$2"
+      valid_key "$3"
+      prepare_backup_root
+      [ -d "$BACKUP_DIR/$2/$3" ] || return 0
+      find "$BACKUP_DIR/$2/$3" -maxdepth 1 -type f -name '*.img' -printf '%f %s\n' | sort
+      ;;
+    restore)
+      [ "$#" -eq 4 ] || die "用法：restore <站点> <key> <备份名>" 2
+      valid_instance "$2"
+      valid_key "$3"
+      prepare_instance "$2"
+      prepare_backup_root
+      with_lock "$3" restore_locked "$2" "$3" "$4"
+      ;;
+    *) die "未知命令" 2 ;;
+  esac
+}
+
+# 直接执行时才进入 main；测试可以 source 本文件后替换外部命令做故障注入
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+  main "$@"
+fi

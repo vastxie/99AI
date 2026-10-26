@@ -1,0 +1,117 @@
+/* Shared composer primitives; colors and timing live in the theme contract. */
+/* 正文延伸到输入框上方圆角末端；只裁切绘制，保留完整滚动高度与底部留白。 */
+.ds-chat-scroll-surface {
+  height: 100%;
+  scroll-padding-bottom: calc(var(--chat-footer-dock-height, 0px) + 0.5rem);
+  clip-path: inset(
+    0 0 max(0px, calc(var(--chat-footer-dock-height, 0px) - var(--radius-dialog))) 0
+  );
+}
+
+.chat-bottom-spacer {
+  height: calc(var(--chat-footer-dock-height, 0px) + 0.5rem);
+}
+
+.chat-footer-dock > * {
+  position: relative;
+  z-index: 1;
+}
+
+.chat-footer-input-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  overflow: visible;
+  padding-top: 10px;
+  border: 0;
+  border-radius: var(--radius-dialog);
+  background: var(--chat-input-surface);
+  box-shadow: var(--chat-input-shell-shadow);
+}
+
+.chat-footer-composer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.chat-footer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 8px 6px;
+  min-width: 0;
+}
+.chat-footer-leading-action {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.chat-footer-trailing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  gap: 8px;
+}
+.chat-footer-textarea {
+  display: block;
+  width: 100%;
+  min-height: 1.75rem;
+  resize: none;
+  overflow-y: auto;
+  padding: 4px 16px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  line-height: 24px;
+  caret-color: var(--accent);
+}
+.chat-footer-textarea::placeholder {
+  color: var(--text-subtle);
+}
+.chat-footer-textarea.has-actions {
+  padding-right: 80px;
+}
+.chat-composer-width {
+  width: 100%;
+  max-width: calc(var(--chat-content-width) + 32px);
+}
+.chat-transcript-width {
+  width: 100%;
+  max-width: var(--chat-content-width);
+}
+.chat-welcome-title {
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--type-display-size);
+  font-weight: 500;
+  line-height: var(--type-display-line-height);
+}
+@media (max-width: 767.9px) {
+  .chat-welcome-title {
+    font-size: var(--type-display-sm-size);
+    line-height: var(--type-display-sm-line-height);
+  }
+  .chat-footer-trailing-actions .model-selector-trigger-model {
+    max-width: 10rem;
+  }
+}
+
+/* 实时连接断开提示：输入框上方一行，弱化色，不遮挡输入 */
+.chat-connection-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+  font-size: var(--type-meta-size);
+  line-height: 1.125rem;
+}

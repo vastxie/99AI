@@ -1,0 +1,242 @@
+/*
+ * Markdown 排版（.md-prose）：消息正文、文件预览与代码面板里的 Markdown 预览共用。
+ *
+ * 这里只给排版骨架：字号层级、块与块之间的节奏、列表、引用、代码、表格与图片；
+ * 字体沿用应用正文字体，颜色全部取主题变量，深浅色只在少数底色上有区别。
+ * 规则都写在 :where() 里（特异性只算 .md-prose 一个类），使用处（如消息正文的 .chat-markdown）
+ * 用一条普通规则就能覆盖间距等细节。
+ */
+
+.md-prose {
+  --md-text: var(--chat-assistant-text);
+  --md-heading: var(--text-primary);
+  --md-muted: var(--text-muted);
+  --md-rule: var(--app-border);
+  --md-link: var(--text-link);
+  --md-block-gap: 0.85em;
+  --md-code-font: var(--font-mono);
+  --md-code-bg: var(--md-inline-code-bg);
+  --md-code-block-bg: var(--app-surface-sunken);
+  --md-highlight-bg: color-mix(in srgb, var(--semantic-warning) 20%, transparent);
+
+  color: var(--md-text);
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  line-height: var(--font-body-line-height);
+  overflow-wrap: break-word;
+  background: transparent;
+}
+
+/* ---------- 块与块之间只留下方间距，首尾不把外边距带出容器 ---------- */
+
+.md-prose :where(p, ul, ol, dl, blockquote, pre, table, figure, details, hr) {
+  margin: 0 0 var(--md-block-gap);
+}
+/* 容器首尾贴边：使用处给标题、段落加的外边距也不能把空白带出容器 */
+.md-prose > :first-child {
+  margin-block-start: 0 !important;
+}
+.md-prose > :last-child {
+  margin-block-end: 0 !important;
+}
+
+/* ---------- 标题：六级逐级收小，上方留出比下方更大的空白，把内容分成段落组 ---------- */
+
+.md-prose :where(h1, h2, h3, h4, h5, h6) {
+  margin: 1.35em 0 0.55em;
+  color: var(--md-heading);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.md-prose :where(h1) {
+  font-size: 1.6em;
+}
+.md-prose :where(h2) {
+  font-size: 1.35em;
+}
+.md-prose :where(h3) {
+  font-size: 1.15em;
+}
+.md-prose :where(h4) {
+  font-size: 1em;
+}
+.md-prose :where(h5, h6) {
+  font-size: 0.92em;
+}
+.md-prose :where(h6) {
+  color: var(--md-muted);
+}
+
+/* ---------- 行内元素 ---------- */
+
+.md-prose :where(a) {
+  color: var(--md-link);
+  text-decoration: none;
+}
+.md-prose :where(a:hover) {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.md-prose :where(strong, b) {
+  font-weight: 600;
+}
+.md-prose :where(mark) {
+  color: inherit;
+  background: var(--md-highlight-bg);
+  border-radius: 0.2em;
+}
+.md-prose :where(code, kbd, samp, pre) {
+  font-family: var(--md-code-font);
+}
+/* 行内代码：浅底小块。消息里的代码块由代码块组件（.chat-code-block）自己排版，不套这一层 */
+.md-prose :where(:not(pre, .chat-code-block) > code) {
+  padding: 0.12em 0.36em;
+  font-size: 0.88em;
+  white-space: break-spaces;
+  background: var(--md-code-bg);
+  border-radius: 0.3em;
+}
+.md-prose :where(kbd, samp) {
+  font-size: 0.88em;
+}
+.md-prose :where(kbd) {
+  padding: 0.1em 0.42em;
+  background: var(--md-code-block-bg);
+  border: 1px solid var(--md-rule);
+  border-bottom-width: 2px;
+  border-radius: 0.3em;
+}
+
+/* ---------- 列表：多层嵌套时有序列表依次换成字母、罗马数字 ---------- */
+
+.md-prose :where(ul, ol) {
+  padding-inline-start: 1.6em;
+}
+.md-prose :where(ul) {
+  list-style-type: disc;
+}
+.md-prose :where(ul ul) {
+  list-style-type: circle;
+}
+.md-prose :where(ol) {
+  list-style-type: decimal;
+}
+.md-prose :where(ol ol) {
+  list-style-type: lower-alpha;
+}
+.md-prose :where(ol ol ol) {
+  list-style-type: lower-roman;
+}
+.md-prose :where(li + li) {
+  margin-top: 0.3em;
+}
+.md-prose :where(li > ul, li > ol) {
+  margin: 0.3em 0 0;
+}
+.md-prose :where(li > input[type='checkbox']) {
+  margin: 0 0.45em 0 0;
+  vertical-align: -0.1em;
+}
+.md-prose :where(dt) {
+  font-weight: 600;
+}
+.md-prose :where(dd) {
+  margin: 0.2em 0 0.6em 1.2em;
+}
+
+/* ---------- 引用、分隔线、图片 ---------- */
+
+.md-prose :where(blockquote) {
+  padding: 0.1em 0 0.1em 0.9em;
+  color: var(--md-muted);
+  border-left: 3px solid var(--md-rule);
+}
+.md-prose :where(hr) {
+  height: 1px;
+  margin-block: 1.4em;
+  background: var(--md-rule);
+  border: 0;
+}
+.md-prose :where(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.4em;
+}
+
+/* ---------- 代码块兜底（消息里的代码块由代码块组件负责） ---------- */
+
+.md-prose :where(pre) {
+  padding: 0.85em 1em;
+  overflow: auto;
+  font-size: 0.88em;
+  line-height: 1.6;
+  background: var(--md-code-block-bg);
+  border-radius: 0.6em;
+}
+.md-prose :where(pre code) {
+  font-size: inherit;
+  white-space: pre;
+}
+
+/* ---------- 表格：宽表在自身范围内横向滚动，表头垫一层浅底 ---------- */
+
+.md-prose :where(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.md-prose :where(th, td) {
+  padding: 0.45em 0.8em;
+  border: 1px solid var(--md-rule);
+  text-align: start;
+}
+.md-prose :where(th) {
+  font-weight: 600;
+  background: var(--md-code-block-bg);
+}
+/*
+ * 窄屏：中文任意两字之间都能折行，自动表格布局会把字少的列挤到一字一行。
+ * 让中文只在标点与空格处折行，列宽至少容下最长的一段；单格按屏宽封顶，超长的一段照常断开。
+ * 封顶取「常见的三列表（两列短、一列长）正好放进一屏」的宽度，只有两列时放宽；再放不下时整张表横向滚动。
+ */
+@media (max-width: 767.9px) {
+  .md-prose :where(th, td) {
+    max-width: 45vw;
+    word-break: keep-all;
+  }
+  .md-prose :where(th, td):first-child:nth-last-child(2),
+  .md-prose :where(th, td):first-child:nth-last-child(2) ~ :where(th, td) {
+    max-width: 65vw;
+  }
+}
+
+/* ---------- 折叠块 ---------- */
+
+.md-prose :where(summary) {
+  cursor: pointer;
+  font-weight: 500;
+}
+.md-prose :where(details[open] > summary) {
+  margin-bottom: 0.5em;
+}
+
+/* 公式的排版库按需加载：加载完成前先显示 TeX 源码 */
+.md-prose .katex-pending {
+  font-family: var(--md-code-font);
+  font-size: 0.92em;
+  color: var(--md-muted);
+  white-space: pre-wrap;
+}
+
+/* 显示公式（\[ … \] 与 $$ 块）：左对齐；窄屏上的长公式横向滚动，不被裁切 */
+.md-prose .katex-display {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: left;
+}
+.md-prose .katex-display > .katex {
+  text-align: left;
+}

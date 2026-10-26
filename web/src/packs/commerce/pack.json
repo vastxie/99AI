@@ -1,0 +1,25 @@
+{
+  "id": "commerce",
+  "tier": "feature",
+  "description": "会员 / 积分 / 套餐 / 支付 / 每日签到的用户端入口与弹窗",
+  "flag": "VITE_COMMERCE_ENABLED",
+  "identifiers": [
+    "commerce",
+    "Commerce",
+    "COMMERCE",
+    "MemberCenter",
+    "memberCenter",
+    "SignInDialog",
+    "signInDialog",
+    "CreditsBadge",
+    "MembershipBadge",
+    "alipay",
+    "Alipay",
+    "packageName",
+    "packageWeight",
+    "sumCredits",
+    "memberCredits",
+    "isMember",
+    "#signin"
+  ]
+}

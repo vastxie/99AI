@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "packageManager": "pnpm",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "sourceMap": false,
+    "declaration": false,
+    "builder": {
+      "type": "rspack",
+      "options": { "configPath": "rspack.config.js" }
+    },
+    "tsConfigPath": "tsconfig.build.json"
+  },
+  "defaults": {
+    "path": "modules"
+  }
+}

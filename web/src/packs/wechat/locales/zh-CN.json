@@ -1,0 +1,23 @@
+{
+  "login": {
+    "scanQrCodeToLogin": "微信扫码登录"
+  },
+  "settings": {
+    "wechat": "微信",
+    "bindConfirmFailed": "绑定确认失败",
+    "binding": "正在绑定...",
+    "getWeixinBotQrCodeFailed": "获取微信 Bot 二维码失败",
+    "scanQrCodeWithWechat": "请使用微信扫描二维码",
+    "weixinBotBindSuccess": "微信 Bot 绑定成功",
+    "weixinBotBindSuccessWithHint": "微信 Bot 绑定成功，现在可以在微信中与 AI 对话",
+    "weixinBotUnboundSuccess": "微信 Bot 已解绑",
+    "manage": "管理",
+    "weixinBot": "微信 Bot",
+    "weixinBotBinding": "微信 Bot 绑定",
+    "weixinBotBoundStatus": "已绑定，可在微信中对话",
+    "weixinBotConversationNotFound": "暂无微信 Bot 对话",
+    "viewWeixinBotConversation": "查看对话",
+    "weixinConversation": "微信 Bot",
+    "weixinBotBindStatusFailed": "获取绑定状态失败，请重新获取二维码"
+  }
+}

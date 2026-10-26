@@ -1,0 +1,49 @@
+--- a/tools/nogo/defs.bzl
++++ b/tools/nogo/defs.bzl
+@@ -70,7 +70,7 @@
+     go_ctx, args, inputs, raw_findings = _nogo_config(ctx, deps = [])
+ 
+     # GOVERSION of std is set by the std go.mod.
+-    args.append("-GOVERSION-mod-file=%s" % go_ctx.stdlib_mod)
++    args.append("-GOVERSION-mod-file=%s" % go_ctx.stdlib_mod.path)
+ 
+     # Build the analyzer command.
+     facts_file = ctx.actions.declare_file(ctx.label.name + ".facts")
+--- a/tools/nogo/check/build.go
++++ b/tools/nogo/check/build.go
+@@ -105,6 +105,15 @@
+ 	for path := range pkgNames {
+ 		pkg, ok := srcPkgs[path]
+ 		if !ok {
++			// rules_go v0.57.0 excludes these Go 1.26.3 test-only SDK sources.
++			// Reject every other archive without matching source inputs.
++			switch path {
++			case "crypto/internal/sysrand/internal/seccomp",
++				"internal/obscuretestdata", "internal/testpty",
++				"log/slog/internal/benchmarks", "net/internal/socktest",
++				"reflect/internal/example1", "reflect/internal/example2":
++				continue
++			}
+ 			return nil, fmt.Errorf("package %q present in stdlib GOROOT but not in source", path)
+ 		}
+ 		pkgs[path] = pkg
+--- a/tools/nogo/cli/cli.go
++++ b/tools/nogo/cli/cli.go
+@@ -514,7 +514,7 @@
+ }
+ 
+ // goVersionRe matches a `go VERSION` line in go.mod, capturing VERSION.
+-var goVersionRe = regexp.MustCompile(`^go\s+(\S+)`)
++var goVersionRe = regexp.MustCompile(`(?m)^go[ \t]+(\S+)`)
+ 
+ // resolveGOVERSION sets flags.GOVERSION from flags.GOVERSIONModFile, if necessary.
+ func resolveGOVERSION() error {
+@@ -549,7 +549,7 @@
+ 	subcommands.Register(subcommands.FlagsCommand(), "")
+ 	flag.CommandLine.Parse(os.Args[1:])
+ 	if err := resolveGOVERSION(); err != nil {
+-		failure("error resolving GOVERSION: %v", err)
++		os.Exit(int(failure("error resolving GOVERSION: %v", err)))
+ 	}
+ 	os.Exit(int(subcommands.Execute(context.Background())))
+ }

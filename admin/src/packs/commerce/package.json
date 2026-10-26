@@ -1,0 +1,13 @@
+{
+  "name": "@99agent/admin-pack-commerce",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "commerce 扩展包自己的运行时依赖（支付测试弹窗的二维码生成）。删包即随包卸载。",
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6"
+  }
+}

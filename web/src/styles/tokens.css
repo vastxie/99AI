@@ -1,0 +1,293 @@
+/* Shared geometry, typography and semantic aliases. Theme files only own color differences. */
+:root {
+  /* 主色阶的首帧取值 = 默认强调色（蓝）在 utils/accentColor.ts 里算出的色阶；启动后按用户选的强调色重写 */
+  --primary-50: 245 248 253;
+  --primary-100: 235 240 252;
+  --primary-200: 216 226 248;
+  --primary-300: 156 192 254;
+  --primary-400: 103 158 254;
+  --primary-500: 82 126 224;
+  --primary-600: 58 108 220;
+  --primary-700: 46 86 176;
+  --primary-800: 35 65 132;
+  --primary-900: 23 43 88;
+  --primary-950: 15 27 55;
+  --app-divider: var(--app-border);
+  --text-link: var(--accent);
+  /*
+   * 键盘焦点指示：不透明的强调色（与背景对比不低于 3:1），明暗主题都跟随强调色。
+   * 独立控件用 2px 描边加 2px 间隙；放在滚动容器里、外描边会被裁掉的列表项用内描边。
+   */
+  --focus-ring-color: var(--accent);
+  --component-focus-ring-inset: inset 0 0 0 2px var(--focus-ring-color);
+  --text-link-hover: var(--accent-hover);
+  --text-on-accent: #ffffff;
+  --text-on-media: #ffffff;
+  /* 盖在图片、视频缩略图上的半透明底（上传进度、失败状态） */
+  --media-scrim-bg: rgb(0 0 0 / 0.45);
+  --text-disabled: var(--text-subtle);
+  /* Foreground contract: content levels are not interaction states. */
+  --control-fg: var(--text-secondary);
+  --control-fg-quiet: var(--text-muted);
+  --control-fg-hover: var(--text-secondary);
+  --control-fg-selected: var(--text-primary);
+  --control-fg-disabled: var(--text-disabled);
+  --control-bg-selected: var(--interaction-bg-selected);
+  --control-bg-disabled: var(--control-track);
+  --control-border-disabled: var(--app-border);
+  --control-accent-fg: var(--text-link);
+  --control-accent-bg: color-mix(in srgb, var(--accent) 12%, var(--app-surface));
+  --control-accent-bg-hover: color-mix(in srgb, var(--accent) 18%, var(--app-surface));
+  --control-danger-fg: var(--semantic-danger-text);
+  --control-danger-bg-hover: var(--semantic-danger-bg);
+  --control-danger-bg-active: color-mix(in srgb, var(--semantic-danger) 18%, var(--app-surface));
+  --semantic-success-bg: color-mix(in srgb, var(--semantic-success) 10%, var(--app-surface));
+  --semantic-warning-bg: color-mix(in srgb, var(--semantic-warning) 10%, var(--app-surface));
+  --semantic-danger-bg: color-mix(in srgb, var(--semantic-danger) 10%, var(--app-surface));
+  --semantic-info-bg: color-mix(in srgb, var(--semantic-info) 10%, var(--app-surface));
+  --menu-item-text-disabled: var(--control-fg-disabled);
+  --menu-item-danger-text: var(--control-danger-fg);
+  --menu-item-danger-bg-hover: var(--control-danger-bg-hover);
+  --agent-success: var(--semantic-success);
+  --agent-failed: var(--semantic-danger);
+  /*
+   * 盖住整页的遮罩（弹窗、手机侧栏抽屉、底部面板）只有这一种：跟随主题的底色加轻微模糊。
+   * 确认框用更淡的一档、图片预览用更深的一档，都从 --app-overlay 派生
+   */
+  --scrim-bg: var(--app-overlay);
+  --scrim-blur: 4px;
+  --dialog-shell-bg: var(--app-surface);
+  --dialog-shell-shadow: 0 0 0 0.5px var(--app-border), 0 12px 40px rgb(0 0 0 / 0.12);
+  /* 手机底部面板：向上投影 */
+  --sheet-shadow: 0 -18px 48px rgb(0 0 0 / 0.24);
+  --dialog-shell-padding: 0;
+  --dialog-wide-max-width: 42.5rem;
+  --dialog-wide-height: 37.5rem;
+  --dialog-wide-viewport-gap: 1rem;
+  --dialog-pane-bg: transparent;
+  --dialog-divider: var(--app-border);
+  --dialog-section-bg: var(--app-surface);
+  --dialog-section-border: var(--app-border);
+  --dialog-card-bg: var(--app-surface-sunken);
+  --dialog-card-bg-hover: var(--menu-item-bg-hover);
+  --dialog-card-border: var(--app-border);
+  --dialog-control-bg: var(--app-surface-sunken);
+  --dialog-control-bg-hover: var(--menu-item-bg-hover);
+  --dialog-control-border: var(--app-border);
+  --dialog-control-selected-bg: var(--interaction-bg-selected);
+  --dialog-control-selected-border: transparent;
+  --dialog-control-selected-text: var(--control-fg-selected);
+  --dialog-qr-card-bg: var(--dialog-card-bg);
+  --dialog-qr-frame-bg: var(--dialog-control-bg);
+  --dialog-qr-frame-border: var(--dialog-control-border);
+  --dialog-qr-paper-bg: #ffffff;
+  --dialog-qr-overlay-bg: color-mix(in srgb, var(--dialog-control-bg) 82%, transparent);
+  --menu-surface-bg: var(--app-surface-elevated);
+  --menu-surface-border: var(--app-border);
+  --menu-surface-shadow:
+    0 0 0 0.5px var(--app-border), 0 3px 8px rgb(0 0 0 / 0.04), 0 0 20px rgb(0 0 0 / 0.05);
+  --menu-item-bg-active: var(--interaction-bg-selected);
+  /* Ordinary neutral interactions share opaque colors on every surface. */
+  --menu-item-bg-hover: var(--interaction-bg-hover);
+  --sidebar-item-hover: var(--interaction-bg-hover);
+  --sidebar-item-active: var(--interaction-bg-selected);
+  --btn-bg-ghost-hover: var(--interaction-bg-hover);
+  --btn-bg-ghost-active: var(--interaction-bg-active);
+  --btn-bg-secondary-hover: var(--interaction-bg-hover);
+  --btn-bg-secondary-active: var(--interaction-bg-active);
+  --menu-item-text: var(--control-fg);
+  --menu-item-text-hover: var(--control-fg-hover);
+  --menu-item-text-active: var(--control-fg-selected);
+  --menu-divider-bg: var(--app-border);
+  --input-bg: var(--app-surface);
+  --input-bg-hover: var(--app-surface);
+  --input-text: var(--text-primary);
+  --input-placeholder: var(--text-subtle);
+  --input-border: var(--app-border);
+  --input-border-hover: var(--app-border-strong);
+  --input-border-focus: var(--accent);
+  --input-error-border: var(--semantic-danger);
+  --btn-icon-action-text: var(--control-fg-quiet);
+  --btn-icon-action-text-hover: var(--control-fg-hover);
+  --dialog-input-bg: var(--app-surface);
+  --dialog-input-bg-hover: var(--app-surface);
+  --dialog-input-bg-focus: var(--app-surface);
+  --dialog-input-border: var(--app-border);
+  --dialog-input-border-hover: var(--app-border-strong);
+  --dialog-input-border-focus: var(--accent);
+  --dialog-tag-border: var(--dialog-control-border);
+  --dialog-tag-text: var(--text-secondary);
+  --chat-assistant-bubble: var(--app-canvas);
+  --chat-assistant-text: var(--text-primary);
+  --chat-user-bubble: color-mix(in srgb, rgb(var(--primary-400)) 14%, var(--app-surface));
+  --chat-input-border: var(--app-border);
+  --chat-input-shell-shadow:
+    0 0 0 0.5px var(--app-border), 0 4px 16px rgb(0 0 0 / 0.03), 0 0 24px rgb(0 0 0 / 0.03);
+  --chat-activity-accent: var(--accent);
+  --agent-thinking: var(--app-surface-sunken);
+  --agent-running: var(--accent);
+  --agent-media-placeholder: var(--app-surface-sunken);
+  --agent-glow-text: var(--accent);
+  /*
+   * 圆角只有这一套刻度，与 Tailwind 的 rounded-* 同名同值（rounded-* 类映射到这里，改刻度两边一起变）；
+   * 组件用下面的语义圆角
+   */
+  --radius-sm: 0.125rem;
+  --radius: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+  --radius-control-sm: var(--radius-lg);
+  --radius-control: var(--radius-xl);
+  --radius-card: var(--radius-2xl);
+  --radius-popover: var(--radius-xl);
+  /* 弹窗比卡片再圆一档（刻度之外的一档，只给弹窗外壳与消息气泡这类大面） */
+  --radius-dialog: 1.25rem;
+  --radius-pill: var(--radius-full);
+  --menu-content-padding: 0.375rem;
+  --control-height: 2rem;
+  --control-row-height: 2.25rem;
+  --control-touch-size: 2.75rem;
+  --control-padding-x: 0.75rem;
+  --control-padding-y: 0.3125rem;
+  --control-gap: 0.5rem;
+  --action-padding-x: 1rem;
+  --chat-header-height: 4.125rem;
+  --control-icon-size: 1.125rem;
+  --component-shadow-md: var(--menu-surface-shadow);
+  /*
+   * 动效时长只有这一套刻度（组件别名也指向它）：xs 按下与悬停的反馈；sm 小元素的出现、消失与淡入淡出；
+   * md 一般的状态切换；lg 弹窗、消息入场与滑动指示；xl 抽屉与较大的位移；2xl 侧边面板的展开收起
+   */
+  --motion-duration-xs: 100ms;
+  --motion-duration-sm: 150ms;
+  --motion-duration-md: 200ms;
+  --motion-duration-lg: 250ms;
+  --motion-duration-xl: 300ms;
+  --motion-duration-2xl: 450ms;
+  --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  /* 悬停多久出现提示：鼠标扫过一排图标按钮时不一闪一闪 */
+  --tooltip-show-delay: 450ms;
+  --segmented-slide-duration: var(--motion-duration-lg);
+  --segmented-slide-easing: var(--motion-easing);
+  --segmented-soft-slide-duration: var(--motion-duration-xl);
+  --segmented-soft-slide-easing: cubic-bezier(0.34, 1.3, 0.64, 1);
+  --segmented-text-duration: var(--motion-duration-sm);
+  --segmented-text: var(--control-fg-quiet);
+  --segmented-track-bg: var(--tab-group-bg);
+  --segmented-thumb-bg: var(--tab-active-bg);
+  --segmented-thumb-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  --dialog-backdrop-duration: var(--motion-duration-sm);
+  --dialog-enter-duration: var(--motion-duration-lg);
+  --dialog-leave-duration: var(--motion-duration-sm);
+  --dialog-enter-y: 6px;
+  --dialog-enter-scale: 0.99;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* 代码、终端输出与行号的等宽字体（Markdown 代码、代码工作台、代码预览共用） */
+  --font-mono:
+    ui-monospace, 'SF Mono', SFMono-Regular, 'JetBrains Mono', 'Cascadia Code', Menlo, Monaco,
+    Consolas, 'Liberation Mono', monospace;
+  --font-body-weight: 400;
+  --font-body-line-height: 1.58;
+  /* 展示字号：首页欢迎语这类只出现一处的大标题（桌面 / 手机两档），公告与协议正文的一级标题也用手机那档 */
+  --type-display-size: 1.625rem;
+  --type-display-line-height: 2rem;
+  --type-display-sm-size: 1.375rem;
+  --type-display-sm-line-height: 1.875rem;
+  --type-dialog-title-size: 1.125rem;
+  --type-dialog-title-line-height: 1.75rem;
+  --type-dialog-title-weight: 500;
+  --type-section-title-size: 1.125rem;
+  --type-section-title-line-height: 1.75rem;
+  --type-section-title-weight: 400;
+  --type-field-title-size: 1rem;
+  --type-field-title-line-height: 1.5rem;
+  --type-field-title-weight: 400;
+  --type-body-size: 1rem;
+  --type-body-line-height: 1.625;
+  --type-body-sm-size: 0.875rem;
+  --type-body-sm-line-height: 1.375rem;
+  --type-control-size: 0.875rem;
+  --type-control-line-height: 1.25rem;
+  --type-control-weight: 400;
+  --type-action-weight: 500;
+  /* 次要说明（13px）：代码块语言名、引用块、附件与文件卡片的文件名、回合导航、连接提示、代码编辑器 */
+  --type-meta-size: 0.8125rem;
+  --type-caption-size: 0.75rem;
+  --type-caption-line-height: 1.125rem;
+  --type-caption-weight: 400;
+  --btn-radius: var(--radius-pill);
+  --input-height: 2.5rem;
+  --input-padding-x: 0.875rem;
+  --input-padding-y: 0.625rem;
+  --input-radius: var(--radius-card);
+  --card-radius: var(--radius-card);
+  --code-block-radius: var(--radius-card);
+  --tooltip-padding-x: 0.5rem;
+  --tooltip-padding-y: 0.125rem;
+  --tooltip-radius: var(--radius-md);
+  --tooltip-font-size: 0.75rem;
+  --tooltip-line-height: 1rem;
+  --btn-bg-primary: var(--accent);
+  --btn-bg-primary-hover: var(--accent-hover);
+  --btn-bg-primary-active: var(--accent);
+  --btn-text-primary: var(--text-on-accent);
+  --btn-border-primary: transparent;
+  --btn-border-primary-hover: transparent;
+  --btn-border-primary-active: transparent;
+  --btn-bg-secondary: var(--app-surface-sunken);
+  --btn-text-secondary: var(--control-fg);
+  --btn-border-secondary: var(--app-border);
+  --btn-border-secondary-hover: var(--app-border-strong);
+  --btn-border-secondary-active: var(--app-border-strong);
+  --btn-bg-ghost: transparent;
+  --btn-text-ghost: var(--control-fg);
+  --btn-bg-danger: var(--app-surface);
+  --btn-bg-danger-hover: var(--control-danger-bg-hover);
+  --btn-bg-danger-active: var(--control-danger-bg-active);
+  --btn-text-danger: var(--control-danger-fg);
+  --btn-border-danger: var(--control-danger-fg);
+  --chat-content-width: 42.5rem;
+  /* 生成中（输入框在「加入下一轮」模式）时输入框的强调描边 */
+  --composer-emphasis-border: rgb(var(--primary-500) / 0.7);
+  /* 对话栏左右留白（消息、输入区、骨架与只读提示一致）：桌面 2rem，手机 1rem */
+  --chat-content-inset: 2rem;
+  /*
+   * 刘海、圆角与底部手势条的安全区（index.html 开了 viewport-fit=cover）：
+   * 只在最外面贴着屏幕边缘的那一层用，里面的元素不再叠加
+   */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --sidebar-fade-duration: var(--motion-duration-sm);
+  --sidebar-layout-duration: var(--motion-duration-xl);
+  --panel-bg: var(--app-surface);
+  --panel-bg-subtle: var(--app-surface-sunken);
+  --panel-border: var(--app-border);
+  --panel-editor-active-line: var(--sidebar-item-hover);
+  --panel-editor-gutter-border: var(--app-border);
+  --panel-text: var(--text-primary);
+  --panel-text-subtle: var(--text-muted);
+  --panel-caret: var(--text-primary);
+  --panel-selection: color-mix(in srgb, var(--accent) 22%, transparent);
+  --code-block-bg: var(--app-surface-sunken);
+  --code-block-border: var(--app-border);
+  --code-block-header-bg: var(--app-surface-sunken);
+  --code-block-content-bg: var(--app-surface-sunken);
+  --code-block-muted: var(--text-muted);
+  --btn-bg-disabled: var(--control-bg-disabled);
+  --btn-text-disabled: var(--control-fg-disabled);
+}
+
+@media (max-width: 767.9px) {
+  :root {
+    --chat-header-height: 3.5rem;
+    --chat-content-inset: 1rem;
+  }
+}

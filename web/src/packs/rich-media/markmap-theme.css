@@ -1,0 +1,12 @@
+/*
+ * 思维导图跟随站点主题：markmap 自带样式把节点文字写死成 #333、展开圆点底色写死成白色，
+ * 深色主题下文字几乎看不见。svg.markmap 比库在运行时注入的 .markmap 优先级高，与注入先后无关。
+ */
+svg.markmap {
+  --markmap-text-color: var(--text-primary);
+  --markmap-circle-open-bg: var(--app-surface);
+  --markmap-code-bg: var(--app-surface-sunken);
+  --markmap-code-color: var(--text-secondary);
+  --markmap-a-color: var(--text-link);
+  --markmap-a-hover-color: var(--text-link);
+}

@@ -1,0 +1,22 @@
+{
+  "id": "email",
+  "tier": "system",
+  "description": "邮箱验证码登录 / 绑定 / 找回密码，SMTP 或腾讯云邮件发信",
+  "flag": "EMAIL_PACK_ENABLED",
+  "contributes": {
+    "configSections": [
+      "email"
+    ],
+    "loginProviders": [
+      "captcha:local_email"
+    ]
+  },
+  "dependencies": ["nodemailer", "tencentcloud-sdk-nodejs-ses"],
+  "identifiers": [
+    "local_email",
+    "isVerifyEmail",
+    "EmailSender",
+    "EMAIL_PACK",
+    "VITE_EMAIL"
+  ]
+}

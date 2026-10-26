@@ -1,0 +1,2 @@
+# golden fixture 必须与生成器输出逐字节一致，不得被 pnpm format 重排
+src/modules/agent/core/fixtures/

@@ -1,0 +1,27 @@
+name: Setup Node.js and pnpm
+description: 统一安装 pnpm（版本读根 package.json 的 packageManager）与 Node.js（默认 24），并按给定 lockfile 启用 pnpm 缓存（三端与文档站共用）
+
+inputs:
+  cache-dependency-path:
+    description: 用于缓存键的 pnpm-lock.yaml 路径
+    required: true
+  node-version:
+    description: Node.js 版本；默认 24（推荐基线），smoke 另用仓库声明的最低版本验证
+    required: false
+    default: '24'
+
+runs:
+  using: composite
+  steps:
+    # 版本取仓库根 package.json 的 packageManager（与三端、文档站一致），不在这里另写一份
+    - name: Install pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        run_install: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}

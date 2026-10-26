@@ -1,0 +1,36 @@
+packages:
+  - .
+  # 带 package.json 的扩展包自带运行时依赖，删包即随包卸载
+  - src/packs/*
+
+overrides:
+  # 安全修复：仅在同一大版本内升级到已修补版本，规避不存在的版本与破坏性大版本跳跃。
+  # jspdf 4.x / html2pdf.js 0.14 / xlsx CDN 源 / tar 7.x 为 2026-06-11 阶段 4 用户批准的决策项。
+  # tar 跨大版本（6.2.1→7.5.11）：仅存在于被 allowBuilds canvas:false 禁用的构建链，不进浏览器产物；
+  # 6 条 advisory 最高要求 >=7.5.11（GHSA-qffp-2rhf-9h96）。
+  tar@<7.5.11: 7.5.11
+  axios@<1.20.0: 1.20.0
+  '@xmldom/xmldom@<0.8.15': 0.8.15
+  underscore@<1.13.8: 1.13.8
+  defu@<6.1.7: 6.1.7
+  picomatch@<2.3.2: 2.3.2
+  picomatch@>=4.0.0 <4.0.7: 4.0.7
+  minimatch@>=3.0.0 <3.1.5: 3.1.5
+  undici@>=6.0.0 <6.28.1: 6.28.1
+  dompurify@>=3.0.0 <3.4.16: 3.4.16
+  lodash-es@<4.18.0: 4.18.1
+  markdown-it@>=14.0.0 <14.3.2: 14.3.2
+  yaml@>=2.0.0 <2.8.3: 2.8.3
+  postcss@>=8.0.0 <8.5.29: 8.5.29
+  ws@>=8.0.0 <8.20.1: 8.20.1
+  uuid@>=11.0.0 <11.1.1: 11.1.1
+  brace-expansion@>=1.0.0 <1.1.21: 1.1.21
+  follow-redirects@<1.16.0: 1.16.0
+  mammoth@<1.11.0: 1.11.0
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@tailwindcss/oxide': true
+  canvas: false
+  clientjs: false
+  core-js: true

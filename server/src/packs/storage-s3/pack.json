@@ -1,0 +1,24 @@
+{
+  "id": "storage-s3",
+  "tier": "system",
+  "description": "S3 兼容对象存储（Amazon S3、MinIO、Cloudflare R2 等）",
+  "flag": "STORAGE_S3_PACK_ENABLED",
+  "contributes": {
+    "configSections": [
+      "storage-s3"
+    ],
+    "storageProviders": [
+      "s3"
+    ]
+  },
+  "dependencies": ["@aws-sdk/client-s3"],
+  "identifiers": [
+    "'s3'",
+    "S3Storage",
+    "s3-storage",
+    "STORAGE_S3",
+    "VITE_STORAGE_S3",
+    "awsS3",
+    "AWS4-HMAC"
+  ]
+}

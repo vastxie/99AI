@@ -1,0 +1,151 @@
+{
+  "name": "99agent",
+  "version": "0.1.0",
+  "description": "99Agent server (NestJS)",
+  "author": "vastxie",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "packageManager": "pnpm@11.1.3",
+  "bin": "./dist/main.js",
+  "scripts": {
+    "start": "pm2 start pm2.conf.json",
+    "build": "nest build",
+    "test": "node scripts/run-jest.js",
+    "test:cov": "node scripts/run-jest.js --coverage",
+    "doctor": "npx -y nestjs-doctor@0.4.32 . --config nestjs-doctor.config.json --verbose",
+    "format": "prettier --write 'src/**/*.{vue,ts,tsx,js,jsx,css,scss,less}'",
+    "dev": "nest start --watch --preserveWatchOutput",
+    "start:prod": "node dist/main",
+    "check:boundaries": "node scripts/check-pack-boundaries.mjs",
+    "vertical:import": "node dist/main vertical:import",
+    "test:tasks": "node scripts/run-task-fixtures.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1147.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@nestjs/common": "12.1.2",
+    "@nestjs/core": "12.1.2",
+    "@nestjs/jwt": "12.0.2",
+    "@nestjs/platform-express": "12.1.2",
+    "@nestjs/platform-socket.io": "12.1.2",
+    "@nestjs/schedule": "12.0.2",
+    "@nestjs/serve-static": "12.0.0",
+    "@nestjs/swagger": "12.0.2",
+    "@nestjs/typeorm": "12.0.2",
+    "@nestjs/websockets": "12.1.2",
+    "ali-oss": "^6.23.0",
+    "alipay-sdk": "^4.14.0",
+    "axios": "^1.20.0",
+    "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "compression": "^1.8.2",
+    "cos-nodejs-sdk-v5": "^3.0.0",
+    "dayjs": "^1.11.23",
+    "dockerode": "^5.0.1",
+    "dotenv": "^18.0.6",
+    "express": "5.2.1",
+    "fast-xml-parser": "^5.11.2",
+    "gpt-tokenizer": "^4.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mime-types": "^3.0.2",
+    "mysql2": "^3.24.5",
+    "nodemailer": "^10.0.15",
+    "openai": "^7.30.0",
+    "pm2": "^7.0.4",
+    "qrcode": "^1.5.4",
+    "raw-body": "^4.0.0",
+    "redis": "^6.3.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "^7.8.2",
+    "socket.io": "^4.8.4",
+    "stripe": "^22.6.2",
+    "tencentcloud-sdk-nodejs-asr": "4.1.205",
+    "tencentcloud-sdk-nodejs-ses": "4.1.221",
+    "tencentcloud-sdk-nodejs-sms": "4.1.221",
+    "tencentcloud-sdk-nodejs-tms": "4.1.157",
+    "typeorm": "1.1.1",
+    "wechatpay-node-v3": "^2.2.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "12.0.8",
+    "@rspack/core": "^2.2.8",
+    "@types/ali-oss": "^6.23.3",
+    "@types/compression": "^1.8.1",
+    "@types/dockerode": "^4.0.1",
+    "@types/express": "5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mime-types": "^3.0.1",
+    "@types/node": "24.19.1",
+    "@types/qrcode": "^1.5.6",
+    "exceljs": "^4.4.0",
+    "jest": "30.5.2",
+    "prettier": "3.9.9",
+    "sharp": "^0.35.5",
+    "socket.io-client": "4.8.4",
+    "ts-checker-rspack-plugin": "^1.6.2",
+    "ts-jest": "29.4.14",
+    "tsconfig-paths-webpack-plugin": "^4.2.0",
+    "typescript": "6.0.3",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "^@99agent/contracts$": "<rootDir>/../../packages/contracts/src/index.ts",
+      "^@99agent/contracts/(.*)$": "<rootDir>/../../packages/contracts/src/$1",
+      "^@99agent/runtime-core$": "<rootDir>/../../packages/runtime-core/src/index.ts",
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup-test-logger.ts"
+    ],
+    "collectCoverageFrom": [
+      "modules/chatLog/tool-result-payload/**/*.ts",
+      "modules/chatLog/chat-log-frontend.ts",
+      "modules/chat/workflowManager.service.ts",
+      "modules/chat/chat.gateway.ts"
+    ],
+    "coverageThreshold": {
+      "src/modules/chatLog/tool-result-payload/": {
+        "statements": 75,
+        "branches": 60,
+        "functions": 80,
+        "lines": 75
+      },
+      "src/modules/chatLog/chat-log-frontend.ts": {
+        "statements": 80,
+        "branches": 90,
+        "functions": 60,
+        "lines": 80
+      },
+      "src/modules/chat/workflowManager.service.ts": {
+        "statements": 45,
+        "branches": 45,
+        "functions": 40,
+        "lines": 45
+      },
+      "src/modules/chat/chat.gateway.ts": {
+        "statements": 60,
+        "branches": 45,
+        "functions": 65,
+        "lines": 60
+      }
+    },
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "workerIdleMemoryLimit": "1GB"
+  }
+}

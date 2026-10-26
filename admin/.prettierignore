@@ -1,0 +1,3 @@
+# unplugin-auto-import / unplugin-vue-components 生成，构建时重写，不做格式化
+src/types/auto-imports.d.ts
+src/types/components.d.ts

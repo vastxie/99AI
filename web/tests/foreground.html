@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前景状态组件检查</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: var(--app-canvas);
+        color: var(--text-primary);
+      }
+      section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+        margin: 24px 0;
+        padding: 16px;
+        background: var(--app-surface);
+      }
+      h2 {
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // Dev-only, isolated from app stores, account data and APIs. Not a production entry.
+      import { createApp, h, ref } from 'vue'
+      import { Copy } from '@lucide/vue'
+      import UiButton from '../src/components/common/UiButton.vue'
+      import ActionIcon from '../src/components/common/ActionIcon/index.vue'
+      import MenuItem from '../src/components/common/DropdownMenu/MenuItem.vue'
+      import { applyClientThemeMode } from '../src/utils/themeMode.ts'
+      import '../src/styles/index.css'
+
+      createApp({
+        setup() {
+          const dark = ref(false)
+          applyClientThemeMode('light', { persist: false })
+          const icon = () => h(Copy, { size: 18 })
+          const button = (label, props = {}) =>
+            h(UiButton, { 'aria-label': label, ...props }, () => label)
+          const menu = (label, props = {}) =>
+            h(MenuItem, { title: label, showArrow: true, ...props }, { icon })
+          return () =>
+            h('main', [
+              h('h1', '前景角色与组合状态'),
+              button('切换明暗', {
+                onClick: () => {
+                  dark.value = !dark.value
+                  applyClientThemeMode(dark.value ? 'dark' : 'light', { persist: false })
+                },
+              }),
+              h('section', [
+                button('普通文字'),
+                h(ActionIcon, { label: '弱化图标', icon: Copy }),
+                h(ActionIcon, { label: '选中图标', icon: Copy, active: true }),
+                h(ActionIcon, { label: '危险图标', icon: Copy, danger: true }),
+                button('主要操作', { variant: 'primary' }),
+                button('链接', { class: 'fg-link' }),
+              ]),
+              h('section', { class: 'dialog-surface' }, [
+                button('禁用主要操作', { variant: 'primary', disabled: true }),
+                button('禁用危险操作', { variant: 'danger', disabled: true }),
+                h(ActionIcon, { label: '禁用选中图标', icon: Copy, active: true, disabled: true }),
+                h(ActionIcon, { label: '禁用危险图标', icon: Copy, danger: true, disabled: true }),
+              ]),
+              h('section', { class: 'menu-account menu-items' }, [
+                menu('普通菜单'),
+                menu('选中菜单', { active: true }),
+                menu('危险菜单', { danger: true }),
+                menu('禁用危险选中菜单', { active: true, danger: true, disabled: true }),
+              ]),
+            ])
+        },
+      }).mount('#app')
+    </script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" />
+    <title>%VITE_APP_TITLE%</title>
+    <script>
+      // 样式与脚本加载前先套上用户选过的明暗模式（键与 src/store/modules/theme.ts 一致），深色下不会先闪一下白底
+      (function () {
+        try {
+          var saved = localStorage.getItem('admin-color-scheme');
+          var followSystem = saved === 'system' || saved === '';
+          if (
+            saved === 'dark' ||
+            (followSystem && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          ) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (error) {}
+      })();
+    </script>
+    <style>
+      /* 应用挂载前的启动画面，挂载后被 #app 里的内容替换 */
+      html,
+      body,
+      #app {
+        height: 100%;
+        margin: 0;
+      }
+
+      .boot-screen {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          'PingFang SC',
+          'Microsoft YaHei',
+          sans-serif;
+        color: #6b7280;
+        background: #f5f7fa;
+      }
+
+      .boot-screen__ring {
+        width: 28px;
+        height: 28px;
+        border: 3px solid #dbe6fb;
+        border-top-color: #4176e6;
+        border-radius: 50%;
+        animation: boot-screen-spin 0.8s linear infinite;
+      }
+
+      html.dark .boot-screen {
+        color: #8b94a5;
+        background: #0f1115;
+      }
+
+      html.dark .boot-screen__ring {
+        border-color: #223559;
+        border-top-color: #679efe;
+      }
+
+      @keyframes boot-screen-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .boot-screen__ring {
+          animation-duration: 2.4s;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="boot-screen" role="status">
+        <div class="boot-screen__ring"></div>
+        <span>正在加载管理后台…</span>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

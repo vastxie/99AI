@@ -1,0 +1,17 @@
+{
+  "id": "content-safety",
+  "tier": "feature",
+  "description": "敏感词库 / 白名单 / 违规记录的管理页面与用户详情里的内容安全片段",
+  "flag": "VITE_CONTENT_SAFETY_ENABLED",
+  "identifiers": [
+    "content-safety",
+    "contentSafety",
+    "ContentSafety",
+    "CONTENT_SAFETY",
+    "badWords",
+    "BadWords",
+    "TYPEORIGINLIST",
+    "recentViolations",
+    "/security/"
+  ]
+}

@@ -1,0 +1,174 @@
+/*
+ * 管理端全局样式：页面基础、外壳尺寸、明暗切换的过渡处理、窄屏适配，以及几处跨页面共用的类。
+ * 颜色一律取 tokens/semantic.ts 里的 --u-* 变量；Element Plus 变量的覆盖只在 element-overrides.scss。
+ */
+
+:root {
+  /* 外壳尺寸：侧栏展开宽度、收起后的图标轨宽度、顶栏高度（侧栏品牌区与顶栏同高，两条分隔线对齐） */
+  --shell-nav-width: 220px;
+  --shell-rail-width: 64px;
+  --shell-bar-height: 50px;
+}
+
+/*
+ * 文档：html 与 body 撑满视口，外壳在里面按 min-height 铺开；盒模型从 html 起按 border-box 往下继承，
+ * 伪元素不在此列（保持 Element Plus 自己的约定）。
+ */
+html {
+  box-sizing: border-box;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: inherit;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI',
+    'Microsoft YaHei', sans-serif;
+  color: var(--u-text-primary);
+  background-color: var(--u-bg-page);
+}
+
+/* 文本域默认是等宽字体，改回正文字体 */
+textarea {
+  font-family: inherit;
+}
+
+/* 窄屏抽屉打开时锁住页面滚动（锁在 body 上，由浏览器传给视口，滚动位置保持不变） */
+body.is-scroll-locked {
+  overflow: hidden;
+}
+
+/* 滚动条：窄的胶囊滑块，平时半透明、悬停加深 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--u-gray-400) / 60%);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+
+  &:hover {
+    background-color: rgb(var(--u-gray-500) / 70%);
+  }
+}
+
+/*
+ * 明暗切换：新画面从点击处以圆形展开（动画由 ThemeToggle 驱动），
+ * 这里关掉浏览器默认的淡入淡出；切换期间冻结所有过渡，免得揭开的新画面里各元素还在各自渐变。
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+
+html.is-theme-switching *,
+html.is-theme-switching *::before,
+html.is-theme-switching *::after {
+  transition: none !important;
+}
+
+/*
+ * AppIcon：与文字同高的方块，图标本身由 UnoCSS 图标类以遮罩画出。
+ * 用全局的单个类而不是 scoped 样式，特异性低，调用处需要时用更具体的选择器就能覆盖。
+ */
+.app-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  line-height: 1em;
+  vertical-align: middle;
+}
+
+/* 表单项旁的帮助图标 */
+.admin-help-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--u-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--u-text-regular);
+  }
+}
+
+/* 多渠道配置页共用的一级页签：50px 高、1px 底线、选中加粗 */
+.admin-page-tabs {
+  .el-tabs__nav-wrap::after {
+    height: 1px;
+  }
+
+  .el-tabs__item {
+    height: 50px;
+    padding: 0 20px;
+    line-height: 50px;
+
+    &.is-active {
+      font-weight: 500;
+    }
+  }
+}
+
+/* 窄屏（宽度不足 1024px 或移动设备，见 store/modules/shell.ts）：收紧页面留白，弹层与表单改成竖排 */
+body[data-viewport='compact'] {
+  .page-panel {
+    margin: 12px;
+  }
+
+  .page-panel__body {
+    padding: 14px;
+  }
+
+  .el-dialog {
+    --el-dialog-width: calc(100vw - 24px) !important;
+
+    margin-top: 6vh;
+  }
+
+  .el-message-box {
+    width: calc(100vw - 24px);
+  }
+
+  .el-popover.el-popper {
+    max-width: calc(100vw - 24px);
+  }
+
+  .el-form-item {
+    display: block;
+  }
+
+  .el-form-item__label {
+    display: block;
+    width: auto !important;
+    height: auto;
+    margin-bottom: 4px;
+    line-height: 20px;
+    text-align: left;
+  }
+
+  .el-form-item__content {
+    margin-left: 0 !important;
+  }
+
+  .filter-bar-row {
+    flex-wrap: wrap;
+  }
+}

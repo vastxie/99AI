@@ -1,0 +1,27 @@
+{
+  "id": "wechat",
+  "tier": "feature",
+  "description": "微信公众号（扫码 / 微信内授权登录、消息推送）/ 开放平台网站登录 / 微信 Bot 通道；实现内核渠道绑定端口",
+  "flag": "WECHAT_PACK_ENABLED",
+  "contributes": {
+    "configSections": ["wechat", "weixin-bot-switch"],
+    "loginProviders": ["oauth:wechat_official", "oauth:wechat_open_web", "qr:wechat_official"],
+    "ports": ["CHANNEL_BINDING_PORT"]
+  },
+  "dependencies": ["fast-xml-parser", "qrcode", "raw-body", "tencentcloud-sdk-nodejs-asr"],
+  "identifiers": [
+    "wechat",
+    "Wechat",
+    "WECHAT",
+    "weixin",
+    "Weixin",
+    "WEIXIN",
+    "mmbiz",
+    "wechat_browser",
+    "FastXml",
+    "fast-xml",
+    "micromessenger",
+    "WeixinJSBridge",
+    "bindWx"
+  ]
+}

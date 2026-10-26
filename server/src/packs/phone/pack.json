@@ -1,0 +1,22 @@
+{
+  "id": "phone",
+  "tier": "system",
+  "description": "手机号验证码登录 / 绑定 / 找回密码，腾讯云短信发送",
+  "flag": "PHONE_PACK_ENABLED",
+  "contributes": {
+    "configSections": [
+      "phone"
+    ],
+    "loginProviders": [
+      "captcha:local_phone"
+    ]
+  },
+  "dependencies": ["tencentcloud-sdk-nodejs-sms"],
+  "identifiers": [
+    "local_phone",
+    "TencentSms",
+    "tencent-sms",
+    "PHONE_PACK",
+    "VITE_PHONE"
+  ]
+}

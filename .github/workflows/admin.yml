@@ -1,0 +1,62 @@
+name: Admin
+
+# 管理后台门禁：当前模型配置行为测试、设计规约、类型检查与生产构建。
+
+on:
+  pull_request:
+    paths:
+      - 'admin/**'
+      # 后台用例读取服务端测试连接的契约夹具
+      - 'server/src/packs/model-anthropic/anthropic-probe-results.fixture.json'
+      - '.github/workflows/admin.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'admin/**'
+      # 后台用例读取服务端测试连接的契约夹具
+      - 'server/src/packs/model-anthropic/anthropic-probe-results.fixture.json'
+      - '.github/workflows/admin.yml'
+      - '.github/actions/**'
+      - 'package.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: admin/pnpm-lock.yaml
+
+      - name: Install admin dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Model configuration tests
+        run: pnpm test
+
+      - name: Design guidelines
+        run: pnpm check:design
+
+      - name: Type-check
+        run: pnpm lint
+
+      - name: Production build
+        run: pnpm exec vite build

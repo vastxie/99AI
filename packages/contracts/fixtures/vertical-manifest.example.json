@@ -1,0 +1,42 @@
+{
+  "manifestVersion": 1,
+  "name": "latex-bank",
+  "displayName": "LaTeX 题库",
+  "version": "0.1.0",
+  "description": "示例：一个基于沙箱 TeX 与题库 MCP 服务的垂直包",
+  "site": {
+    "siteName": "LaTeX 题库",
+    "systemPrompt": "你是题库助手。出题、排版和批改都在工作区里完成，最终产物写入 out/ 目录。",
+    "configs": { "maxToolCallsPerRequest": 40 }
+  },
+  "mcpServers": [
+    {
+      "name": "question-bank",
+      "url": "https://bank.example.com/mcp",
+      "headers": { "Authorization": "Bearer replace-me" },
+      "identitySecret": "replace-with-shared-secret",
+      "tools": { "deny": ["admin_*"] },
+      "description": "题库读写"
+    }
+  ],
+  "sandbox": {
+    "image": "example/latex-bank-sandbox:0.1.0",
+    "skills": ["skills/latex-exam", "skills/grading"]
+  },
+  "extensions": {
+    "packages": [
+      {
+        "planKey": "bank-pro",
+        "planName": "题库专业版",
+        "planType": "membership",
+        "variantName": "月付",
+        "billingCycle": "month",
+        "billingCycleCount": 1,
+        "price": 29,
+        "credits": 3000,
+        "days": 30,
+        "isDefaultVariant": 1
+      }
+    ]
+  }
+}

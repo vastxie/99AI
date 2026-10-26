@@ -1,0 +1,93 @@
+/* 页面骨架与全局焦点、触屏输入字号：元素级规则放在 base 层，排在 preflight 之后 */
+@layer base {
+  html {
+    height: 100%;
+    background-color: var(--app-canvas);
+  }
+  html.dark {
+    background-color: var(--app-canvas) !important;
+  }
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--app-canvas);
+    color: var(--text-primary) !important;
+    font-family: var(--font-body);
+  }
+  html.dark body {
+    background-color: var(--app-canvas) !important;
+  }
+  #app {
+    height: 100%;
+    overflow: hidden;
+  }
+  /* 全局焦点样式：鼠标点击不显示焦点环，键盘导航（Tab）保留统一指示 */
+  * :focus {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--focus-ring-color);
+    outline-offset: 2px;
+  }
+  /* 输入类控件自带 focus 态（边框/光晕），不再叠加全局焦点环 */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+  }
+
+  /*
+   * 触屏设备上输入控件至少 16px：iOS 聚焦字号小于 16px 的输入框会自动放大页面。
+   * 页面允许双指缩放（viewport 不再锁定缩放比例），这里保证聚焦输入时不被动放大。
+   */
+  @media (pointer: coarse) {
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']),
+    textarea,
+    select {
+      font-size: max(16px, 1em) !important;
+    }
+  }
+}
+
+/*
+ * 滚动条只有这一套（.custom-scrollbar）：细、半透明，悬停时加深；颜色在明暗主题里（--scrollbar-thumb*）。
+ * 槽位按 stable 预留，切换主题不横移。
+ * Chromium（121 起）与 Firefox 用标准的 scrollbar-width / scrollbar-color：设了它们之后 Chromium 不再读
+ * ::-webkit-scrollbar。下面那组 ::-webkit-scrollbar 规则只在 Safari 生效（悬停加宽、隐藏横向滚动条）
+ */
+.custom-scrollbar {
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.custom-scrollbar:hover {
+  scrollbar-color: var(--scrollbar-thumb-hover) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background-color: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar:horizontal {
+  height: 0;
+  display: none;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  /* 描边透明、背景只画在内容区：thumb 不随边框变宽 */
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: var(--scrollbar-thumb);
+  background-clip: content-box;
+  transition: background-color var(--motion-duration-md) ease;
+}
+.custom-scrollbar:hover::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb-hover);
+}

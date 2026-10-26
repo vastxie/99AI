@@ -1,0 +1,427 @@
+name: Smoke
+
+# 真实启动冒烟：MySQL + Redis 服务容器 → db:init → 启动 server → 模拟模型驱动一轮带 bash 工具调用的对话
+# （Socket.IO Web 通道 + 渠道网关）→ 核对产物、落库与下载权限 → db:check。
+# boot：本地沙箱驱动，扩展包全开 / 全关各跑一次；upgrade：用上一个提交建库，验证已部署站点的升级路径；
+# gvisor：生产模式 + Docker 驱动 + runsc 跑同一冒烟。
+
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'packages/**'
+      - 'sandbox/**'
+      - 'scripts/smoke/**'
+      - '.github/workflows/smoke.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'server/**'
+      - 'packages/**'
+      - 'sandbox/**'
+      - 'scripts/smoke/**'
+      - '.github/workflows/smoke.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PORT: '9520'
+  MOCK_MODEL_PORT: '18080'
+  DB_HOST: 127.0.0.1
+  DB_PORT: '3306'
+  DB_USER: root
+  DB_PASS: smoke-root
+  DB_DATABASE: aiweb_smoke
+  REDIS_HOST: 127.0.0.1
+  REDIS_PORT: '6379'
+  # 以下均为一次性 CI 数据库的测试值，不是真实凭据
+  JWT_SECRET: smoke-ci-jwt-secret-not-for-production-use
+  ADMIN_INITIAL_PASSWORD: smoke-admin-pass
+  CHANNEL_SERVICE_TOKEN: smoke-channel-token
+
+permissions:
+  contents: read
+
+jobs:
+  boot:
+    name: boot (packs ${{ matrix.packs }}, node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        packs: [all, none]
+        node: ['24']
+        # 仓库声明的运行时下限（engines >= 22.15）：NestJS 12 / TypeORM 1.x 的纯 ESM 包在这里经 require(esm) 加载；
+        # 22.13 上 Nest CLI 构建报 ERR_REQUIRE_CYCLE_MODULE，所以下限定在实测通过的 22.15
+        include:
+          - packs: all
+            node: '22.15.0'
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: smoke-root
+          MYSQL_DATABASE: aiweb_smoke
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psmoke-root"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+
+    env:
+      # 本地沙箱驱动没有隔离，只允许开发 / 测试模式；ISDEV 打开告警日志便于定位
+      NODE_ENV: test
+      ISDEV: 'true'
+      SANDBOX_DRIVER: local
+      SANDBOX_MEMORY_MB: '512'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: server/pnpm-lock.yaml
+          node-version: ${{ matrix.node }}
+
+      - name: Smoke tool self-tests
+        if: matrix.packs == 'all' && matrix.node == '24'
+        run: node --test scripts/smoke/*.test.mjs
+
+      - name: Install server dependencies
+        run: pnpm --dir server install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm --dir server build
+
+      # 包开关从各包 pack.json 读取；db:init 与启动必须使用同一组开关
+      - name: Disable every extension pack
+        if: matrix.packs == 'none'
+        run: |
+          for manifest in server/src/packs/*/pack.json; do
+            flag=$(node -p "require('./$manifest').flag")
+            echo "$flag=false" >> "$GITHUB_ENV"
+            echo "$flag=false"
+          done
+
+      - name: Initialize the database
+        working-directory: server
+        run: node dist/main db:init
+
+      - name: Start the mock model and the server
+        run: |
+          nohup node scripts/smoke/mock-openai.mjs > "$RUNNER_TEMP/mock-model.log" 2>&1 &
+          cd server && nohup node dist/main > "$RUNNER_TEMP/server.log" 2>&1 &
+
+      - name: Run the smoke turn
+        run: node scripts/smoke/run-smoke.mjs
+
+      - name: Check the database baseline
+        working-directory: server
+        run: node dist/main db:check
+
+      - name: Show logs
+        if: failure()
+        run: |
+          echo '::group::server.log'; tail -n 300 "$RUNNER_TEMP/server.log" || true; echo '::endgroup::'
+          echo '::group::mock-model.log'; cat "$RUNNER_TEMP/mock-model.log" || true; echo '::endgroup::'
+
+  # 升级路径：用改动前的提交（PR 的 base / push 的上一个提交）初始化数据库，再用当前代码核对并启动。
+  # 已部署站点的库由旧版本创建；这里失败说明本次改动会让它们升级后无法启动，需要在更新日志写明手动迁移。
+  upgrade:
+    name: upgrade (database created by the previous commit)
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: smoke-root
+          MYSQL_DATABASE: aiweb_smoke
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psmoke-root"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+
+    env:
+      NODE_ENV: test
+      ISDEV: 'true'
+      SANDBOX_DRIVER: local
+      SANDBOX_MEMORY_MB: '512'
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: server/pnpm-lock.yaml
+
+      # 上一个提交不在克隆里（强推），或不是带 db:init 的 99Agent 服务端（例如公开仓库里更早的项目代码）时，
+      # 没有可升级的库，跳过后续步骤并写进运行摘要
+      - name: Check the previous commit
+        run: |
+          base_app=""
+          if git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            git worktree add "$RUNNER_TEMP/base" "$BASE_SHA"
+            # 目录改名前的提交里服务端在 service/，之后在 server/
+            for dir in server service; do
+              if [ -f "$RUNNER_TEMP/base/$dir/src/modules/database/database.cli.ts" ]; then
+                base_app="$RUNNER_TEMP/base/$dir"
+                break
+              fi
+            done
+          fi
+          if [ -n "$base_app" ]; then
+            echo "BASE_APP=$base_app" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          # 上一个提交已经是 99Agent 服务端（包名 99agent）却找不到 db:init 入口：说明入口改名或搬家了，
+          # 要同步上面的路径，不能让升级检查从此静默跳过
+          for dir in server service; do
+            package="$RUNNER_TEMP/base/$dir/package.json"
+            if [ -f "$package" ] && [ "$(node -p "require('$package').name")" = "99agent" ]; then
+              echo "::error::previous commit $BASE_SHA has a 99agent server without database.cli.ts; update this check"
+              exit 1
+            fi
+          done
+          echo "::warning::previous commit $BASE_SHA is not a 99Agent server with db:init; upgrade check skipped"
+          echo "previous commit $BASE_SHA is not a 99Agent server with db:init; upgrade check skipped" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Initialize the database with the previous commit
+        if: env.BASE_APP != ''
+        run: |
+          cd "$BASE_APP"
+          pnpm install --frozen-lockfile
+          pnpm build
+          node dist/main db:init
+
+      - name: Install and build the current server
+        if: env.BASE_APP != ''
+        run: |
+          pnpm --dir server install --frozen-lockfile
+          pnpm --dir server build
+
+      # 本 job 验证「上一个提交建的库」能被当前代码接受；两边 TypeORM 版本写进运行摘要，
+      # 只有版本不同的运行才算 ORM 升级路径的证明，同版本的绿灯不能拿来当升级证据
+      - name: Record which ORM versions this run compares
+        if: env.BASE_APP != ''
+        run: |
+          version() { node -p "JSON.parse(require('fs').readFileSync('$1/node_modules/typeorm/package.json', 'utf8')).version"; }
+          old=$(version "$BASE_APP")
+          new=$(version server)
+          if [ "$old" = "$new" ]; then
+            kind="same TypeORM $new on both sides, not an ORM upgrade check"
+          else
+            kind="ORM upgrade path: TypeORM $old -> $new"
+          fi
+          echo "database from $BASE_SHA; $kind" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Check the old database with the current code
+        if: env.BASE_APP != ''
+        working-directory: server
+        run: node dist/main db:check
+
+      - name: Start the mock model and the current server
+        if: env.BASE_APP != ''
+        run: |
+          nohup node scripts/smoke/mock-openai.mjs > "$RUNNER_TEMP/mock-model.log" 2>&1 &
+          cd server && nohup node dist/main > "$RUNNER_TEMP/server.log" 2>&1 &
+
+      - name: Run the smoke turn on the upgraded database
+        if: env.BASE_APP != ''
+        run: node scripts/smoke/run-smoke.mjs
+
+      - name: Show logs
+        if: failure()
+        run: |
+          echo '::group::server.log'; tail -n 300 "$RUNNER_TEMP/server.log" || true; echo '::endgroup::'
+          echo '::group::mock-model.log'; cat "$RUNNER_TEMP/mock-model.log" || true; echo '::endgroup::'
+
+  gvisor:
+    name: gvisor (production, docker + runsc)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: smoke-root
+          MYSQL_DATABASE: aiweb_smoke
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psmoke-root"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+
+    env:
+      NODE_ENV: production
+      SANDBOX_DRIVER: docker
+      SANDBOX_DOCKER_RUNTIME: runsc
+      SANDBOX_IMAGE: 99agent/sandbox:ci
+      SANDBOX_NETWORK_MODE: none
+      SANDBOX_NAME_PREFIX: 99agent-smoke-
+      SANDBOX_MEMORY_MB: '1024'
+      # 登录用户的持久磁盘：runner 用户经 sudo -n 调用宿主助手（GitHub runner 自带免密 sudo）
+      SANDBOX_USER_DISK_ROOT: /var/lib/99agent/sandbox-disks
+      SANDBOX_USER_DISK_MB: '512'
+      # runner 构建完沙箱镜像后宿主只剩约 9–10 GB，低于生产默认的 10 GB 低水位：CI 里调低，
+      # 与下面助手配置文件的 HOST_MIN_FREE_MB 保持一致
+      SANDBOX_USER_DISK_HOST_MIN_FREE_MB: '2048'
+      # 冒烟脚本要求 bash 工具输出的内核版本含 gvisor，证明工具确实在 runsc 里执行
+      SMOKE_EXPECT_KERNEL: gvisor
+      # Docker 驱动给每条命令下发的回环代理例外：确认两个变量确实到了容器里（本作业无网，只验证变量下发）
+      SMOKE_EXPECT_NO_PROXY: localhost,127.0.0.1,::1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: server/pnpm-lock.yaml
+
+      - name: Install gVisor (runsc)
+        run: |
+          set -euo pipefail
+          # 官方首选的签名 apt 源；release/latest 直链已不再提供单文件 runsc
+          curl -fsSL https://gvisor.dev/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/gvisor-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gvisor-archive-keyring.gpg] https://storage.googleapis.com/gvisor/releases release main" \
+            | sudo tee /etc/apt/sources.list.d/gvisor.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq runsc
+          sudo runsc install
+          # reload 只重读 daemon.json 的 runtimes，不会停掉 MySQL / Redis 服务容器
+          sudo systemctl reload docker
+          runsc --version
+          docker version --format 'docker engine {{.Server.Version}} / api {{.Server.APIVersion}}'
+          docker info --format '{{json .Runtimes}}'
+
+      - name: Install the user disk helper
+        run: |
+          set -euo pipefail
+          sudo install -o root -g root -m 0755 sandbox/disk/99agent-sandbox-disk /usr/local/sbin/99agent-sandbox-disk
+          # 与 sandbox/README.md「用户磁盘 / 安装」相同的 root 配置文件；只把宿主低水位调到 runner 放得下的值
+          sudo install -d -o root -g root -m 0755 /etc/99agent
+          printf 'DISK_ROOT=%s\nHOST_MIN_FREE_MB=%s\n' "$SANDBOX_USER_DISK_ROOT" "$SANDBOX_USER_DISK_HOST_MIN_FREE_MB" \
+            | sudo tee /etc/99agent/sandbox-disk.conf > /dev/null
+          sudo chmod 0644 /etc/99agent/sandbox-disk.conf
+          sudo /usr/local/sbin/99agent-sandbox-disk list-mounted 99agent-smoke-
+
+      - name: Build the sandbox image
+        run: docker build -t 99agent/sandbox:ci sandbox/
+
+      - name: Check the image runs under runsc
+        run: docker run --rm --runtime=runsc --network none 99agent/sandbox:ci bash -lc 'id -u && uname -a'
+
+      - name: Install server dependencies
+        run: pnpm --dir server install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm --dir server build
+
+      - name: Initialize the database
+        working-directory: server
+        run: node dist/main db:init
+
+      - name: Start the mock model and the server
+        run: |
+          nohup node scripts/smoke/mock-openai.mjs > "$RUNNER_TEMP/mock-model.log" 2>&1 &
+          cd server && nohup node dist/main > "$RUNNER_TEMP/server.log" 2>&1 &
+
+      - name: Run the smoke turn
+        run: node scripts/smoke/run-smoke.mjs
+
+      - name: Check the persistent user disk
+        run: |
+          set -euo pipefail
+          container="$(docker ps --filter label=99agent.sandbox.storage=disk \
+            --filter label=99agent.sandbox.instance=99agent-smoke- --format '{{.ID}}' | head -n 1)"
+          test -n "$container"
+          docker inspect "$container" --format '{{json .Mounts}}' | tee "$RUNNER_TEMP/mounts.json"
+          grep -q '"Type":"bind"' "$RUNNER_TEMP/mounts.json"
+          grep -q '"Destination":"/workspace"' "$RUNNER_TEMP/mounts.json"
+          key="$(sudo /usr/local/sbin/99agent-sandbox-disk list-mounted 99agent-smoke- | head -n 1)"
+          [[ "$key" =~ ^[a-f0-9]{32}$ ]]
+          sudo /usr/local/sbin/99agent-sandbox-disk usage 99agent-smoke- "$key"
+          # 写入确实落在用户磁盘上：删掉容器并卸载，重新挂载后冒烟产物的归档副本仍在
+          docker rm -f "$container"
+          sudo /usr/local/sbin/99agent-sandbox-disk release 99agent-smoke- "$key"
+          workspace="$(sudo /usr/local/sbin/99agent-sandbox-disk ensure 99agent-smoke- "$key" 512)"
+          sudo find "$workspace/artifacts" -type f -name 'smoke.txt' | grep -q .
+          sudo /usr/local/sbin/99agent-sandbox-disk release 99agent-smoke- "$key"
+          sudo /usr/local/sbin/99agent-sandbox-disk backup
+          sudo /usr/local/sbin/99agent-sandbox-disk list-backups 99agent-smoke- "$key" | grep -q '\.img'
+
+      - name: Check the database baseline
+        working-directory: server
+        run: node dist/main db:check
+
+      - name: Show logs and sandbox containers
+        if: failure()
+        run: |
+          echo '::group::server.log'; tail -n 300 "$RUNNER_TEMP/server.log" || true; echo '::endgroup::'
+          echo '::group::mock-model.log'; cat "$RUNNER_TEMP/mock-model.log" || true; echo '::endgroup::'
+          echo '::group::docker'; docker ps -a || true; echo '::endgroup::'
+          # 先记下用户磁盘现场，再调用助手：助手的 list-mounted 会补建目录并收紧权限，ensure 还可能新建、修复或挂载磁盘
+          echo '::group::user disk state (before any helper call)'
+          sudo ls -la "$SANDBOX_USER_DISK_ROOT/99agent-smoke-" "$SANDBOX_USER_DISK_ROOT/99agent-smoke-/images" "$SANDBOX_USER_DISK_ROOT/99agent-smoke-/mnt" || true
+          findmnt -rn -o TARGET,SOURCE,OPTIONS | grep -F "$SANDBOX_USER_DISK_ROOT" || true
+          echo '::endgroup::'
+          echo '::group::host disk'; df -h / /var/lib || true; echo '::endgroup::'
+          echo '::group::user disks'; sudo /usr/local/sbin/99agent-sandbox-disk list-mounted 99agent-smoke- || true; echo '::endgroup::'
+          # 服务端对用户磁盘助手的报错只给通用提示：以 root 按冒烟用户重试一次 ensure，打出助手自己的原因。
+          # 有副作用，且不能复现服务账号经 sudo 调用时的权限问题：只用来看助手的报错
+          echo '::group::user disk helper (retry ensure as root, has side effects)'
+          for id in 2 3; do
+            key="$(sudo /usr/local/sbin/99agent-sandbox-disk key 99agent-smoke- "user-$id" 2>&1 || true)"
+            echo "user-$id key=$key"
+            if [[ "$key" =~ ^[a-f0-9]{32}$ ]]; then
+              rc=0
+              sudo /usr/local/sbin/99agent-sandbox-disk ensure 99agent-smoke- "$key" "$SANDBOX_USER_DISK_MB" || rc=$?
+              echo "user-$id ensure exit=$rc"
+            fi
+          done
+          echo '::endgroup::'

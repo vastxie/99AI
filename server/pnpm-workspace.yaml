@@ -1,0 +1,77 @@
+packages:
+  - .
+
+overrides:
+  # 四个产品 SDK 的 common 均声明 *；固定到已核对与原聚合包兼容的实现。
+  tencentcloud-sdk-nodejs-common: 4.1.220
+  punycode: npm:punycode.js@2.3.1
+  tough-cookie: ^4.1.3
+  # 安全修复：仅在同一大版本内升级到已修补版本，规避不存在的版本与破坏性大版本跳跃；
+  # cos-nodejs-sdk-v5 3 自带的 cos-request（request 分支）仍依赖 form-data 2 / tough-cookie 4，经这两条收敛。
+  form-data@<2.5.4: 2.5.4
+  basic-ftp@<5.3.1: 5.3.1
+  protobufjs@>=7.0.0 <7.6.5: 7.6.5
+  fast-xml-parser@>=4.0.0 <4.5.6: 4.5.6
+  fast-xml-parser@>=5.0.0 <5.8.0: 5.8.0
+  axios@<1.20.0: 1.20.0
+  '@xmldom/xmldom@<0.8.15': 0.8.15
+  systeminformation@<5.31.7: 5.31.7
+  follow-redirects@<1.16.0: 1.16.0
+  tmp@<0.2.7: 0.2.7
+  underscore@<1.13.8: 1.13.8
+  ws@>=7.0.0 <7.5.11: 7.5.11
+  # 目标取树里已有的最高版本：override 按声明范围的交集匹配，目标偏低会把其他路径已解析的更高版本拉回来
+  ip-address@<10.7.2: 10.7.2
+  jws@<3.2.3: 3.2.3
+  jws@4.0.0: 4.0.1
+  validator@>=13.0.0 <13.15.22: 13.15.35
+  minimatch@>=3.0.0 <3.1.5: 3.1.5
+  minimatch@>=5.0.0 <5.1.8: 5.1.8
+  minimatch@>=9.0.0 <9.0.7: 9.0.7
+  undici@>=7.0.0 <7.29.1: 7.29.1
+  # alipay-sdk 的 urllib：latest 标签仍停在有漏洞的 4.9.0，修复版 4.9.1 只挂在 latest-4 上
+  urllib@>=4.0.0 <4.9.1: 4.9.1
+  picomatch@<2.3.2: 2.3.2
+  lodash@<4.18.0: 4.18.1
+  mammoth@<1.11.0: 1.11.0
+  js-yaml@<3.15.2: 3.15.2
+  js-yaml@>=4.0.0 <4.3.2: 4.3.2
+  ajv@>=6.0.0 <6.14.0: 6.14.0
+  qs@<6.16.0: 6.16.0
+  brace-expansion@>=1.0.0 <1.1.21: 1.1.21
+  brace-expansion@>=2.0.0 <2.1.7: 2.1.7
+  ws@>=8.0.0 <8.20.1: 8.20.1
+  # 只统一 8.x–11.x 实例；cos-nodejs-sdk-v5 3 移除 request 后树内已无 uuid 3.x。
+  uuid@>=8.0.0 <11.1.1: 11.1.1
+  '@smithy/config-resolver@<4.4.0': 4.4.0
+  diff@>=4.0.0 <4.0.4: 4.0.4
+  # 安全修复：multer 2.1.1 命中 GHSA-72gw-mp4g-v24j(嵌套字段名 DoS,high) + GHSA-3p4h-7m6x-2hcm(中断上传清理不全,moderate)，补丁 2.2.0
+  multer@<2.2.0: 2.2.0
+
+peerDependencyRules:
+  ignoreMissing:
+    - '@nestjs/websockets'
+    - '@nestjs/common'
+    - '@nestjs/core'
+
+allowBuilds:
+  '@nestjs/core': true
+  '@parcel/watcher': true
+  '@scarf/scarf': true
+  cpu-features: true
+  protobufjs: true
+  sharp: true
+  ssh2: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - basic-ftp@5.3.1
+  - follow-redirects@1.16.0
+  - tmp@0.2.7
+  - jws@4.0.1
+  - validator@13.15.35
+  - minimatch@3.1.5
+  - minimatch@5.1.8
+  - minimatch@9.0.7
+  - picomatch@2.3.2
+  - lodash@4.18.1

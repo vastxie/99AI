@@ -1,0 +1,32 @@
+{
+  "ignore": {
+    "rules": [
+      "require-post-message-target-origin",
+      "no-await-in-loop",
+      "max-lines-per-function",
+      "max-lines",
+      "vue-doctor/perf-giant-component",
+      "no-inline-comments",
+      "require-unicode-regexp",
+      "prefer-dom-node-append",
+      "prefer-dom-node-remove",
+      "require-await",
+      "vue-doctor/pinia-direct-state-mutation",
+      "prefer-dom-node-dataset",
+      "prefer-at",
+      "prefer-string-replace-all",
+      "no-negated-condition",
+      "no-typeof-undefined",
+      "explicit-length-check",
+      "prefer-query-selector",
+      "vue-doctor/perf-v-for-method-call",
+      "no-useless-undefined",
+      "branches-sharing-code",
+      "sort-vars",
+      "prefer-code-point",
+      "prefer-math-trunc",
+      "prefer-top-level-await"
+    ],
+    "files": [".vue-doctor-eslint.config.mjs"]
+  }
+}

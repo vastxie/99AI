@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "mode": "offline",
+  "samples": [
+    {
+      "id": "table",
+      "task": "将合成销售数据整理为 CSV 并计算总额",
+      "checks": ["CSV 解析", "字段和总额", "私有文件归属"],
+      "testFile": "src/modules/agent/task-fixtures/task-fixtures.integration.spec.ts"
+    },
+    {
+      "id": "chart",
+      "task": "根据同一数据生成 PNG 柱状图",
+      "checks": ["PNG 解码", "尺寸与数据像素", "产物上传和归档"],
+      "testFile": "src/modules/agent/task-fixtures/task-fixtures.integration.spec.ts"
+    },
+    {
+      "id": "document",
+      "task": "生成含摘要和数据表的 Word 文档",
+      "checks": ["ZIP 完整性", "OOXML 关系", "正文与表格内容"],
+      "testFile": "src/modules/agent/task-fixtures/task-fixtures.integration.spec.ts"
+    },
+    {
+      "id": "mcp-text",
+      "task": "从模拟 MCP 工具取得文本与结构化结果",
+      "checks": ["当前工具授权", "结果投影", "撤销拒绝"],
+      "testFile": "src/modules/mcp/mcp-tool.provider.spec.ts"
+    },
+    {
+      "id": "mcp-media",
+      "task": "从模拟 MCP 工具取得图像并交给模型适配器",
+      "checks": ["实际图像字节", "私有 FileAsset", "模型输入映射", "禁止公开 base64"],
+      "testFile": "src/modules/agent/tools/tool-media.integration.spec.ts"
+    },
+    {
+      "id": "media-fallback",
+      "task": "处理无视觉能力、无权限与损坏的媒体",
+      "checks": ["能力拒绝", "跨用户拒绝", "静态文本退化"],
+      "testFile": "src/modules/agent/tools/tool-media.integration.spec.ts"
+    }
+  ]
+}

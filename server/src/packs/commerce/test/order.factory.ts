@@ -1,0 +1,70 @@
+import { OrderEntity } from '../order/order.entity';
+import { PackageEntity } from '../package/package.entity';
+import { PaymentProvider } from '../pay/payment.types';
+
+export function createOrder(overrides: Partial<OrderEntity> = {}): OrderEntity {
+  return {
+    id: 1,
+    orderId: 'ORDER_001',
+    tradeId: null,
+    payPlatform: PaymentProvider.EPAY,
+    userId: 1,
+    user: null,
+    goodsId: 1,
+    package: null,
+    count: 1,
+    price: 10,
+    total: 10,
+    payCurrencySnapshot: 'CNY',
+    payAmountSnapshot: 10,
+    status: 0,
+    paydAt: null,
+    channel: 'alipay',
+    creditsSnapshot: 100,
+    daysSnapshot: 30,
+    pkgNameSnapshot: 'Basic',
+    planKeySnapshot: 'basic',
+    planNameSnapshot: '基础版',
+    variantNameSnapshot: '月付',
+    planTypeSnapshot: 'membership',
+    weightSnapshot: 1,
+    billingCycleSnapshot: 'month',
+    billingCycleCountSnapshot: 1,
+    featureTextSnapshot: '基础权益',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    isDelete: false,
+    ...overrides,
+  } as OrderEntity;
+}
+
+export function createPackage(overrides: Partial<PackageEntity> = {}): PackageEntity {
+  return {
+    id: 1,
+    name: 'Basic',
+    des: 'Basic package',
+    planKey: 'basic',
+    planName: '基础版',
+    planDescription: 'Basic plan',
+    planIcon: '',
+    planType: 'membership',
+    featureText: '基础权益',
+    variantName: '月付',
+    billingCycle: 'month',
+    billingCycleCount: 1,
+    variantOrder: 100,
+    isDefaultVariant: 1,
+    badgeText: '',
+    price: 10,
+    priceUsd: null,
+    order: 100,
+    status: 1,
+    weight: 1,
+    days: 30,
+    credits: 100,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    isDelete: false,
+    ...overrides,
+  } as PackageEntity;
+}

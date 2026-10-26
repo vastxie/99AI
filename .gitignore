@@ -1,0 +1,47 @@
+.DS_Store
+
+# External reference projects (not part of main repo)
+reference/
+
+# Local-only working dirs
+backup/
+
+# Build artifacts
+dist.zip
+dist/
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+.playwright-mcp
+# 浏览器用例的运行产物
+/web/test-results/
+/web/playwright-report/
+# 私有文件的本地运行时目录（仅根目录下的 server/storage，源码里的 storage 目录不受影响）
+/server/storage/
+
+# 签名私钥等加密材料不入库
+/server/keys/
+/server/root-pub.pem
+
+# 根目录不安装依赖；残留的 node_modules 不入库
+/node_modules/
+
+# 本地工作记录；正式产品与开发文档放在 site/ 和根目录
+/docs/
+
+# pnpm generated workspace metadata
+**/.pnpm-workspace-state-v1.json
+
+# local 沙箱驱动的工作区（SANDBOX_LOCAL_ROOT 默认值），运行期数据不入库
+/server/data/sandboxes/
+# 通用发版脚本的输出目录
+/release-build/
+
+# 仓库根没有依赖；从根目录运行 pnpm（如 pnpm --dir admin …）会生成一份空壳 lockfile，不入库
+/pnpm-lock.yaml
+
+# 敏感词库由部署者自备，仓库只保留目录说明（见 server/data/vocabularies/README.md）
+/server/data/vocabularies/*
+!/server/data/vocabularies/README.md

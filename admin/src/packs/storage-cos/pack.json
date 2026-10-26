@@ -1,0 +1,14 @@
+{
+  "id": "storage-cos",
+  "tier": "system",
+  "description": "「文件存储」里腾讯云 COS 的选项与配置字段",
+  "flag": "VITE_STORAGE_COS_ENABLED",
+  "identifiers": [
+    "'cos'",
+    "CosStorage",
+    "cosStorage",
+    "STORAGE_COS",
+    "VITE_STORAGE_COS",
+    "tencentCos"
+  ]
+}

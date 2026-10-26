@@ -1,0 +1,58 @@
+name: Packs
+
+# 扩展包评分卡：内核不认识包、包可删的量化门禁。原先在 server / web / admin 三个 workflow 里各跑一遍，
+# 这里独立成一条，只在扩展包与脚本变更时触发。
+
+on:
+  pull_request:
+    paths:
+      # 评分卡读取三端的内核与扩展包源码、宿主依赖与共享脚本，这些改动都要重跑
+      - 'server/**'
+      - 'web/**'
+      - 'admin/**'
+      - 'scripts/pack-scorecard.mjs'
+      - 'scripts/lib/**'
+      - '.github/actions/**'
+      - '.github/workflows/packs.yml'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      # 评分卡读取三端的内核与扩展包源码、宿主依赖与共享脚本，这些改动都要重跑
+      - 'server/**'
+      - 'web/**'
+      - 'admin/**'
+      - 'scripts/pack-scorecard.mjs'
+      - 'scripts/lib/**'
+      - '.github/actions/**'
+      - '.github/workflows/packs.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scorecard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: server/pnpm-lock.yaml
+
+      # 依赖归属校验用 server 依赖里的 TypeScript 解析源码
+      - name: Install server dependencies
+        run: pnpm --dir server install --frozen-lockfile
+
+      - name: Dependency ownership self-tests
+        run: node --test scripts/lib/pack-sources.test.mjs
+
+      - name: Pack scorecard (server / web / admin)
+        run: node scripts/pack-scorecard.mjs --min-grade A

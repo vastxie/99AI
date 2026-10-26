@@ -1,0 +1,33 @@
+/*
+ * 元素级默认：放在 base 层，排在 Tailwind 的 preflight 之后（以前排在前面，字体特性被它盖掉）。
+ * 正文行高沿用 preflight 的 1.5（body 继承 html）；Markdown 正文另用 --font-body-line-height，见 prose.css。
+ */
+@layer base {
+  :root {
+    /* 原生滚动条、表单控件跟随明暗主题；原生复选框、单选框、进度条用强调色 */
+    color-scheme: light;
+    accent-color: var(--accent);
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  html {
+    font-family: var(--font-body);
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-weight: var(--font-body-weight);
+  }
+
+  /* 输入框占位文字跟随主题（preflight 给的是固定的灰） */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--input-placeholder);
+  }
+}

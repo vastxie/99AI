@@ -1,0 +1,20 @@
+User-agent: *
+Disallow: /api/
+Disallow: /auth/
+Allow: /
+
+# Prevent indexing of sensitive paths
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /settings
+Disallow: /user/
+
+# Allow crawling of static assets
+Allow: /assets/
+Allow: /images/
+Allow: /css/
+Allow: /js/
+
+# Crawl-delay
+Crawl-delay: 10

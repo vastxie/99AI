@@ -1,0 +1,17 @@
+{
+  "id": "model-anthropic",
+  "tier": "system",
+  "description": "Anthropic Messages 协议的适配器、厂商预设与模型目录",
+  "flag": "MODEL_ANTHROPIC_PACK_ENABLED",
+  "contributes": {
+    "modelProtocols": ["anthropic_messages"]
+  },
+  "identifiers": [
+    "anthropic_messages",
+    "anthropic-messages",
+    "AnthropicMessages",
+    "MODEL_ANTHROPIC",
+    "/v1/messages",
+    "anthropic-version"
+  ]
+}

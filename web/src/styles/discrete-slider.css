@@ -1,0 +1,119 @@
+.discrete-slider-shell {
+  --slider-end-inset: 13px;
+  position: relative;
+  width: 100%;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.discrete-slider-shell.is-single {
+  cursor: default;
+}
+
+.discrete-slider-track {
+  position: absolute;
+  inset: calc(50% - 12px) 0;
+  height: 24px;
+  border-radius: inherit;
+  overflow: hidden;
+  background: var(--model-slider-track-bg);
+  box-shadow: inset 0 0 2px color-mix(in srgb, black 18%, transparent);
+}
+
+.discrete-slider-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--reasoning-position);
+  z-index: 1;
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  background: var(--accent);
+  transition: width var(--motion-duration-xl) var(--motion-easing);
+}
+
+.discrete-slider-tick {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--text-muted) 50%, transparent);
+  transform: translate(-50%, -50%);
+  transition:
+    background-color var(--motion-duration-xl) var(--motion-easing),
+    transform var(--motion-duration-xs) var(--motion-easing);
+}
+
+.discrete-slider-tick.is-hovered {
+  transform: translate(-50%, -50%) scale(2);
+}
+
+.discrete-slider-tick.is-active {
+  background: color-mix(in srgb, white 30%, transparent);
+  box-shadow: none;
+}
+
+.discrete-slider-thumb {
+  position: absolute;
+  top: 50%;
+  left: var(--reasoning-position);
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: left var(--motion-duration-xl) var(--motion-easing);
+}
+
+/* Only the face scales. The positioning rail and pointer geometry stay fixed. */
+.discrete-slider-thumb-face {
+  position: absolute;
+  inset: 0;
+  border: 0.5px solid color-mix(in srgb, black 15%, transparent);
+  border-radius: 50%;
+  background: var(--model-slider-thumb-bg);
+  box-shadow: 0 0 2px color-mix(in srgb, black 10%, transparent);
+  transition: transform var(--motion-duration-md) var(--motion-easing);
+}
+
+.discrete-slider-shell.is-dragging .discrete-slider-fill {
+  transition: none;
+}
+
+.discrete-slider-thumb.is-hovered .discrete-slider-thumb-face,
+.discrete-slider-shell.is-dragging .discrete-slider-thumb-face {
+  transform: scale(1.12);
+}
+
+.discrete-slider-shell.is-dragging .discrete-slider-thumb {
+  transition: none;
+}
+
+/* 键盘焦点：原生滑块是透明的，焦点画在拇指上。用兄弟选择器（输入框在拇指之前），不依赖 :has；
+   透明 outline 在强制色模式下会被系统颜色接管，box-shadow 被去掉时焦点仍看得见 */
+.discrete-slider-input:focus-visible ~ .discrete-slider-thumb .discrete-slider-thumb-face {
+  box-shadow:
+    0 0 2px color-mix(in srgb, black 10%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.discrete-slider-input {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: auto;
+  height: 100%;
+  margin: 0;
+  cursor: inherit;
+  opacity: 0;
+  touch-action: none;
+}
+
+@media (pointer: coarse) {
+  .discrete-slider-shell {
+    min-height: var(--control-touch-size);
+  }
+}

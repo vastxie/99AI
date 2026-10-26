@@ -1,0 +1,19 @@
+@import './prose.css';
+@import './global.css';
+@import './base.css';
+@import './tokens.css';
+@import './themes/light.css';
+@import './themes/dark.css';
+@import './z-index.css';
+@import './components.css';
+@import './recipes.css';
+@import './sidebar.css';
+@import './composer.css';
+@import './message.css';
+@import './model-selector.css';
+@import './discrete-slider.css';
+@import './motion.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

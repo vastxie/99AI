@@ -1,0 +1,24 @@
+{
+  "ignore": {
+    "rules": [
+      "max-lines-per-function",
+      "max-lines",
+      "max-depth",
+      "no-lonely-if",
+      "no-negated-condition",
+      "require-await",
+      "no-else-return",
+      "eqeqeq",
+      "branches-sharing-code",
+      "vue-doctor/pinia-direct-state-mutation",
+      "prefer-top-level-await",
+      "prefer-at",
+      "prefer-dom-node-dataset",
+      "prefer-string-slice",
+      "explicit-length-check",
+      "prefer-query-selector",
+      "vue-doctor/perf-giant-component"
+    ],
+    "files": [".vue-doctor-eslint.config.mjs"]
+  }
+}

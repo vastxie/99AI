@@ -1,0 +1,23 @@
+{
+  "login": {
+    "scanQrCodeToLogin": "WeChat QR Login"
+  },
+  "settings": {
+    "wechat": "WeChat",
+    "bindConfirmFailed": "Bind confirmation failed",
+    "binding": "Binding...",
+    "getWeixinBotQrCodeFailed": "Failed to get WeChat Bot QR code",
+    "scanQrCodeWithWechat": "Scan the QR code with WeChat",
+    "weixinBotBindSuccess": "WeChat Bot bound successfully",
+    "weixinBotBindSuccessWithHint": "WeChat Bot bound successfully. You can now chat with AI in WeChat.",
+    "weixinBotUnboundSuccess": "WeChat Bot unbound",
+    "manage": "Manage",
+    "weixinBot": "WeChat Bot",
+    "weixinBotBinding": "WeChat Bot Binding",
+    "weixinBotBoundStatus": "Bound, ready to chat in WeChat",
+    "weixinBotConversationNotFound": "No WeChat Bot conversation yet",
+    "viewWeixinBotConversation": "View conversation",
+    "weixinConversation": "WeChat Bot",
+    "weixinBotBindStatusFailed": "Failed to check the bind status, please refresh the QR code"
+  }
+}

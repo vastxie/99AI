@@ -1,0 +1,723 @@
+/**
+ * 组件配方：按钮、图标按钮、输入框、提示气泡、菜单、面板、代码块、设置卡片、头像等。
+ * 以前登记在 tailwind.config.js 的插件里，和 components.css 各有一份同名定义，插件版因层序在后静默生效；
+ * 现在只在这里定义一次，放在 components 层，由 Tailwind 按用到的类输出。
+ */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--type-action-weight);
+    transition-property: background-color, border-color, color, box-shadow, opacity;
+    transition-duration: var(--motion-duration-xs);
+    transition-timing-function: var(--motion-easing);
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: none;
+  }
+  .btn:disabled {
+    opacity: 1;
+    color: var(--control-fg-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .btn-primary {
+    background-color: var(--btn-bg-primary);
+    color: var(--btn-text-primary);
+    border-width: 1px;
+    border-color: var(--btn-border-primary);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--btn-bg-primary-hover);
+    border-color: var(--btn-border-primary-hover);
+  }
+  .btn-primary:active:not(:disabled) {
+    background-color: var(--btn-bg-primary-active);
+    border-color: var(--btn-border-primary-active);
+  }
+  .btn-secondary {
+    background-color: var(--btn-bg-secondary);
+    color: var(--btn-text-secondary);
+    border-width: 1px;
+    border-color: var(--btn-border-secondary);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--btn-bg-secondary-hover);
+    border-color: var(--btn-border-secondary-hover);
+  }
+  .btn-secondary:active:not(:disabled) {
+    background-color: var(--btn-bg-secondary-active);
+    border-color: var(--btn-border-secondary-active);
+  }
+  .btn-ghost {
+    background-color: transparent;
+    color: var(--btn-text-ghost);
+    border-width: 1px;
+    border-color: transparent;
+  }
+  .btn-ghost:hover:not(:disabled),
+  .btn-ghost:focus-visible:not(:disabled) {
+    background-color: var(--btn-bg-ghost-hover);
+    color: var(--control-fg-hover);
+  }
+  .btn-ghost:active:not(:disabled) {
+    background-color: var(--btn-bg-ghost-active);
+  }
+  .btn-danger {
+    background-color: var(--btn-bg-danger);
+    color: var(--btn-text-danger);
+    border-width: 1px;
+    border-color: var(--btn-border-danger);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background-color: var(--btn-bg-danger-hover);
+  }
+  .btn-danger:active:not(:disabled) {
+    background-color: var(--btn-bg-danger-active);
+  }
+  .btn-send {
+    border-width: 0;
+  }
+  .btn-send:disabled {
+    background-color: var(--btn-bg-disabled);
+    color: var(--btn-text-disabled);
+    opacity: 1;
+    cursor: not-allowed;
+  }
+  .btn-stop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    padding: 0.5rem;
+    height: 2rem;
+    width: 2rem;
+    font-size: var(--type-body-size);
+    font-weight: var(--type-action-weight);
+    box-shadow: none;
+    background-color: var(--btn-bg-secondary-active);
+    color: var(--btn-text-secondary);
+    transition-property: background-color, color;
+    transition-duration: var(--motion-duration-md);
+    transition-timing-function: var(--motion-easing);
+  }
+  .btn-stop:hover:not(:disabled) {
+    background-color: var(--btn-bg-secondary-hover);
+    color: var(--control-fg-hover);
+  }
+  .action-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-icon {
+    flex-shrink: 0;
+    color: var(--btn-icon-action-text);
+  }
+  .action-icon-filled {
+    background-color: color-mix(in srgb, var(--app-surface) 82%, transparent);
+  }
+  .action-icon-filled:hover:not(:disabled) {
+    background-color: var(--interaction-bg-hover);
+  }
+  .action-icon-outlined {
+    border-color: var(--app-border);
+    background-color: var(--app-surface-elevated);
+  }
+  .action-icon-outlined:hover:not(:disabled) {
+    border-color: var(--app-border-strong);
+    background-color: var(--interaction-bg-hover);
+  }
+  .action-icon-active {
+    color: var(--control-accent-fg);
+    background-color: var(--control-accent-bg);
+  }
+  .action-icon-active:hover:not(:disabled),
+  .action-icon-active:active:not(:disabled) {
+    color: var(--control-accent-fg);
+    background-color: var(--control-accent-bg-hover);
+  }
+  .action-icon-danger {
+    color: var(--control-fg-quiet);
+  }
+  .action-icon-danger:hover:not(:disabled),
+  .action-icon-danger:focus-visible:not(:disabled) {
+    color: var(--control-danger-fg);
+    background-color: var(--control-danger-bg-hover);
+  }
+  .action-icon-danger:active:not(:disabled) {
+    color: var(--control-danger-fg);
+    background-color: var(--control-danger-bg-active);
+  }
+  .action-icon-loading {
+    cursor: progress;
+  }
+  .input {
+    outline: none;
+    transition-property: background-color, border-color, box-shadow, color;
+    transition-duration: var(--motion-duration-md);
+    transition-timing-function: var(--motion-easing);
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-width: 1px;
+    border-color: var(--input-border);
+    border-style: solid;
+  }
+  .input:hover:not(:disabled) {
+    border-color: var(--input-border-hover);
+  }
+  .input:focus:not(:disabled) {
+    border-color: var(--input-border-focus);
+    box-shadow: var(--input-focus-ring);
+  }
+  .input:disabled {
+    opacity: 1;
+    color: var(--control-fg-disabled);
+    cursor: not-allowed;
+  }
+  .input-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: var(--type-meta-size);
+    line-height: 1.125rem;
+    border-radius: var(--input-radius);
+  }
+  .input-md {
+    padding: var(--input-padding-y) var(--input-padding-x);
+    font-size: var(--type-control-size);
+    line-height: 1.25rem;
+    border-radius: var(--input-radius);
+  }
+  .input-lg {
+    padding: 0.75rem 1rem;
+    font-size: var(--type-body-size);
+    line-height: 1.5rem;
+    border-radius: var(--input-radius);
+  }
+  /*
+   * 提示气泡（UiTooltip、ActionIcon 与少数手写宿主）：宿主 .group-btn / .action-icon-wrap / .group。
+   * 悬停稍等再出现、键盘聚焦（focus-visible）立即可见；鼠标点击留下的焦点不触发，
+   * 否则点过上传等按钮、原生弹窗关掉后提示一直挂着。提示不接收指针，不挡相邻控件；触屏设备不显示。
+   */
+  .group-btn {
+    position: relative;
+    /* 压过同元素上的 overflow-hidden 等工具类，提示不被宿主裁掉 */
+    overflow: visible !important;
+  }
+  .tooltip {
+    position: absolute;
+    z-index: var(--z-tooltip);
+    min-width: max-content;
+    max-width: 300px;
+    padding: var(--tooltip-padding-y) var(--tooltip-padding-x);
+    border: 0;
+    border-radius: var(--tooltip-radius);
+    background-color: var(--tooltip-bg);
+    box-shadow: var(--tooltip-shadow);
+    color: var(--tooltip-text);
+    font-size: var(--tooltip-font-size);
+    font-weight: var(--type-caption-weight);
+    line-height: var(--tooltip-line-height);
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition-property: opacity, visibility;
+    transition-duration: var(--motion-duration-xs), 0ms;
+    transition-delay: 0ms, var(--motion-duration-xs);
+  }
+  .group-btn:hover > .tooltip,
+  .group:hover > .tooltip,
+  .action-icon-wrap:hover > .tooltip {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: var(--tooltip-show-delay), var(--tooltip-show-delay);
+  }
+  /* 与悬停分开写：不支持 :has 的浏览器只丢掉这一条 */
+  .group-btn:has(:focus-visible) > .tooltip,
+  .group:has(:focus-visible) > .tooltip,
+  .action-icon-wrap:has(:focus-visible) > .tooltip {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0ms;
+  }
+  /* 与 components/common/tooltip.ts 的 TOOLTIP_HIDDEN_MEDIA 是同一条件（图标按钮据此决定要不要原生 title） */
+  @media (hover: none), (pointer: coarse), (max-width: 767.9px) {
+    .tooltip {
+      display: none !important;
+    }
+  }
+  .tooltip-top {
+    bottom: calc(100% + 0.25rem);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .tooltip-bottom {
+    top: calc(100% + 0.25rem);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .tooltip-right {
+    left: calc(100% + 0.25rem);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .tooltip-left {
+    right: calc(100% + 0.25rem);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .menu {
+    position: relative;
+    display: inline-block;
+    z-index: var(--z-dropdown);
+  }
+  .menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transition-property: background-color, color, box-shadow;
+    transition-duration: var(--motion-duration-md);
+    transition-timing-function: var(--motion-easing);
+    cursor: pointer;
+    font-weight: var(--type-control-weight);
+    border-radius: var(--radius-control-sm);
+    outline: none;
+  }
+  .menu-button:focus {
+    outline: none;
+  }
+  .menu-trigger {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-size: var(--type-control-size);
+    font-weight: var(--type-control-weight);
+    border-radius: var(--radius-control-sm);
+    background-color: transparent;
+    color: var(--text-muted);
+    transition-property: background-color, color;
+    transition-duration: var(--motion-duration-md);
+    transition-timing-function: var(--motion-easing);
+    cursor: pointer;
+    outline: none;
+  }
+  .menu-trigger:hover:not(:disabled) {
+    background-color: var(--btn-bg-ghost-hover);
+  }
+  .menu-trigger:focus {
+    outline: none;
+  }
+  .menu-trigger:disabled {
+    opacity: 1;
+    color: var(--control-fg-disabled);
+    cursor: not-allowed;
+  }
+  /* 弹出菜单（DropdownMenu）：层级由组件按档位写在行内，这里给默认档位 */
+  .menu-items {
+    position: absolute;
+    z-index: var(--z-dropdown);
+    width: auto;
+    min-width: 10rem;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--radius-popover);
+    background-color: var(--menu-surface-bg);
+    box-shadow: var(--menu-surface-shadow);
+    color: var(--menu-item-text);
+  }
+  /* 弹层菜单不预留滚动条槽位（覆盖 global.css 的 .custom-scrollbar）；下面的 4px 宽只在 Safari 生效 */
+  .menu-items.custom-scrollbar {
+    scrollbar-gutter: auto;
+  }
+  .menu-items.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .menu-items.custom-scrollbar::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  .menu-items.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--menu-scrollbar-thumb);
+    border-radius: var(--radius);
+  }
+  .menu-items-top {
+    bottom: 100%;
+    left: 0;
+    transform-origin: bottom left;
+    margin-bottom: 0.5rem;
+  }
+  .menu-items-bottom {
+    top: 100%;
+    left: 0;
+    transform-origin: top left;
+    margin-top: 0.5rem;
+  }
+  .menu-items-center {
+    left: 50%;
+    translate: -50% 0;
+  }
+  .menu-items-right-aligned {
+    right: 0;
+    left: auto;
+  }
+  .menu-item {
+    appearance: none;
+    font: inherit;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    box-sizing: border-box;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    align-self: stretch;
+    min-height: var(--control-row-height);
+    padding: 0.375rem 0.5rem;
+    font-size: var(--type-control-size);
+    line-height: var(--type-control-line-height);
+    color: var(--menu-item-text);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition:
+      background-color var(--motion-duration-xs) var(--motion-easing),
+      color var(--motion-duration-xs) var(--motion-easing);
+    border-radius: var(--radius-control);
+    margin: 0;
+    gap: 0.5rem;
+  }
+  .menu-item:hover,
+  .menu-item:focus {
+    background-color: var(--menu-item-bg-hover);
+    color: var(--menu-item-text-hover);
+  }
+  .menu-item:focus-visible {
+    outline: none;
+    box-shadow: var(--component-focus-ring-inset);
+  }
+  .menu-item:disabled,
+  .menu-item[aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+  .menu-item + .menu-item {
+    margin-top: 0.125rem;
+  }
+  .menu-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-icon-size);
+    height: var(--control-icon-size);
+    border-radius: var(--radius-full);
+    background-color: transparent;
+    flex-shrink: 0;
+  }
+  .menu-item-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .menu-item-title {
+    font-weight: var(--type-control-weight);
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .menu-item-description {
+    font-size: var(--type-caption-size);
+    line-height: var(--type-caption-line-height);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.125rem;
+  }
+  .menu-divider {
+    margin: 0.25rem 0;
+    height: 1px;
+    background-color: var(--menu-divider-bg);
+  }
+  .menu-item-active {
+    background-color: var(--menu-item-bg-active);
+    color: var(--menu-item-text-active);
+  }
+  .menu-item-active:hover,
+  .menu-item-active:focus {
+    background-color: var(--menu-item-bg-active);
+    color: var(--menu-item-text-active);
+  }
+  .menu-item-active .menu-item-title {
+    color: var(--menu-item-text-active);
+  }
+  .menu-item-disabled {
+    color: var(--menu-item-text-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .menu-item-disabled:hover {
+    background-color: transparent;
+  }
+  .menu-item-danger {
+    color: var(--menu-item-danger-text);
+  }
+  .menu-item-danger:hover:not(:disabled),
+  .menu-item-danger:focus-visible:not(:disabled) {
+    color: var(--control-danger-fg);
+    background-color: var(--menu-item-danger-bg-hover);
+  }
+  .btn-icon-action {
+    color: var(--btn-icon-action-text);
+  }
+  .btn-icon-action:hover:not(:disabled) {
+    color: var(--btn-icon-action-text-hover);
+  }
+  .panel-shell {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    border-top-left-radius: var(--radius-2xl);
+    border-bottom-left-radius: var(--radius-2xl);
+    border-left-width: 1px;
+    border-color: var(--panel-border);
+    background-color: var(--panel-bg);
+    box-shadow: var(--component-shadow-md);
+  }
+  .panel-header {
+    display: flex;
+    height: 3.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    border-top-left-radius: var(--radius-2xl);
+    border-bottom-width: 1px;
+    border-color: var(--panel-border);
+    background-color: var(--panel-bg);
+  }
+  .viewer-toolbar-surface {
+    border-width: 1px;
+    border-color: color-mix(in srgb, var(--app-border) 80%, transparent);
+    background-color: color-mix(in srgb, var(--app-surface) 88%, transparent);
+    color: var(--text-secondary);
+    box-shadow: var(--component-shadow-md);
+    backdrop-filter: blur(14px);
+  }
+  .viewer-icon-button {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: transparent;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    pointer-events: auto;
+    transition-property: background-color, border-color, color, transform, opacity;
+    transition-duration: var(--motion-duration-sm);
+    transition-timing-function: ease;
+  }
+  .viewer-icon-button:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  .viewer-icon-button:disabled {
+    cursor: not-allowed;
+    opacity: 1;
+  }
+  .message-user-edit-shell {
+    --btn-bg-ghost-hover: var(--app-surface);
+    --btn-bg-ghost-active: var(--app-surface-sunken);
+    width: 100%;
+    max-width: 100%;
+    border-radius: var(--radius-2xl);
+    background-color: var(--chat-user-bubble);
+    padding: 0.75rem;
+    overflow-wrap: break-word;
+  }
+  .preview-device-stage {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--preview-stage-bg);
+  }
+  .preview-device-frame {
+    background-color: var(--preview-frame-bg);
+    transition-property: width, height, border-color, background-color, box-shadow;
+    transition-duration: var(--motion-duration-xl);
+    transition-timing-function: var(--motion-easing);
+  }
+  .preview-device-frame-device {
+    overflow: hidden;
+    border-width: 1px;
+    border-color: var(--preview-device-border);
+    border-radius: var(--radius-control-sm);
+    box-shadow: var(--preview-device-shadow);
+  }
+  .preview-device-frame-full {
+    border-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .chat-code-block {
+    position: relative;
+    max-width: 100%;
+    width: 100% !important;
+    overflow: clip !important;
+    margin: 0.875rem 0 !important;
+    padding: 0 !important;
+    border-radius: var(--code-block-radius) !important;
+    border-width: 0;
+    background-color: var(--code-block-bg);
+    line-height: normal;
+    transition-property: background-color, border-color, color;
+    transition-duration: var(--motion-duration-md);
+  }
+  .chat-code-block + .chat-code-block {
+    margin-top: 0.625rem !important;
+  }
+  .chat-code-block-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-content);
+    display: flex;
+    width: 100%;
+    min-height: 2.375rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom-width: 0;
+    background-color: var(--app-canvas);
+    padding: 0.375rem 0.5rem 0.25rem 0.75rem;
+  }
+  .chat-code-block-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-top-left-radius: var(--code-block-radius);
+    border-top-right-radius: var(--code-block-radius);
+    background-color: var(--code-block-header-bg);
+  }
+  .chat-code-block-language {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.375rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--code-block-muted);
+    font-size: var(--type-meta-size);
+    line-height: 1.125rem;
+    font-weight: 600;
+  }
+  .chat-code-block-language-icon {
+    flex-shrink: 0;
+    color: inherit;
+  }
+  .chat-code-block-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.125rem;
+  }
+  .chat-code-block-action {
+    color: var(--code-block-muted);
+    box-shadow: none;
+    transition-property: background-color, color, transform;
+    transition-duration: var(--motion-duration-sm);
+  }
+  .chat-code-block-content {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 50vh;
+    overflow-x: auto !important;
+    overflow-y: auto;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+    margin-top: 0;
+    border-bottom-right-radius: var(--code-block-radius);
+    border-bottom-left-radius: var(--code-block-radius);
+    background-color: var(--code-block-content-bg) !important;
+    padding: 0.5rem 0.875rem 0.875rem !important;
+    color: var(--code-block-text) !important;
+    font-size: 0.85em;
+    line-height: 1.55;
+    white-space: pre !important;
+  }
+  html .chat-code-block .chat-code-block-content {
+    background-color: var(--code-block-content-bg) !important;
+  }
+  /* 设置里的分组卡片（手机设置列表等）；桌面设置面板里是平铺的，见 components.css 的 .settings-dialog-panel */
+  .settings-card {
+    border: 1px solid var(--dialog-section-border);
+    border-radius: var(--radius-xl);
+    background-color: var(--dialog-section-bg);
+    color: var(--text-primary);
+    box-shadow: none;
+  }
+  .settings-subtle-card {
+    border: 1px solid var(--dialog-card-border);
+    border-radius: var(--radius-xl);
+    background-color: var(--dialog-card-bg);
+    color: var(--text-secondary);
+  }
+  .qr-scan-card {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--dialog-card-border);
+    border-radius: var(--card-radius);
+    background-color: var(--dialog-qr-card-bg);
+    color: var(--text-secondary);
+  }
+  .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    background-color: var(--app-surface-sunken);
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1;
+    text-align: center;
+    line-height: 1;
+  }
+  .avatar-md {
+    width: 2rem;
+    height: 2rem;
+    font-size: var(--type-body-sm-size);
+  }
+  .avatar-lg {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: var(--type-body-size);
+  }
+  .avatar-primary {
+    background-color: var(--accent);
+    color: var(--text-on-accent);
+  }
+  .avatar-bordered {
+    border: 1px solid var(--app-border);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .preview-device-frame,
+    .chat-code-block-action {
+      transition: none;
+    }
+  }
+}

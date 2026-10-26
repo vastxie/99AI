@@ -1,0 +1,52 @@
+{
+  "type": "module",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "packageManager": "pnpm@11.1.3",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "lint": "vue-tsc",
+    "check:design": "node scripts/check-design-guidelines.mjs",
+    "doctor": "vue-doctor . --verbose",
+    "format": "prettier --write '{src,scripts,tests,tokens}/**/*.{vue,ts,tsx,js,jsx,mjs,cjs,css,scss,less,json,md,html,yml,yaml}' '*.{js,mjs,ts,json,md,yml,html}'",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@vueuse/core": "^15.0.0",
+    "axios": "^1.20.0",
+    "dayjs": "^1.11.23",
+    "dompurify": "^3.4.16",
+    "echarts": "^6.1.0",
+    "element-plus": "^2.14.7",
+    "marked": "^18.1.0",
+    "md-editor-v3": "^7.1.0",
+    "pinia": "^4.0.3",
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1"
+  },
+  "devDependencies": {
+    "@healerlab/vue-doctor": "0.0.4",
+    "@iconify-json/lucide": "1.2.140",
+    "@iconify-json/simple-icons": "1.2.99",
+    "@types/node": "24.19.1",
+    "@vitejs/plugin-legacy": "8.2.3",
+    "@vitejs/plugin-vue": "6.0.9",
+    "autoprefixer": "^10.6.1",
+    "prettier": "^3.9.9",
+    "sass": "^1.105.1",
+    "terser": "^5.51.2",
+    "typescript": "6.0.3",
+    "unocss": "66.10.5",
+    "unplugin-auto-import": "21.1.0",
+    "unplugin-vue-components": "32.1.0",
+    "vite": "8.3.3",
+    "vue-tsc": "3.3.11"
+  },
+  "name": "99agent-admin",
+  "description": "99Agent admin console"
+}

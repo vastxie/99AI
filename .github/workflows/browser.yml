@@ -1,0 +1,154 @@
+name: Browser journeys
+
+# 无头浏览器主流程：构建后的用户端与管理端 + 真实启动的 server（MySQL + Redis）+ 模拟模型，
+# 用 Playwright 走登录、对话与工具、文件下载、切换会话、停止、断线重连、后台改配置、手机宽度的表格。
+# 冒烟（smoke.yml）直接打接口，不经过前端；这里补上「真实浏览器里前端能不能用」这一层。
+# 用例在 web/e2e/，模拟模型在 scripts/smoke/（与冒烟共用）。
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'admin/**'
+      - 'server/**'
+      - 'packages/**'
+      - 'scripts/smoke/**'
+      - '.github/workflows/browser.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'web/**'
+      - 'admin/**'
+      - 'server/**'
+      - 'packages/**'
+      - 'scripts/smoke/**'
+      - '.github/workflows/browser.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PORT: '9520'
+  MOCK_MODEL_PORT: '18080'
+  DB_HOST: 127.0.0.1
+  DB_PORT: '3306'
+  DB_USER: root
+  DB_PASS: journey-root
+  DB_DATABASE: aiweb_journey
+  REDIS_HOST: 127.0.0.1
+  REDIS_PORT: '6379'
+  JWT_SECRET: journey-ci-jwt-secret-not-for-production-use
+  ADMIN_INITIAL_PASSWORD: journey-admin-pass
+  NODE_ENV: test
+  ISDEV: 'true'
+  SANDBOX_DRIVER: local
+  SANDBOX_MEMORY_MB: '512'
+  # 每条用例一个新用户、每个用户一台沙箱：放宽并发上限，免得后面的用例拿不到沙箱（拿不到时工具会被去掉）
+  SANDBOX_MAX_ACTIVE: '50'
+  SANDBOX_TOTAL_MEMORY_MB: '25600'
+  E2E_BASE_URL: http://127.0.0.1:9520
+  E2E_MOCK_URL: http://127.0.0.1:18080
+  # runner 自带 Chrome，不另外下载浏览器
+  E2E_BROWSER_CHANNEL: chrome
+
+jobs:
+  journeys:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: journey-root
+          MYSQL_DATABASE: aiweb_journey
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pjourney-root"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: |
+            server/pnpm-lock.yaml
+            web/pnpm-lock.yaml
+            admin/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: |
+          pnpm --dir server install --frozen-lockfile
+          pnpm --dir web install --frozen-lockfile
+          pnpm --dir admin install --frozen-lockfile
+
+      - name: Build server, web and admin
+        run: |
+          pnpm --dir server build
+          pnpm --dir web build-only
+          pnpm --dir admin exec vite build
+
+      - name: Put the built frontends where the server serves them
+        run: |
+          mkdir -p server/public/chat server/public/admin
+          cp -a web/dist/. server/public/chat/
+          cp -a admin/dist/. server/public/admin/
+
+      - name: Initialize the database
+        working-directory: server
+        run: node dist/main db:init
+
+      - name: Start the mock model and the server
+        run: |
+          nohup node scripts/smoke/mock-openai.mjs > "$RUNNER_TEMP/mock-model.log" 2>&1 &
+          cd server && nohup node dist/main > "$RUNNER_TEMP/server.log" 2>&1 &
+
+      - name: Wait for the server
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf -o /dev/null "$E2E_BASE_URL/api/config/queryFront"; then exit 0; fi
+            sleep 1
+          done
+          echo 'server did not become ready'; exit 1
+
+      - name: Run the browser journeys
+        working-directory: web
+        run: pnpm e2e
+
+      - name: Show logs
+        if: failure()
+        run: |
+          echo '::group::server.log'; tail -n 300 "$RUNNER_TEMP/server.log" || true; echo '::endgroup::'
+          echo '::group::mock-model.log'; tail -n 200 "$RUNNER_TEMP/mock-model.log" || true; echo '::endgroup::'
+
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-journeys-report
+          path: |
+            web/playwright-report/
+            web/test-results/
+          retention-days: 7

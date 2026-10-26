@@ -1,0 +1,2761 @@
+{
+  "contractVersion": 1,
+  "scenarios": {
+    "alreadyAborted": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:already_aborted",
+          "role": "user"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_already_aborted\",\"status\":\"interrupted\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_already_aborted\",\"messageId\":\"cid_p3_already_aborted\",\"turnId\":\"turn_p3_already_aborted\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"aborted\",\"rounds\":[],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":15,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":32,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":0,\"toolCallCount\":0,\"totalDurationMs\":0,\"toolCost\":0}},\"tokens\":{\"input\":0,\"output\":0,\"total\":0}}",
+      "providerEvents": [
+        [
+          {
+            "delta": "must-not-surface",
+            "type": "text_delta"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_already_aborted",
+          "data": {
+            "finishReason": "abort",
+            "message": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_already_aborted\",\"status\":\"interrupted\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_already_aborted",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "interrupted"
+            },
+            "turnStatus": "interrupted"
+          },
+          "messageId": "cid_p3_already_aborted",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_already_aborted",
+          "type": "agent.end",
+          "workflowSeq": 1
+        }
+      ],
+      "registryExecutions": [],
+      "resolutionOrder": [],
+      "result": {
+        "content": "",
+        "currentMessage": {
+          "content": "",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "total": 0
+          },
+          "trace": {
+            "cid": "cid_p3_already_aborted",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 15,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 32,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_already_aborted",
+            "model": "gpt-test",
+            "rounds": [],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "aborted",
+            "summary": {
+              "roundCount": 0,
+              "toolCallCount": 0,
+              "toolCost": 0,
+              "totalDurationMs": 0
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_already_aborted"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_already_aborted",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "interrupted"
+          }
+        },
+        "finishReason": "abort",
+        "generatedText": "",
+        "reasoning_content": "",
+        "tokenUsage": {
+          "details": [],
+          "totalInputTokens": 0,
+          "totalOutputTokens": 0,
+          "totalTokens": 0
+        },
+        "toolCost": 0,
+        "totalTokens": 0
+      },
+      "streamCallCount": 0,
+      "workflowSeq": 1
+    },
+    "firstEventTimeout": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:first_event_timeout",
+          "role": "user"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[],\"completed\":false,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"error\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:30.000Z\"}}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_first_event_timeout\",\"status\":\"failed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:30.000Z\",\"durationMs\":30000},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_first_event_timeout\",\"messageId\":\"cid_p3_first_event_timeout\",\"turnId\":\"turn_p3_first_event_timeout\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"error\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"error\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:30.000Z\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":16,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":33,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:30.000Z\",\"summary\":{\"roundCount\":1,\"toolCallCount\":0,\"totalDurationMs\":30000,\"toolCost\":0}},\"tokens\":{\"input\":0,\"output\":0,\"total\":0}}",
+      "providerEvents": [],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:first_event_timeout",
+            "role": "user"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_first_event_timeout",
+          "data": {
+            "finishReason": "error",
+            "message": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[],\"completed\":false}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_first_event_timeout\",\"status\":\"failed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:30.000Z\",\"durationMs\":30000}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:30.000Z",
+              "durationMs": 30000,
+              "id": "turn_p3_first_event_timeout",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "failed"
+            },
+            "turnStatus": "failed"
+          },
+          "messageId": "cid_p3_first_event_timeout",
+          "seq": 1,
+          "timestamp": 1788067830000,
+          "turnId": "turn_p3_first_event_timeout",
+          "type": "agent.end",
+          "workflowSeq": 1
+        }
+      ],
+      "registryExecutions": [],
+      "resolutionOrder": [],
+      "result": {
+        "content": "",
+        "currentMessage": {
+          "content": "",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": false,
+              "text": null,
+              "thinking": null,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:30.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "error",
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "total": 0
+          },
+          "trace": {
+            "cid": "cid_p3_first_event_timeout",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 16,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 33,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:30.000Z",
+            "messageId": "cid_p3_first_event_timeout",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:30.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "error",
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "error",
+            "summary": {
+              "roundCount": 1,
+              "toolCallCount": 0,
+              "toolCost": 0,
+              "totalDurationMs": 30000
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_first_event_timeout"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:30.000Z",
+            "durationMs": 30000,
+            "id": "turn_p3_first_event_timeout",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "failed"
+          }
+        },
+        "errMsg": "模型响应超时，请重试",
+        "finishReason": "error",
+        "generatedText": "",
+        "reasoning_content": "",
+        "tokenUsage": {
+          "details": [],
+          "totalInputTokens": 0,
+          "totalOutputTokens": 0,
+          "totalTokens": 0
+        },
+        "toolCost": 0,
+        "totalTokens": 0
+      },
+      "streamCallCount": 1,
+      "workflowSeq": 1
+    },
+    "handoff": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:handoff",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"query\":\"handoff\"}",
+                "name": "search_tool"
+              },
+              "id": "call_handoff_1",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "[轮次提醒] 本次回复最多还能再调用 3 轮工具：请停止继续搜集，用已有结果完成任务、交付成果，然后给出最终答复。\n搜索能力模型结果",
+          "role": "tool",
+          "tool_call_id": "call_handoff_1"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[{\"id\":\"call_handoff_1\",\"toolName\":\"search_tool\",\"displayName\":\"搜索能力\",\"name\":\"搜索能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"inputSummary\":\"query: handoff\",\"arguments\":{},\"output\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: handoff\"},\"display\":{\"summary\":\"搜索能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"搜索能力执行完成\",\"retryable\":false},\"model\":{\"content\":\"搜索能力模型结果\",\"output\":{\"kind\":\"search\"}},\"toolResult\":{\"status\":\"success\",\"modelContent\":\"搜索能力模型结果\",\"display\":{\"summary\":\"搜索能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"搜索能力执行完成\",\"retryable\":false}},\"internal\":{\"trace\":{\"callId\":\"call_handoff_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: handoff\",\"outputSummary\":\"搜索能力公开结果\",\"durationMs\":0,\"status\":\"success\"}}}],\"completed\":true,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[{\"callId\":\"call_handoff_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: handoff\",\"outputSummary\":\"搜索能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"}],\"endedAt\":\"2026-08-30T05:30:00.000Z\"},\"phase\":\"process\"}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_handoff\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_handoff\",\"messageId\":\"cid_p3_handoff\",\"turnId\":\"turn_p3_handoff\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[{\"callId\":\"call_handoff_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: handoff\",\"outputSummary\":\"搜索能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"}],\"endedAt\":\"2026-08-30T05:30:00.000Z\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":13,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":30,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":1,\"toolCallCount\":1,\"totalDurationMs\":0,\"toolCost\":2}},\"tokens\":{\"input\":0,\"output\":0,\"total\":0}}",
+      "providerEvents": [
+        [
+          {
+            "argumentsDelta": "{\"query\":\"handoff\"}",
+            "id": "call_handoff_1",
+            "index": 0,
+            "nameDelta": "search_tool",
+            "type": "tool_call_delta"
+          },
+          {
+            "type": "done"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:handoff",
+            "role": "user"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_handoff",
+          "data": {
+            "phase": "process"
+          },
+          "messageId": "cid_p3_handoff",
+          "roundId": "0",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_handoff",
+          "type": "message.phase",
+          "workflowSeq": 1
+        },
+        {
+          "chatId": "cid_p3_handoff",
+          "data": {},
+          "messageId": "cid_p3_handoff",
+          "roundId": "0",
+          "seq": 2,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_handoff",
+          "type": "message.end",
+          "workflowSeq": 2
+        },
+        {
+          "chatId": "cid_p3_handoff",
+          "data": {
+            "display": {
+              "inputSummary": "query: handoff"
+            },
+            "displayName": "搜索能力",
+            "inputSummary": "query: handoff",
+            "name": "搜索能力",
+            "status": "running",
+            "type": "search"
+          },
+          "messageId": "cid_p3_handoff",
+          "roundId": "0",
+          "seq": 3,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_handoff_1",
+          "turnId": "turn_p3_handoff",
+          "type": "tool.start",
+          "workflowSeq": 3
+        },
+        {
+          "chatId": "cid_p3_handoff",
+          "data": {
+            "display": {
+              "summary": "搜索能力公开结果"
+            },
+            "displayName": "搜索能力",
+            "durationMs": 0,
+            "name": "搜索能力",
+            "output": {
+              "content": "搜索能力公开结果",
+              "inputSummary": "query: handoff",
+              "summary": "搜索能力公开结果",
+              "thought": "搜索能力公开结果"
+            },
+            "status": "success",
+            "type": "tool"
+          },
+          "messageId": "cid_p3_handoff",
+          "roundId": "0",
+          "seq": 4,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_handoff_1",
+          "turnId": "turn_p3_handoff",
+          "type": "tool.end",
+          "workflowSeq": 4
+        },
+        {
+          "chatId": "cid_p3_handoff",
+          "data": {
+            "progress": {
+              "label": "已收到后续要求，准备进入下一轮"
+            },
+            "status": "running"
+          },
+          "messageId": "cid_p3_handoff",
+          "seq": 5,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_handoff",
+          "type": "tool.update",
+          "workflowSeq": 5
+        },
+        {
+          "chatId": "cid_p3_handoff",
+          "data": {
+            "finishReason": "handoff",
+            "message": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[{\"id\":\"call_handoff_1\",\"toolName\":\"search_tool\",\"displayName\":\"搜索能力\",\"name\":\"搜索能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"inputSummary\":\"query: handoff\",\"arguments\":{},\"output\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: handoff\"},\"display\":{\"summary\":\"搜索能力公开结果\"}}],\"completed\":true,\"phase\":\"process\"}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_handoff\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_handoff",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "completed"
+            },
+            "turnStatus": "completed"
+          },
+          "messageId": "cid_p3_handoff",
+          "seq": 6,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_handoff",
+          "type": "agent.end",
+          "workflowSeq": 6
+        }
+      ],
+      "registryExecutions": [
+        {
+          "args": {
+            "query": "handoff"
+          },
+          "toolCallId": "call_handoff_1",
+          "toolName": "search_tool"
+        }
+      ],
+      "resolutionOrder": [],
+      "result": {
+        "content": "",
+        "currentMessage": {
+          "content": "",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": true,
+              "phase": "process",
+              "text": null,
+              "thinking": null,
+              "toolCalls": [
+                {
+                  "arguments": {},
+                  "display": {
+                    "summary": "搜索能力公开结果"
+                  },
+                  "displayName": "搜索能力",
+                  "duration": 0,
+                  "id": "call_handoff_1",
+                  "inputSummary": "query: handoff",
+                  "internal": {
+                    "trace": {
+                      "callId": "call_handoff_1",
+                      "durationMs": 0,
+                      "inputSummary": "query: handoff",
+                      "output": {
+                        "kind": "search"
+                      },
+                      "outputSummary": "搜索能力公开结果",
+                      "status": "success",
+                      "toolName": "search_tool"
+                    }
+                  },
+                  "model": {
+                    "content": "搜索能力模型结果",
+                    "output": {
+                      "kind": "search"
+                    }
+                  },
+                  "name": "搜索能力",
+                  "output": {
+                    "content": "搜索能力公开结果",
+                    "inputSummary": "query: handoff",
+                    "summary": "搜索能力公开结果",
+                    "thought": "搜索能力公开结果"
+                  },
+                  "status": "success",
+                  "toolName": "search_tool",
+                  "toolResult": {
+                    "display": {
+                      "summary": "搜索能力公开结果"
+                    },
+                    "modelContent": "搜索能力模型结果",
+                    "status": "success",
+                    "trace": {
+                      "code": "TOOL_COMPLETED",
+                      "message": "搜索能力执行完成",
+                      "retryable": false
+                    }
+                  },
+                  "trace": {
+                    "code": "TOOL_COMPLETED",
+                    "message": "搜索能力执行完成",
+                    "retryable": false
+                  },
+                  "type": "tool"
+                }
+              ],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "toolCalls": [
+                  {
+                    "callId": "call_handoff_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "inputSummary": "query: handoff",
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "搜索能力公开结果",
+                    "status": "success",
+                    "toolName": "search_tool"
+                  }
+                ]
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "total": 0
+          },
+          "trace": {
+            "cid": "cid_p3_handoff",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 13,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 30,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_handoff",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "toolCalls": [
+                  {
+                    "callId": "call_handoff_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "inputSummary": "query: handoff",
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "搜索能力公开结果",
+                    "status": "success",
+                    "toolName": "search_tool"
+                  }
+                ]
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "success",
+            "summary": {
+              "roundCount": 1,
+              "toolCallCount": 1,
+              "toolCost": 2,
+              "totalDurationMs": 0
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_handoff"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_handoff",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "completed"
+          }
+        },
+        "finishReason": "handoff",
+        "generatedText": "",
+        "reasoning_content": "",
+        "tokenUsage": {
+          "details": [],
+          "totalInputTokens": 0,
+          "totalOutputTokens": 0,
+          "totalTokens": 0
+        },
+        "toolCost": 2,
+        "totalTokens": 0
+      },
+      "streamCallCount": 1,
+      "workflowSeq": 6
+    },
+    "maxRounds": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:max_rounds",
+          "role": "user"
+        },
+        {
+          "content": null,
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"query\":\"one\"}",
+                "name": "search_tool"
+              },
+              "id": "call_max_1",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "[轮次提醒] 本次回复的工具调用轮次已用完：请直接给出最终答复，不要再调用工具。\n搜索能力模型结果",
+          "role": "tool",
+          "tool_call_id": "call_max_1"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":\"第一轮思考。\",\"toolCalls\":[{\"id\":\"call_max_1\",\"toolName\":\"search_tool\",\"displayName\":\"搜索能力\",\"name\":\"搜索能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"inputSummary\":\"query: one\",\"arguments\":{},\"output\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: one\"},\"display\":{\"summary\":\"搜索能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"搜索能力执行完成\",\"retryable\":false},\"model\":{\"content\":\"搜索能力模型结果\",\"output\":{\"kind\":\"search\"}},\"toolResult\":{\"status\":\"success\",\"modelContent\":\"搜索能力模型结果\",\"display\":{\"summary\":\"搜索能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"搜索能力执行完成\",\"retryable\":false}},\"internal\":{\"trace\":{\"callId\":\"call_max_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: one\",\"outputSummary\":\"搜索能力公开结果\",\"durationMs\":0,\"status\":\"success\"}}}],\"completed\":true,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[{\"callId\":\"call_max_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: one\",\"outputSummary\":\"搜索能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"}],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\"},\"thinkingDuration\":0,\"phase\":\"process\"},{\"text\":null,\"thinking\":\"第二轮思考。\",\"toolCalls\":[],\"completed\":true,\"trace\":{\"roundIndex\":1,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"skipped\",\"modelInputSummary\":\"messages=4; recentRoles=system,user,assistant,tool; tools=2\",\"toolCalls\":[],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\"},\"thinkingDuration\":0,\"phase\":\"process\"}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_max_rounds\",\"status\":\"interrupted\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_max_rounds\",\"messageId\":\"cid_p3_max_rounds\",\"turnId\":\"turn_p3_max_rounds\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"aborted\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[{\"callId\":\"call_max_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: one\",\"outputSummary\":\"搜索能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"}],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\"},{\"roundIndex\":1,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"skipped\",\"modelInputSummary\":\"messages=4; recentRoles=system,user,assistant,tool; tools=2\",\"toolCalls\":[],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":14,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":31,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":2,\"toolCallCount\":1,\"totalDurationMs\":0,\"toolCost\":2}},\"tokens\":{\"input\":0,\"output\":0,\"total\":0}}",
+      "providerEvents": [
+        [
+          {
+            "delta": "第一轮思考。",
+            "type": "reasoning_delta"
+          },
+          {
+            "argumentsDelta": "{\"query\":\"one\"}",
+            "id": "call_max_1",
+            "index": 0,
+            "nameDelta": "search_tool",
+            "type": "tool_call_delta"
+          },
+          {
+            "type": "done"
+          }
+        ],
+        [
+          {
+            "delta": "第二轮思考。",
+            "type": "reasoning_delta"
+          },
+          {
+            "argumentsDelta": "{\"query\":\"two\"}",
+            "id": "call_max_2",
+            "index": 0,
+            "nameDelta": "search_tool",
+            "type": "tool_call_delta"
+          },
+          {
+            "type": "done"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:max_rounds",
+            "role": "user"
+          }
+        ],
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:max_rounds",
+            "role": "user"
+          },
+          {
+            "content": null,
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "{\"query\":\"one\"}",
+                  "name": "search_tool"
+                },
+                "id": "call_max_1",
+                "type": "function"
+              }
+            ]
+          },
+          {
+            "content": "[轮次提醒] 本次回复的工具调用轮次已用完：请直接给出最终答复，不要再调用工具。\n搜索能力模型结果",
+            "role": "tool",
+            "tool_call_id": "call_max_1"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "delta": "第一轮思考。"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "0",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "reasoning.delta",
+          "workflowSeq": 1
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "phase": "process"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "0",
+          "seq": 2,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "message.phase",
+          "workflowSeq": 2
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {},
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "0",
+          "seq": 3,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "message.end",
+          "workflowSeq": 3
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "display": {
+              "inputSummary": "query: one"
+            },
+            "displayName": "搜索能力",
+            "inputSummary": "query: one",
+            "name": "搜索能力",
+            "status": "running",
+            "type": "search"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "0",
+          "seq": 4,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_max_1",
+          "turnId": "turn_p3_max_rounds",
+          "type": "tool.start",
+          "workflowSeq": 4
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "display": {
+              "summary": "搜索能力公开结果"
+            },
+            "displayName": "搜索能力",
+            "durationMs": 0,
+            "name": "搜索能力",
+            "output": {
+              "content": "搜索能力公开结果",
+              "inputSummary": "query: one",
+              "summary": "搜索能力公开结果",
+              "thought": "搜索能力公开结果"
+            },
+            "status": "success",
+            "type": "tool"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "0",
+          "seq": 5,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_max_1",
+          "turnId": "turn_p3_max_rounds",
+          "type": "tool.end",
+          "workflowSeq": 5
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "delta": "第二轮思考。"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "1",
+          "seq": 6,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "reasoning.delta",
+          "workflowSeq": 6
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "phase": "process"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "1",
+          "seq": 7,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "message.phase",
+          "workflowSeq": 7
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {},
+          "messageId": "cid_p3_max_rounds",
+          "roundId": "1",
+          "seq": 8,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "message.end",
+          "workflowSeq": 8
+        },
+        {
+          "chatId": "cid_p3_max_rounds",
+          "data": {
+            "finishReason": "abort",
+            "message": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":\"第一轮思考。\",\"toolCalls\":[{\"id\":\"call_max_1\",\"toolName\":\"search_tool\",\"displayName\":\"搜索能力\",\"name\":\"搜索能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"inputSummary\":\"query: one\",\"arguments\":{},\"output\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: one\"},\"display\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: one\"}}],\"completed\":true,\"thinkingDuration\":0,\"phase\":\"process\"},{\"text\":null,\"thinking\":\"第二轮思考。\",\"toolCalls\":[],\"completed\":true,\"thinkingDuration\":0,\"phase\":\"process\"}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_max_rounds\",\"status\":\"interrupted\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_max_rounds",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "interrupted"
+            },
+            "turnStatus": "interrupted"
+          },
+          "messageId": "cid_p3_max_rounds",
+          "seq": 9,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_max_rounds",
+          "type": "agent.end",
+          "workflowSeq": 9
+        }
+      ],
+      "registryExecutions": [
+        {
+          "args": {
+            "query": "one"
+          },
+          "toolCallId": "call_max_1",
+          "toolName": "search_tool"
+        }
+      ],
+      "resolutionOrder": [],
+      "result": {
+        "content": "",
+        "currentMessage": {
+          "content": "",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": true,
+              "phase": "process",
+              "text": null,
+              "thinking": "第一轮思考。",
+              "thinkingDuration": 0,
+              "toolCalls": [
+                {
+                  "arguments": {},
+                  "display": {
+                    "summary": "搜索能力公开结果"
+                  },
+                  "displayName": "搜索能力",
+                  "duration": 0,
+                  "id": "call_max_1",
+                  "inputSummary": "query: one",
+                  "internal": {
+                    "trace": {
+                      "callId": "call_max_1",
+                      "durationMs": 0,
+                      "inputSummary": "query: one",
+                      "output": {
+                        "kind": "search"
+                      },
+                      "outputSummary": "搜索能力公开结果",
+                      "status": "success",
+                      "toolName": "search_tool"
+                    }
+                  },
+                  "model": {
+                    "content": "搜索能力模型结果",
+                    "output": {
+                      "kind": "search"
+                    }
+                  },
+                  "name": "搜索能力",
+                  "output": {
+                    "content": "搜索能力公开结果",
+                    "inputSummary": "query: one",
+                    "summary": "搜索能力公开结果",
+                    "thought": "搜索能力公开结果"
+                  },
+                  "status": "success",
+                  "toolName": "search_tool",
+                  "toolResult": {
+                    "display": {
+                      "summary": "搜索能力公开结果"
+                    },
+                    "modelContent": "搜索能力模型结果",
+                    "status": "success",
+                    "trace": {
+                      "code": "TOOL_COMPLETED",
+                      "message": "搜索能力执行完成",
+                      "retryable": false
+                    }
+                  },
+                  "trace": {
+                    "code": "TOOL_COMPLETED",
+                    "message": "搜索能力执行完成",
+                    "retryable": false
+                  },
+                  "type": "tool"
+                }
+              ],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": [
+                  {
+                    "callId": "call_max_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "inputSummary": "query: one",
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "搜索能力公开结果",
+                    "status": "success",
+                    "toolName": "search_tool"
+                  }
+                ]
+              }
+            },
+            {
+              "completed": true,
+              "phase": "process",
+              "text": null,
+              "thinking": "第二轮思考。",
+              "thinkingDuration": 0,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=4; recentRoles=system,user,assistant,tool; tools=2",
+                "roundIndex": 1,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "skipped",
+                "thinkingMs": 0,
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "total": 0
+          },
+          "trace": {
+            "cid": "cid_p3_max_rounds",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 14,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 31,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_max_rounds",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": [
+                  {
+                    "callId": "call_max_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "inputSummary": "query: one",
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "搜索能力公开结果",
+                    "status": "success",
+                    "toolName": "search_tool"
+                  }
+                ]
+              },
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=4; recentRoles=system,user,assistant,tool; tools=2",
+                "roundIndex": 1,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "skipped",
+                "thinkingMs": 0,
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "aborted",
+            "summary": {
+              "roundCount": 2,
+              "toolCallCount": 1,
+              "toolCost": 2,
+              "totalDurationMs": 0
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_max_rounds"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_max_rounds",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "interrupted"
+          }
+        },
+        "finishReason": "abort",
+        "generatedText": "",
+        "reasoning_content": "第一轮思考。",
+        "stopReason": "max_rounds",
+        "tokenUsage": {
+          "details": [],
+          "totalInputTokens": 0,
+          "totalOutputTokens": 0,
+          "totalTokens": 0
+        },
+        "toolCost": 2,
+        "totalTokens": 0
+      },
+      "streamCallCount": 2,
+      "workflowSeq": 9
+    },
+    "outputLimit": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:output_limit",
+          "role": "user"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"写到一半\",\"rounds\":[{\"text\":\"写到一半\",\"thinking\":null,\"toolCalls\":[],\"completed\":true,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=4\"}}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_output_limit\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_output_limit\",\"messageId\":\"cid_p3_output_limit\",\"turnId\":\"turn_p3_output_limit\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=4\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":14,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":31,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":1,\"toolCallCount\":0,\"totalDurationMs\":0,\"totalTokens\":7,\"toolCost\":0}},\"tokens\":{\"input\":3,\"output\":4,\"total\":7}}",
+      "providerEvents": [
+        [
+          {
+            "delta": "写到一半",
+            "type": "text_delta"
+          },
+          {
+            "type": "usage",
+            "usage": {
+              "inputTokens": 3,
+              "outputTokens": 4,
+              "totalTokens": 7
+            }
+          },
+          {
+            "finishReason": "length",
+            "type": "done"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:output_limit",
+            "role": "user"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_output_limit",
+          "data": {
+            "delta": "写到一半"
+          },
+          "messageId": "cid_p3_output_limit",
+          "roundId": "0",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_output_limit",
+          "type": "message.delta",
+          "workflowSeq": 1
+        },
+        {
+          "chatId": "cid_p3_output_limit",
+          "data": {},
+          "messageId": "cid_p3_output_limit",
+          "roundId": "0",
+          "seq": 2,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_output_limit",
+          "type": "message.end",
+          "workflowSeq": 2
+        },
+        {
+          "chatId": "cid_p3_output_limit",
+          "data": {
+            "finishReason": "length",
+            "message": "{\"role\":\"assistant\",\"content\":\"写到一半\",\"rounds\":[{\"text\":\"写到一半\",\"thinking\":null,\"toolCalls\":[],\"completed\":true}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_output_limit\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_output_limit",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "completed"
+            },
+            "turnStatus": "completed"
+          },
+          "messageId": "cid_p3_output_limit",
+          "seq": 3,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_output_limit",
+          "type": "agent.end",
+          "workflowSeq": 3
+        }
+      ],
+      "registryExecutions": [],
+      "resolutionOrder": [],
+      "result": {
+        "content": "写到一半",
+        "currentMessage": {
+          "content": "写到一半",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": true,
+              "text": "写到一半",
+              "thinking": null,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "modelOutputSummary": "assistantTextChars=4",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 3,
+            "output": 4,
+            "total": 7
+          },
+          "trace": {
+            "cid": "cid_p3_output_limit",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 14,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 31,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_output_limit",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "modelOutputSummary": "assistantTextChars=4",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "success",
+            "summary": {
+              "roundCount": 1,
+              "toolCallCount": 0,
+              "toolCost": 0,
+              "totalDurationMs": 0,
+              "totalTokens": 7
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_output_limit"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_output_limit",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "completed"
+          }
+        },
+        "finishReason": "length",
+        "generatedText": "写到一半",
+        "reasoning_content": "",
+        "stopReason": "length",
+        "tokenUsage": {
+          "details": [
+            {
+              "cacheHitTokens": 0,
+              "cacheMissTokens": 0,
+              "description": "Agent Loop R1",
+              "inputTokens": 3,
+              "nodeId": "agent-loop",
+              "nodeType": "agent-loop",
+              "outputTokens": 4,
+              "timestamp": "2026-08-30T05:30:00.000Z",
+              "totalTokens": 7
+            }
+          ],
+          "totalInputTokens": 3,
+          "totalOutputTokens": 4,
+          "totalTokens": 7
+        },
+        "toolCost": 0,
+        "totalTokens": 7
+      },
+      "streamCallCount": 1,
+      "workflowSeq": 3
+    },
+    "providerError": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:provider_error",
+          "role": "user"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[],\"completed\":false,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"error\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:00.000Z\"}}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_provider_error\",\"status\":\"failed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_provider_error\",\"messageId\":\"cid_p3_provider_error\",\"turnId\":\"turn_p3_provider_error\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"error\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"error\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:00.000Z\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":15,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":32,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":1,\"toolCallCount\":0,\"totalDurationMs\":0,\"toolCost\":0}},\"tokens\":{\"input\":0,\"output\":0,\"total\":0}}",
+      "providerEvents": [
+        [
+          {
+            "error": {
+              "code": "UPSTREAM_FAILED",
+              "message": "fixed provider failure"
+            },
+            "type": "error"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:provider_error",
+            "role": "user"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_provider_error",
+          "data": {
+            "finishReason": "error",
+            "message": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[],\"completed\":false}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_provider_error\",\"status\":\"failed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_provider_error",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "failed"
+            },
+            "turnStatus": "failed"
+          },
+          "messageId": "cid_p3_provider_error",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_provider_error",
+          "type": "agent.end",
+          "workflowSeq": 1
+        }
+      ],
+      "registryExecutions": [],
+      "resolutionOrder": [],
+      "result": {
+        "content": "",
+        "currentMessage": {
+          "content": "",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": false,
+              "text": null,
+              "thinking": null,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "error",
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "total": 0
+          },
+          "trace": {
+            "cid": "cid_p3_provider_error",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 15,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 32,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_provider_error",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "error",
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "error",
+            "summary": {
+              "roundCount": 1,
+              "toolCallCount": 0,
+              "toolCost": 0,
+              "totalDurationMs": 0
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_provider_error"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_provider_error",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "failed"
+          }
+        },
+        "errMsg": "模型请求结果无法确认，已停止自动重试",
+        "finishReason": "error",
+        "generatedText": "",
+        "reasoning_content": "",
+        "tokenUsage": {
+          "details": [],
+          "totalInputTokens": 0,
+          "totalOutputTokens": 0,
+          "totalTokens": 0
+        },
+        "toolCost": 0,
+        "totalTokens": 0
+      },
+      "streamCallCount": 1,
+      "workflowSeq": 1
+    },
+    "streamAbort": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:stream_abort",
+          "role": "user"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[],\"completed\":true,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"skipped\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:00.000Z\"}}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_stream_abort\",\"status\":\"interrupted\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_stream_abort\",\"messageId\":\"cid_p3_stream_abort\",\"turnId\":\"turn_p3_stream_abort\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"aborted\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"skipped\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"endedAt\":\"2026-08-30T05:30:00.000Z\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":14,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":31,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":1,\"toolCallCount\":0,\"totalDurationMs\":0,\"toolCost\":0}},\"tokens\":{\"input\":0,\"output\":0,\"total\":0}}",
+      "providerEvents": [
+        [
+          {
+            "reason": "fixed upstream abort",
+            "type": "abort"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:stream_abort",
+            "role": "user"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_stream_abort",
+          "data": {},
+          "messageId": "cid_p3_stream_abort",
+          "roundId": "0",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_stream_abort",
+          "type": "message.end",
+          "workflowSeq": 1
+        },
+        {
+          "chatId": "cid_p3_stream_abort",
+          "data": {
+            "finishReason": "abort",
+            "message": "{\"role\":\"assistant\",\"content\":\"\",\"rounds\":[{\"text\":null,\"thinking\":null,\"toolCalls\":[],\"completed\":true}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_stream_abort\",\"status\":\"interrupted\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_stream_abort",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "interrupted"
+            },
+            "turnStatus": "interrupted"
+          },
+          "messageId": "cid_p3_stream_abort",
+          "seq": 2,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_stream_abort",
+          "type": "agent.end",
+          "workflowSeq": 2
+        }
+      ],
+      "registryExecutions": [],
+      "resolutionOrder": [],
+      "result": {
+        "content": "",
+        "currentMessage": {
+          "content": "",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": true,
+              "text": null,
+              "thinking": null,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "skipped",
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "total": 0
+          },
+          "trace": {
+            "cid": "cid_p3_stream_abort",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 14,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 31,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_stream_abort",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "skipped",
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "aborted",
+            "summary": {
+              "roundCount": 1,
+              "toolCallCount": 0,
+              "toolCost": 0,
+              "totalDurationMs": 0
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_stream_abort"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_stream_abort",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "interrupted"
+          }
+        },
+        "finishReason": "abort",
+        "generatedText": "",
+        "reasoning_content": "",
+        "tokenUsage": {
+          "details": [],
+          "totalInputTokens": 0,
+          "totalOutputTokens": 0,
+          "totalTokens": 0
+        },
+        "toolCost": 0,
+        "totalTokens": 0
+      },
+      "streamCallCount": 1,
+      "workflowSeq": 2
+    },
+    "textReasoning": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:text_reasoning",
+          "role": "user"
+        }
+      ],
+      "model": "gpt-test",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"固定回答。\",\"rounds\":[{\"text\":\"固定回答。\",\"thinking\":\"先核对。\",\"toolCalls\":[],\"completed\":true,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=5\"},\"thinkingDuration\":0}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_text_reasoning\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_text_reasoning\",\"messageId\":\"cid_p3_text_reasoning\",\"turnId\":\"turn_p3_text_reasoning\",\"model\":\"gpt-test\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=5\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":15,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":32,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":1,\"toolCallCount\":0,\"totalDurationMs\":0,\"totalTokens\":5,\"toolCost\":0}},\"tokens\":{\"input\":3,\"output\":2,\"total\":5}}",
+      "providerEvents": [
+        [
+          {
+            "delta": "先核对。",
+            "type": "reasoning_delta"
+          },
+          {
+            "delta": "固定回答。",
+            "type": "text_delta"
+          },
+          {
+            "type": "usage",
+            "usage": {
+              "inputTokens": 3,
+              "outputTokens": 2,
+              "totalTokens": 5
+            }
+          },
+          {
+            "finishReason": "stop",
+            "type": "done"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:text_reasoning",
+            "role": "user"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_text_reasoning",
+          "data": {
+            "delta": "先核对。"
+          },
+          "messageId": "cid_p3_text_reasoning",
+          "roundId": "0",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_text_reasoning",
+          "type": "reasoning.delta",
+          "workflowSeq": 1
+        },
+        {
+          "chatId": "cid_p3_text_reasoning",
+          "data": {
+            "delta": "固定回答。"
+          },
+          "messageId": "cid_p3_text_reasoning",
+          "roundId": "0",
+          "seq": 2,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_text_reasoning",
+          "type": "message.delta",
+          "workflowSeq": 2
+        },
+        {
+          "chatId": "cid_p3_text_reasoning",
+          "data": {},
+          "messageId": "cid_p3_text_reasoning",
+          "roundId": "0",
+          "seq": 3,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_text_reasoning",
+          "type": "message.end",
+          "workflowSeq": 3
+        },
+        {
+          "chatId": "cid_p3_text_reasoning",
+          "data": {
+            "finishReason": "stop",
+            "message": "{\"role\":\"assistant\",\"content\":\"固定回答。\",\"rounds\":[{\"text\":\"固定回答。\",\"thinking\":\"先核对。\",\"toolCalls\":[],\"completed\":true,\"thinkingDuration\":0}],\"model\":\"gpt-test\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_text_reasoning\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_text_reasoning",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "completed"
+            },
+            "turnStatus": "completed"
+          },
+          "messageId": "cid_p3_text_reasoning",
+          "seq": 4,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_text_reasoning",
+          "type": "agent.end",
+          "workflowSeq": 4
+        }
+      ],
+      "registryExecutions": [],
+      "resolutionOrder": [],
+      "result": {
+        "content": "固定回答。",
+        "currentMessage": {
+          "content": "固定回答。",
+          "model": "gpt-test",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": true,
+              "text": "固定回答。",
+              "thinking": "先核对。",
+              "thinkingDuration": 0,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "modelOutputSummary": "assistantTextChars=5",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 3,
+            "output": 2,
+            "total": 5
+          },
+          "trace": {
+            "cid": "cid_p3_text_reasoning",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 15,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 32,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_text_reasoning",
+            "model": "gpt-test",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "modelOutputSummary": "assistantTextChars=5",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "success",
+            "summary": {
+              "roundCount": 1,
+              "toolCallCount": 0,
+              "toolCost": 0,
+              "totalDurationMs": 0,
+              "totalTokens": 5
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_text_reasoning"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_text_reasoning",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "completed"
+          }
+        },
+        "finishReason": "stop",
+        "generatedText": "固定回答。",
+        "reasoning_content": "先核对。",
+        "tokenUsage": {
+          "details": [
+            {
+              "cacheHitTokens": 0,
+              "cacheMissTokens": 0,
+              "description": "Agent Loop R1",
+              "inputTokens": 3,
+              "nodeId": "agent-loop",
+              "nodeType": "agent-loop",
+              "outputTokens": 2,
+              "timestamp": "2026-08-30T05:30:00.000Z",
+              "totalTokens": 5
+            }
+          ],
+          "totalInputTokens": 3,
+          "totalOutputTokens": 2,
+          "totalTokens": 5
+        },
+        "toolCost": 0,
+        "totalTokens": 5
+      },
+      "streamCallCount": 1,
+      "workflowSeq": 4
+    },
+    "toolHostedAndPlan": {
+      "finalMessages": [
+        {
+          "content": "P3 characterization fixed system.",
+          "role": "system"
+        },
+        {
+          "content": "fixed request:tool_hosted_plan",
+          "role": "user"
+        },
+        {
+          "content": "先检索。",
+          "reasoning_content": "准备调用。",
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "function": {
+                "arguments": "{\"query\":\"alpha\"}",
+                "name": "search_tool"
+              },
+              "id": "call_search_1",
+              "type": "function"
+            },
+            {
+              "function": {
+                "arguments": "{\"value\":\"beta\"}",
+                "name": "second_tool"
+              },
+              "id": "call_second_1",
+              "type": "function"
+            }
+          ]
+        },
+        {
+          "content": "[轮次提醒] 本次回复最多还能再调用 3 轮工具：请停止继续搜集，用已有结果完成任务、交付成果，然后给出最终答复。\n搜索能力模型结果",
+          "role": "tool",
+          "tool_call_id": "call_search_1"
+        },
+        {
+          "content": "第二能力模型结果",
+          "role": "tool",
+          "tool_call_id": "call_second_1"
+        }
+      ],
+      "model": "deepseek-r1",
+      "persistedMessage": "{\"role\":\"assistant\",\"content\":\"工具后的最终回答。\",\"rounds\":[{\"text\":\"先检索。\",\"thinking\":\"准备调用。\",\"toolCalls\":[{\"id\":\"hosted_1\",\"displayName\":\"原生网页搜索\",\"name\":\"原生网页搜索\",\"status\":\"success\",\"type\":\"hosted_tool\",\"arguments\":{},\"output\":{\"summary\":\"原生搜索固定结果\",\"content\":\"原生搜索固定结果\",\"thought\":\"原生搜索固定结果\"},\"display\":{\"summary\":\"原生搜索固定结果\",\"content\":\"原生搜索固定结果\",\"thought\":\"原生搜索固定结果\"}},{\"id\":\"call_search_1\",\"toolName\":\"search_tool\",\"displayName\":\"搜索能力\",\"name\":\"搜索能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"inputSummary\":\"query: alpha\",\"arguments\":{},\"output\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: alpha\"},\"display\":{\"summary\":\"搜索能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"搜索能力执行完成\",\"retryable\":false},\"model\":{\"content\":\"搜索能力模型结果\",\"output\":{\"kind\":\"search\"}},\"toolResult\":{\"status\":\"success\",\"modelContent\":\"搜索能力模型结果\",\"display\":{\"summary\":\"搜索能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"搜索能力执行完成\",\"retryable\":false}},\"internal\":{\"trace\":{\"callId\":\"call_search_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: alpha\",\"outputSummary\":\"搜索能力公开结果\",\"durationMs\":0,\"status\":\"success\"}}},{\"id\":\"call_second_1\",\"toolName\":\"second_tool\",\"displayName\":\"第二能力\",\"name\":\"第二能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"arguments\":{},\"output\":{\"summary\":\"第二能力公开结果\",\"content\":\"第二能力公开结果\",\"thought\":\"第二能力公开结果\"},\"display\":{\"summary\":\"第二能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"第二能力执行完成\",\"retryable\":false},\"model\":{\"content\":\"第二能力模型结果\",\"output\":{\"kind\":\"search\"}},\"toolResult\":{\"status\":\"success\",\"modelContent\":\"第二能力模型结果\",\"display\":{\"summary\":\"第二能力公开结果\"},\"trace\":{\"code\":\"TOOL_COMPLETED\",\"message\":\"第二能力执行完成\",\"retryable\":false}},\"internal\":{\"trace\":{\"callId\":\"call_second_1\",\"toolName\":\"second_tool\",\"output\":{\"kind\":\"search\"},\"outputSummary\":\"第二能力公开结果\",\"durationMs\":0,\"status\":\"success\"}}}],\"completed\":true,\"trace\":{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[{\"callId\":\"call_search_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: alpha\",\"outputSummary\":\"搜索能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"},{\"callId\":\"call_second_1\",\"toolName\":\"second_tool\",\"output\":{\"kind\":\"search\"},\"outputSummary\":\"第二能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"}],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=4\"},\"thinkingDuration\":0,\"phase\":\"process\"},{\"text\":\"工具后的最终回答。\",\"thinking\":\"综合证据。\",\"toolCalls\":[],\"completed\":true,\"trace\":{\"roundIndex\":1,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=5; recentRoles=system,user,assistant,tool,tool; tools=2\",\"toolCalls\":[],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=9\"},\"thinkingDuration\":0}],\"model\":\"deepseek-r1\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_tool_hosted_plan\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0},\"trace\":{\"traceId\":\"trace_mtfdegg0_07070707\",\"cid\":\"cid_p3_tool_hosted_plan\",\"messageId\":\"cid_p3_tool_hosted_plan\",\"turnId\":\"turn_p3_tool_hosted_plan\",\"model\":\"deepseek-r1\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"rounds\":[{\"roundIndex\":0,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=2; recentRoles=system,user; tools=2\",\"toolCalls\":[{\"callId\":\"call_search_1\",\"toolName\":\"search_tool\",\"output\":{\"kind\":\"search\"},\"inputSummary\":\"query: alpha\",\"outputSummary\":\"搜索能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"},{\"callId\":\"call_second_1\",\"toolName\":\"second_tool\",\"output\":{\"kind\":\"search\"},\"outputSummary\":\"第二能力公开结果\",\"fileRefs\":[],\"durationMs\":0,\"status\":\"success\"}],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=4\"},{\"roundIndex\":1,\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"status\":\"success\",\"modelInputSummary\":\"messages=5; recentRoles=system,user,assistant,tool,tool; tools=2\",\"toolCalls\":[],\"thinkingMs\":0,\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"modelOutputSummary\":\"assistantTextChars=9\"}],\"contextManifest\":{\"blocks\":[{\"id\":\"ctx_system_identity_1\",\"type\":\"system_identity\",\"source\":{\"module\":\"chat\",\"id\":\"system\"},\"estimatedTokens\":17,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"},{\"id\":\"ctx_current_user_request_2\",\"type\":\"current_user_request\",\"source\":{\"module\":\"chat\",\"id\":\"current-user-request\"},\"estimatedTokens\":15,\"included\":true,\"truncated\":false,\"reason\":\"included_required\"}],\"totalEstimatedTokens\":32,\"truncated\":false,\"warnings\":[]},\"endedAt\":\"2026-08-30T05:30:00.000Z\",\"summary\":{\"roundCount\":2,\"toolCallCount\":2,\"totalDurationMs\":0,\"totalTokens\":19,\"toolCost\":4}},\"tokens\":{\"input\":12,\"output\":7,\"total\":19}}",
+      "providerEvents": [
+        [
+          {
+            "delta": "准备调用。",
+            "type": "reasoning_delta"
+          },
+          {
+            "delta": "先检索。",
+            "type": "text_delta"
+          },
+          {
+            "toolCall": {
+              "displayName": "原生网页搜索",
+              "id": "hosted_1",
+              "inputSummary": "fixed hosted query",
+              "name": "openai_web_search",
+              "status": "running",
+              "type": "hosted_tool"
+            },
+            "type": "hosted_tool_call"
+          },
+          {
+            "argumentsDelta": "{\"query\":\"al",
+            "id": "call_search_1",
+            "index": 0,
+            "nameDelta": "search_",
+            "type": "tool_call_delta"
+          },
+          {
+            "argumentsDelta": "{\"value\":\"be",
+            "id": "call_second_1",
+            "index": 1,
+            "nameDelta": "second_",
+            "type": "tool_call_delta"
+          },
+          {
+            "argumentsDelta": "pha\"}",
+            "index": 0,
+            "nameDelta": "tool",
+            "type": "tool_call_delta"
+          },
+          {
+            "argumentsDelta": "ta\"}",
+            "index": 1,
+            "nameDelta": "tool",
+            "type": "tool_call_delta"
+          },
+          {
+            "toolCall": {
+              "display": {
+                "summary": "原生搜索固定结果"
+              },
+              "displayName": "原生网页搜索",
+              "id": "hosted_1",
+              "name": "openai_web_search",
+              "output": {
+                "summary": "原生搜索固定结果"
+              },
+              "status": "success",
+              "type": "hosted_tool"
+            },
+            "type": "hosted_tool_call"
+          },
+          {
+            "type": "usage",
+            "usage": {
+              "inputTokens": 5,
+              "outputTokens": 4,
+              "totalTokens": 9
+            }
+          },
+          {
+            "type": "done"
+          }
+        ],
+        [
+          {
+            "delta": "综合证据。",
+            "type": "reasoning_delta"
+          },
+          {
+            "delta": "工具后的最终回答。",
+            "type": "text_delta"
+          },
+          {
+            "type": "usage",
+            "usage": {
+              "inputTokens": 7,
+              "outputTokens": 3,
+              "totalTokens": 10
+            }
+          },
+          {
+            "type": "done"
+          }
+        ]
+      ],
+      "providerMessageSnapshots": [
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:tool_hosted_plan",
+            "role": "user"
+          }
+        ],
+        [
+          {
+            "content": "P3 characterization fixed system.",
+            "role": "system"
+          },
+          {
+            "content": "fixed request:tool_hosted_plan",
+            "role": "user"
+          },
+          {
+            "content": "先检索。",
+            "reasoning_content": "准备调用。",
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "{\"query\":\"alpha\"}",
+                  "name": "search_tool"
+                },
+                "id": "call_search_1",
+                "type": "function"
+              },
+              {
+                "function": {
+                  "arguments": "{\"value\":\"beta\"}",
+                  "name": "second_tool"
+                },
+                "id": "call_second_1",
+                "type": "function"
+              }
+            ]
+          },
+          {
+            "content": "[轮次提醒] 本次回复最多还能再调用 3 轮工具：请停止继续搜集，用已有结果完成任务、交付成果，然后给出最终答复。\n搜索能力模型结果",
+            "role": "tool",
+            "tool_call_id": "call_search_1"
+          },
+          {
+            "content": "第二能力模型结果",
+            "role": "tool",
+            "tool_call_id": "call_second_1"
+          }
+        ]
+      ],
+      "publicEvents": [
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "delta": "准备调用。"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 1,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "reasoning.delta",
+          "workflowSeq": 1
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "delta": "先检索。"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 2,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "message.delta",
+          "workflowSeq": 2
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "display": {
+              "inputSummary": "fixed hosted query"
+            },
+            "displayName": "原生网页搜索",
+            "inputSummary": "fixed hosted query",
+            "name": "原生网页搜索",
+            "status": "running",
+            "type": "hosted_tool"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 3,
+          "timestamp": 1788067800000,
+          "toolCallId": "hosted_1",
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "tool.start",
+          "workflowSeq": 3
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "phase": "process"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 4,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "message.phase",
+          "workflowSeq": 4
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "display": {
+              "content": "原生搜索固定结果",
+              "summary": "原生搜索固定结果",
+              "thought": "原生搜索固定结果"
+            },
+            "displayName": "原生网页搜索",
+            "name": "原生网页搜索",
+            "output": {
+              "content": "原生搜索固定结果",
+              "summary": "原生搜索固定结果",
+              "thought": "原生搜索固定结果"
+            },
+            "status": "success",
+            "type": "hosted_tool"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 5,
+          "timestamp": 1788067800000,
+          "toolCallId": "hosted_1",
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "tool.end",
+          "workflowSeq": 5
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {},
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 6,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "message.end",
+          "workflowSeq": 6
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "display": {
+              "inputSummary": "query: alpha"
+            },
+            "displayName": "搜索能力",
+            "inputSummary": "query: alpha",
+            "name": "搜索能力",
+            "status": "running",
+            "type": "search"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 7,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_search_1",
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "tool.start",
+          "workflowSeq": 7
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "display": {},
+            "displayName": "第二能力",
+            "name": "第二能力",
+            "status": "running",
+            "type": "search"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 8,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_second_1",
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "tool.start",
+          "workflowSeq": 8
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "display": {
+              "summary": "搜索能力公开结果"
+            },
+            "displayName": "搜索能力",
+            "durationMs": 0,
+            "name": "搜索能力",
+            "output": {
+              "content": "搜索能力公开结果",
+              "inputSummary": "query: alpha",
+              "summary": "搜索能力公开结果",
+              "thought": "搜索能力公开结果"
+            },
+            "status": "success",
+            "type": "tool"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 9,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_search_1",
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "tool.end",
+          "workflowSeq": 9
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "display": {
+              "summary": "第二能力公开结果"
+            },
+            "displayName": "第二能力",
+            "durationMs": 0,
+            "name": "第二能力",
+            "output": {
+              "content": "第二能力公开结果",
+              "summary": "第二能力公开结果",
+              "thought": "第二能力公开结果"
+            },
+            "status": "success",
+            "type": "tool"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "0",
+          "seq": 10,
+          "timestamp": 1788067800000,
+          "toolCallId": "call_second_1",
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "tool.end",
+          "workflowSeq": 10
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "delta": "综合证据。"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "1",
+          "seq": 11,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "reasoning.delta",
+          "workflowSeq": 11
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "delta": "工具后的最终回答。"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "1",
+          "seq": 12,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "message.delta",
+          "workflowSeq": 12
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {},
+          "messageId": "cid_p3_tool_hosted_plan",
+          "roundId": "1",
+          "seq": 13,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "message.end",
+          "workflowSeq": 13
+        },
+        {
+          "chatId": "cid_p3_tool_hosted_plan",
+          "data": {
+            "finishReason": "stop",
+            "message": "{\"role\":\"assistant\",\"content\":\"工具后的最终回答。\",\"rounds\":[{\"text\":\"先检索。\",\"thinking\":\"准备调用。\",\"toolCalls\":[{\"id\":\"hosted_1\",\"displayName\":\"原生网页搜索\",\"name\":\"原生网页搜索\",\"status\":\"success\",\"type\":\"hosted_tool\",\"arguments\":{},\"output\":{\"summary\":\"原生搜索固定结果\",\"content\":\"原生搜索固定结果\",\"thought\":\"原生搜索固定结果\"},\"display\":{\"summary\":\"原生搜索固定结果\",\"content\":\"原生搜索固定结果\",\"thought\":\"原生搜索固定结果\"}},{\"id\":\"call_search_1\",\"toolName\":\"search_tool\",\"displayName\":\"搜索能力\",\"name\":\"搜索能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"inputSummary\":\"query: alpha\",\"arguments\":{},\"output\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: alpha\"},\"display\":{\"summary\":\"搜索能力公开结果\",\"content\":\"搜索能力公开结果\",\"thought\":\"搜索能力公开结果\",\"inputSummary\":\"query: alpha\"}},{\"id\":\"call_second_1\",\"toolName\":\"second_tool\",\"displayName\":\"第二能力\",\"name\":\"第二能力\",\"status\":\"success\",\"duration\":0,\"type\":\"tool\",\"arguments\":{},\"output\":{\"summary\":\"第二能力公开结果\",\"content\":\"第二能力公开结果\",\"thought\":\"第二能力公开结果\"},\"display\":{\"summary\":\"第二能力公开结果\",\"content\":\"第二能力公开结果\",\"thought\":\"第二能力公开结果\"}}],\"completed\":true,\"thinkingDuration\":0,\"phase\":\"process\"},{\"text\":\"工具后的最终回答。\",\"thinking\":\"综合证据。\",\"toolCalls\":[],\"completed\":true,\"thinkingDuration\":0}],\"model\":\"deepseek-r1\",\"timestamp\":\"2026-08-30T05:30:00.000Z\",\"turn\":{\"id\":\"turn_p3_tool_hosted_plan\",\"status\":\"completed\",\"startedAt\":\"2026-08-30T05:30:00.000Z\",\"completedAt\":\"2026-08-30T05:30:00.000Z\",\"durationMs\":0}}",
+            "turn": {
+              "completedAt": "2026-08-30T05:30:00.000Z",
+              "durationMs": 0,
+              "id": "turn_p3_tool_hosted_plan",
+              "startedAt": "2026-08-30T05:30:00.000Z",
+              "status": "completed"
+            },
+            "turnStatus": "completed"
+          },
+          "messageId": "cid_p3_tool_hosted_plan",
+          "seq": 14,
+          "timestamp": 1788067800000,
+          "turnId": "turn_p3_tool_hosted_plan",
+          "type": "agent.end",
+          "workflowSeq": 14
+        }
+      ],
+      "registryExecutions": [
+        {
+          "args": {
+            "query": "alpha"
+          },
+          "toolCallId": "call_search_1",
+          "toolName": "search_tool"
+        },
+        {
+          "args": {
+            "value": "beta"
+          },
+          "toolCallId": "call_second_1",
+          "toolName": "second_tool"
+        }
+      ],
+      "resolutionOrder": [
+        "search_tool",
+        "second_tool"
+      ],
+      "result": {
+        "content": "工具后的最终回答。",
+        "currentMessage": {
+          "content": "工具后的最终回答。",
+          "model": "deepseek-r1",
+          "role": "assistant",
+          "rounds": [
+            {
+              "completed": true,
+              "phase": "process",
+              "text": "先检索。",
+              "thinking": "准备调用。",
+              "thinkingDuration": 0,
+              "toolCalls": [
+                {
+                  "arguments": {},
+                  "display": {
+                    "content": "原生搜索固定结果",
+                    "summary": "原生搜索固定结果",
+                    "thought": "原生搜索固定结果"
+                  },
+                  "displayName": "原生网页搜索",
+                  "id": "hosted_1",
+                  "name": "原生网页搜索",
+                  "output": {
+                    "content": "原生搜索固定结果",
+                    "summary": "原生搜索固定结果",
+                    "thought": "原生搜索固定结果"
+                  },
+                  "status": "success",
+                  "type": "hosted_tool"
+                },
+                {
+                  "arguments": {},
+                  "display": {
+                    "summary": "搜索能力公开结果"
+                  },
+                  "displayName": "搜索能力",
+                  "duration": 0,
+                  "id": "call_search_1",
+                  "inputSummary": "query: alpha",
+                  "internal": {
+                    "trace": {
+                      "callId": "call_search_1",
+                      "durationMs": 0,
+                      "inputSummary": "query: alpha",
+                      "output": {
+                        "kind": "search"
+                      },
+                      "outputSummary": "搜索能力公开结果",
+                      "status": "success",
+                      "toolName": "search_tool"
+                    }
+                  },
+                  "model": {
+                    "content": "搜索能力模型结果",
+                    "output": {
+                      "kind": "search"
+                    }
+                  },
+                  "name": "搜索能力",
+                  "output": {
+                    "content": "搜索能力公开结果",
+                    "inputSummary": "query: alpha",
+                    "summary": "搜索能力公开结果",
+                    "thought": "搜索能力公开结果"
+                  },
+                  "status": "success",
+                  "toolName": "search_tool",
+                  "toolResult": {
+                    "display": {
+                      "summary": "搜索能力公开结果"
+                    },
+                    "modelContent": "搜索能力模型结果",
+                    "status": "success",
+                    "trace": {
+                      "code": "TOOL_COMPLETED",
+                      "message": "搜索能力执行完成",
+                      "retryable": false
+                    }
+                  },
+                  "trace": {
+                    "code": "TOOL_COMPLETED",
+                    "message": "搜索能力执行完成",
+                    "retryable": false
+                  },
+                  "type": "tool"
+                },
+                {
+                  "arguments": {},
+                  "display": {
+                    "summary": "第二能力公开结果"
+                  },
+                  "displayName": "第二能力",
+                  "duration": 0,
+                  "id": "call_second_1",
+                  "internal": {
+                    "trace": {
+                      "callId": "call_second_1",
+                      "durationMs": 0,
+                      "output": {
+                        "kind": "search"
+                      },
+                      "outputSummary": "第二能力公开结果",
+                      "status": "success",
+                      "toolName": "second_tool"
+                    }
+                  },
+                  "model": {
+                    "content": "第二能力模型结果",
+                    "output": {
+                      "kind": "search"
+                    }
+                  },
+                  "name": "第二能力",
+                  "output": {
+                    "content": "第二能力公开结果",
+                    "summary": "第二能力公开结果",
+                    "thought": "第二能力公开结果"
+                  },
+                  "status": "success",
+                  "toolName": "second_tool",
+                  "toolResult": {
+                    "display": {
+                      "summary": "第二能力公开结果"
+                    },
+                    "modelContent": "第二能力模型结果",
+                    "status": "success",
+                    "trace": {
+                      "code": "TOOL_COMPLETED",
+                      "message": "第二能力执行完成",
+                      "retryable": false
+                    }
+                  },
+                  "trace": {
+                    "code": "TOOL_COMPLETED",
+                    "message": "第二能力执行完成",
+                    "retryable": false
+                  },
+                  "type": "tool"
+                }
+              ],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "modelOutputSummary": "assistantTextChars=4",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": [
+                  {
+                    "callId": "call_search_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "inputSummary": "query: alpha",
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "搜索能力公开结果",
+                    "status": "success",
+                    "toolName": "search_tool"
+                  },
+                  {
+                    "callId": "call_second_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "第二能力公开结果",
+                    "status": "success",
+                    "toolName": "second_tool"
+                  }
+                ]
+              }
+            },
+            {
+              "completed": true,
+              "text": "工具后的最终回答。",
+              "thinking": "综合证据。",
+              "thinkingDuration": 0,
+              "toolCalls": [],
+              "trace": {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=5; recentRoles=system,user,assistant,tool,tool; tools=2",
+                "modelOutputSummary": "assistantTextChars=9",
+                "roundIndex": 1,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": []
+              }
+            }
+          ],
+          "timestamp": "2026-08-30T05:30:00.000Z",
+          "tokens": {
+            "input": 12,
+            "output": 7,
+            "total": 19
+          },
+          "trace": {
+            "cid": "cid_p3_tool_hosted_plan",
+            "contextManifest": {
+              "blocks": [
+                {
+                  "estimatedTokens": 17,
+                  "id": "ctx_system_identity_1",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "system",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "system_identity"
+                },
+                {
+                  "estimatedTokens": 15,
+                  "id": "ctx_current_user_request_2",
+                  "included": true,
+                  "reason": "included_required",
+                  "source": {
+                    "id": "current-user-request",
+                    "module": "chat"
+                  },
+                  "truncated": false,
+                  "type": "current_user_request"
+                }
+              ],
+              "totalEstimatedTokens": 32,
+              "truncated": false,
+              "warnings": []
+            },
+            "endedAt": "2026-08-30T05:30:00.000Z",
+            "messageId": "cid_p3_tool_hosted_plan",
+            "model": "deepseek-r1",
+            "rounds": [
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=2; recentRoles=system,user; tools=2",
+                "modelOutputSummary": "assistantTextChars=4",
+                "roundIndex": 0,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": [
+                  {
+                    "callId": "call_search_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "inputSummary": "query: alpha",
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "搜索能力公开结果",
+                    "status": "success",
+                    "toolName": "search_tool"
+                  },
+                  {
+                    "callId": "call_second_1",
+                    "durationMs": 0,
+                    "fileRefs": [],
+                    "output": {
+                      "kind": "search"
+                    },
+                    "outputSummary": "第二能力公开结果",
+                    "status": "success",
+                    "toolName": "second_tool"
+                  }
+                ]
+              },
+              {
+                "endedAt": "2026-08-30T05:30:00.000Z",
+                "modelInputSummary": "messages=5; recentRoles=system,user,assistant,tool,tool; tools=2",
+                "modelOutputSummary": "assistantTextChars=9",
+                "roundIndex": 1,
+                "startedAt": "2026-08-30T05:30:00.000Z",
+                "status": "success",
+                "thinkingMs": 0,
+                "toolCalls": []
+              }
+            ],
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "success",
+            "summary": {
+              "roundCount": 2,
+              "toolCallCount": 2,
+              "toolCost": 4,
+              "totalDurationMs": 0,
+              "totalTokens": 19
+            },
+            "traceId": "trace_mtfdegg0_07070707",
+            "turnId": "turn_p3_tool_hosted_plan"
+          },
+          "turn": {
+            "completedAt": "2026-08-30T05:30:00.000Z",
+            "durationMs": 0,
+            "id": "turn_p3_tool_hosted_plan",
+            "startedAt": "2026-08-30T05:30:00.000Z",
+            "status": "completed"
+          }
+        },
+        "finishReason": "stop",
+        "generatedText": "工具后的最终回答。",
+        "reasoning_content": "准备调用。",
+        "tokenUsage": {
+          "details": [
+            {
+              "cacheHitTokens": 0,
+              "cacheMissTokens": 0,
+              "description": "Agent Loop R1",
+              "inputTokens": 5,
+              "nodeId": "agent-loop",
+              "nodeType": "agent-loop",
+              "outputTokens": 4,
+              "timestamp": "2026-08-30T05:30:00.000Z",
+              "totalTokens": 9
+            },
+            {
+              "cacheHitTokens": 0,
+              "cacheMissTokens": 0,
+              "description": "Agent Loop R2",
+              "inputTokens": 7,
+              "nodeId": "agent-loop",
+              "nodeType": "agent-loop",
+              "outputTokens": 3,
+              "timestamp": "2026-08-30T05:30:00.000Z",
+              "totalTokens": 10
+            }
+          ],
+          "totalInputTokens": 12,
+          "totalOutputTokens": 7,
+          "totalTokens": 19
+        },
+        "toolCost": 4,
+        "totalTokens": 19
+      },
+      "streamCallCount": 2,
+      "workflowSeq": 14
+    }
+  }
+}

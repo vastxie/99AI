@@ -1,0 +1,518 @@
+{
+  "opus-5-5": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": true
+    }
+  ],
+  "sonnet-4-5": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": false,
+      "skipped": true
+    }
+  ],
+  "claude-3-5": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": false,
+      "skipped": true
+    }
+  ],
+  "unknown-model": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": false,
+      "skipped": true
+    }
+  ],
+  "opus-5-adaptive-medium-in-params": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": true
+    }
+  ],
+  "sonnet-4-5-disabled-in-params": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": false,
+      "skipped": true
+    }
+  ],
+  "sonnet-4-6-disabled-in-params": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": true
+    }
+  ],
+  "sonnet-4-5-large-budget-in-params": [
+    {
+      "key": "text",
+      "capability": "text",
+      "ok": true
+    },
+    {
+      "key": "multimodal:image_url",
+      "capability": "multimodal",
+      "value": "image_url",
+      "ok": true
+    },
+    {
+      "key": "multimodal:document",
+      "capability": "multimodal",
+      "value": "document",
+      "ok": true
+    },
+    {
+      "key": "reasoning:off",
+      "capability": "reasoning",
+      "value": "off",
+      "ok": true
+    },
+    {
+      "key": "reasoning:minimal",
+      "capability": "reasoning",
+      "value": "minimal",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:low",
+      "capability": "reasoning",
+      "value": "low",
+      "ok": true
+    },
+    {
+      "key": "reasoning:medium",
+      "capability": "reasoning",
+      "value": "medium",
+      "ok": true
+    },
+    {
+      "key": "reasoning:high",
+      "capability": "reasoning",
+      "value": "high",
+      "ok": true
+    },
+    {
+      "key": "reasoning:xhigh",
+      "capability": "reasoning",
+      "value": "xhigh",
+      "ok": false,
+      "skipped": true
+    },
+    {
+      "key": "reasoning:max",
+      "capability": "reasoning",
+      "value": "max",
+      "ok": false,
+      "skipped": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "apps": {
+    "name": "99Agent",
+    "script": "./dist/main.js",
+    "watch": false,
+    "ignore_watch": ["node_modules", "logs", "public/file", "storage"],
+    "env": {
+      "TZ": "Asia/Shanghai",
+      "NODE_ENV": "production"
+    },
+    "instances": 1,
+    "error_file": "logs/error-YYYY-MM.log",
+    "out_file": "logs/out-YYYY-MM.log",
+    "log_date_format": "YYYY-MM-DD HH:mm:ss",
+    "merge_logs": true,
+    "max_memory_restart": "2000M"
+  }
+}

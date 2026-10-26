@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["DOM", "ESNext"],
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "removeComments": true,
+    "paths": {
+      "@99agent/contracts": ["../packages/contracts/src/index.ts"],
+      "@99agent/contracts/*": ["../packages/contracts/src/*"],
+      "@/*": ["./src/*"]
+    },
+    "types": ["vite/client", "node", "vue", "vue-i18n"]
+  },
+  "exclude": ["node_modules", "dist"]
+}

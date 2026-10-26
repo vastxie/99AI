@@ -1,0 +1,69 @@
+name: Sandbox image
+
+# 沙箱镜像门禁：只在 sandbox/ 变更时构建镜像并做一次工具链冒烟，不推送镜像。
+# runsc 下的基本执行链路由 smoke.yml 的 gvisor job 覆盖；容量上限与联网代理仍需在宿主机上人工验收（见 sandbox/README.md）。
+
+on:
+  pull_request:
+    paths:
+      - 'sandbox/**'
+      - '.github/workflows/sandbox.yml'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'sandbox/**'
+      - '.github/workflows/sandbox.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Test egress policy and transport
+        run: node --test sandbox/egress/*.test.mjs
+
+      - name: Check and test the user disk helper
+        run: |
+          bash -n sandbox/disk/99agent-sandbox-disk
+          node --test sandbox/disk/*.test.mjs
+
+      - name: Build egress image
+        run: docker build -t 99agent/sandbox-egress:ci sandbox/egress/
+
+      - name: Build image
+        run: docker build -t 99agent/sandbox:ci sandbox/
+
+      - name: Smoke test the toolchain inside the image
+        run: |
+          docker run --rm --network none 99agent/sandbox:ci bash -lc '
+            set -euo pipefail
+            id -u | grep -qx 1000
+            python3 -c "import pandas, numpy, docx, openpyxl, pptx, pypdf, reportlab, matplotlib, PIL"
+            node -v
+            ffmpeg -version | head -1
+            pandoc --version | head -1
+            tectonic --version
+            tesseract --version 2>&1 | head -1
+          '
+
+      - name: Report image size
+        run: |
+          docker image inspect 99agent/sandbox:ci --format '{{ .Size }}' | awk '{ printf "image size: %.1f MB\n", $1 / 1024 / 1024 }'

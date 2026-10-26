@@ -1,0 +1,15 @@
+{
+  "id": "model-opencode-go",
+  "tier": "system",
+  "description": "OpenCode Go 专属 Chat Completions 协议、请求头与厂商预设",
+  "flag": "MODEL_OPENCODE_GO_PACK_ENABLED",
+  "contributes": {
+    "modelProtocols": ["opencode_go_chat_completions"]
+  },
+  "identifiers": [
+    "opencode_go_chat_completions",
+    "OpenCodeGo",
+    "MODEL_OPENCODE_GO",
+    "x-opencode-session"
+  ]
+}

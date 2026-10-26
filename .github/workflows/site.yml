@@ -1,0 +1,49 @@
+name: Site
+
+# 文档站门禁：VitePress 构建（含死链检查 ignoreDeadLinks: false）。
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+      - '.github/actions/**'
+      - 'package.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: site/pnpm-lock.yaml
+
+      - name: Install site dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build documentation site
+        run: pnpm build

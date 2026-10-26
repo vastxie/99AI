@@ -1,0 +1,392 @@
+/*
+ * 聊天页布局：代码工作台与移动端底部面板的过渡、会话切换淡入、轮次导航等页面级样式。
+ * 由 chatBase.vue 引入，随聊天页的代码块加载，层叠位置与原来的组件内样式块一致（在全局样式之后）。
+ */
+.code-workspace-overlay-enter-active,
+.code-workspace-overlay-leave-active {
+  transition:
+    opacity var(--motion-duration-sm) ease,
+    transform var(--motion-duration-md) var(--motion-easing);
+}
+
+.code-workspace-overlay-enter-from,
+.code-workspace-overlay-leave-to {
+  opacity: 0;
+  transform: scale(0.992);
+}
+
+/* 根元素过渡时长决定 Transition 结束时机，必须与面板 transform 的时长（--motion-duration-lg）一致，否则上滑会被中途掐断 */
+.mobile-context-sheet-enter-active,
+.mobile-context-sheet-leave-active {
+  transition: opacity var(--motion-duration-lg) ease;
+}
+
+.mobile-context-sheet-enter-active .mobile-context-sheet-panel,
+.mobile-context-sheet-leave-active .mobile-context-sheet-panel {
+  transition: transform var(--motion-duration-lg) var(--motion-easing);
+}
+
+.mobile-context-sheet-enter-from,
+.mobile-context-sheet-leave-to {
+  opacity: 0;
+}
+
+.mobile-context-sheet-enter-from .mobile-context-sheet-panel,
+.mobile-context-sheet-leave-to .mobile-context-sheet-panel {
+  transform: translateY(100%);
+}
+
+.chat-scroll-surface,
+[data-chat-message-list] {
+  overflow-anchor: none;
+}
+
+/* 会话切换过渡：开始切换时瞬时隐藏（无动画），新内容贴底就绪后再淡入；只动 opacity，不影响滚动测量 */
+.chat-conversation-canvas {
+  /* 首条消息发出时画布不再淡入（避免「闪一下」），会话切换仍走 is-switching 的透明度过渡 */
+  transition: opacity var(--motion-duration-lg) ease;
+}
+
+.chat-conversation-canvas.is-switching {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+.chat-surface-enter {
+  animation: chat-surface-fade-in var(--motion-duration-lg) ease-out;
+}
+
+@keyframes chat-surface-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.chat-empty-state-scroll {
+  overflow-anchor: none;
+}
+
+.chat-turn-navigator {
+  position: fixed;
+  top: 80px;
+  bottom: clamp(150px, 22dvh, 240px);
+  right: 8px;
+  z-index: var(--z-turn-navigator);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-turn-navigator::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 12px;
+  height: calc(100% + 12px);
+  content: '';
+  transform: translateY(-50%);
+}
+
+.chat-turn-navigator.is-interaction-locked,
+.chat-turn-navigator.is-interaction-locked::before {
+  pointer-events: none;
+}
+
+.chat-turn-navigator-card {
+  --turn-navigator-collapsed-width: 28px;
+  /* 行高取带回复摘要的两行项的高度向上取整：13px 标题与 12px 摘要（行高都是 1.25 倍）、中间 1px、上下内边距各 3px，共 38.25px；展开前后每行一样高，刻度不跳 */
+  --turn-navigator-row-height: 39px;
+  --turn-navigator-row-gap: 4px;
+  --turn-navigator-card-padding-y: 8px;
+  --turn-navigator-card-border-width: 1px;
+  /* 最多展示 5 行，超出部分在卡片内滚动；卡片按边框盒计高，上下边框也算进去，正好 5 行时不出现滚动 */
+  --turn-navigator-card-max-height: calc(
+    var(--turn-navigator-row-height) * 5 + var(--turn-navigator-row-gap) * 4 +
+      var(--turn-navigator-card-padding-y) * 2 + var(--turn-navigator-card-border-width) * 2
+  );
+
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--turn-navigator-row-gap);
+  width: var(--turn-navigator-collapsed-width);
+  max-width: min(272px, 34vw);
+  max-height: min(62vh, var(--turn-navigator-card-max-height));
+  overflow: hidden;
+  padding: var(--turn-navigator-card-padding-y) 6px;
+  border: var(--turn-navigator-card-border-width) solid transparent;
+  /* 外圈圆角 = 里面各项的圆角 + 卡片的左右内边距（6px），两层同心 */
+  border-radius: calc(var(--radius-lg) + 6px);
+  background: transparent;
+  transition:
+    width var(--motion-duration-sm) var(--motion-easing),
+    border-color var(--motion-duration-sm) ease,
+    background-color var(--motion-duration-sm) ease,
+    box-shadow var(--motion-duration-sm) ease;
+}
+
+.chat-turn-navigator.is-expanded .chat-turn-navigator-card {
+  width: 248px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border-color: var(--menu-surface-border);
+  background: var(--menu-surface-bg);
+  box-shadow: var(--menu-surface-shadow);
+}
+
+.chat-turn-navigator.is-expand-suppressed .chat-turn-navigator-card,
+.chat-turn-navigator.is-expand-suppressed:hover .chat-turn-navigator-card,
+.chat-turn-navigator.is-expand-suppressed:focus-within .chat-turn-navigator-card {
+  width: var(--turn-navigator-collapsed-width);
+  overflow: hidden;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.chat-turn-navigator-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--turn-navigator-row-height);
+  padding: 3px 7px 3px 12px;
+  border-radius: var(--radius-lg);
+  color: var(--menu-item-text);
+  font-size: var(--type-meta-size);
+  line-height: 1.25;
+  text-align: left;
+  transition:
+    color var(--motion-duration-sm) ease,
+    background-color var(--motion-duration-sm) ease;
+}
+
+.chat-turn-navigator:not(.is-expanded) .chat-turn-navigator-item {
+  grid-template-columns: 18px;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.chat-turn-navigator.is-expanded .chat-turn-navigator-item:hover {
+  color: var(--menu-item-text-hover);
+  background: var(--menu-item-bg-hover);
+}
+
+.chat-turn-navigator.is-expand-suppressed .chat-turn-navigator-item:hover,
+.chat-turn-navigator.is-expand-suppressed:hover .chat-turn-navigator-item:hover,
+.chat-turn-navigator.is-expand-suppressed:focus-within .chat-turn-navigator-item:hover {
+  color: var(--menu-item-text);
+  background: transparent;
+}
+
+.chat-turn-navigator-item.is-active {
+  color: var(--text-link);
+  background: transparent;
+}
+
+.chat-turn-navigator.is-expanded .chat-turn-navigator-item.is-active {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.chat-turn-navigator.is-expand-suppressed .chat-turn-navigator-item.is-active,
+.chat-turn-navigator.is-expand-suppressed:hover .chat-turn-navigator-item.is-active,
+.chat-turn-navigator.is-expand-suppressed:focus-within .chat-turn-navigator-item.is-active {
+  background: transparent;
+}
+
+/* 问题 + 回答摘要两行；收起态脱离网格流，刻度独占一行保持居中 */
+.chat-turn-navigator-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity var(--motion-duration-xs) ease,
+    transform var(--motion-duration-sm) var(--motion-easing);
+}
+
+.chat-turn-navigator:not(.is-expanded) .chat-turn-navigator-copy {
+  position: absolute;
+  visibility: hidden;
+}
+
+.chat-turn-navigator.is-expanded .chat-turn-navigator-copy {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.chat-turn-navigator.is-expand-suppressed .chat-turn-navigator-copy,
+.chat-turn-navigator.is-expand-suppressed:hover .chat-turn-navigator-copy,
+.chat-turn-navigator.is-expand-suppressed:focus-within .chat-turn-navigator-copy {
+  opacity: 0;
+  transform: translateX(6px);
+}
+
+.chat-turn-navigator-label {
+  min-width: 0;
+}
+
+.chat-turn-navigator-response {
+  min-width: 0;
+  font-size: var(--type-caption-size);
+  color: var(--text-muted);
+}
+
+.chat-turn-navigator-item-mark {
+  width: 12px;
+  height: 3px;
+  justify-self: end;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--text-subtle) 24%, transparent);
+  transition:
+    width var(--motion-duration-sm) ease,
+    background-color var(--motion-duration-sm) ease;
+}
+
+.chat-turn-navigator:not(.is-expanded) .chat-turn-navigator-item-mark {
+  justify-self: center;
+}
+
+.chat-turn-navigator-item.is-active .chat-turn-navigator-item-mark {
+  width: 18px;
+  background: var(--accent);
+}
+
+.right-panel-shell-enter-active,
+.right-panel-shell-leave-active {
+  transition:
+    width var(--motion-duration-2xl) var(--motion-easing),
+    opacity var(--motion-duration-md) ease;
+}
+
+.right-panel-shell-frame {
+  position: relative;
+  z-index: var(--z-side-panel);
+  min-width: 0;
+  transition:
+    width var(--motion-duration-2xl) var(--motion-easing),
+    opacity var(--motion-duration-md) ease;
+  will-change: width;
+}
+
+.right-panel-shell-enter-from,
+.right-panel-shell-leave-to {
+  width: 0 !important;
+  opacity: 0;
+}
+
+.right-panel-content {
+  transform-origin: right center;
+  transition:
+    opacity var(--motion-duration-lg) ease,
+    transform var(--motion-duration-2xl) var(--motion-easing);
+  will-change: opacity, transform;
+}
+
+.right-panel-shell-enter-from .right-panel-content,
+.right-panel-shell-leave-to .right-panel-content {
+  opacity: 0;
+  transform: translateX(28px);
+}
+
+.right-panel-shell-enter-to .right-panel-content,
+.right-panel-shell-leave-from .right-panel-content {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 减弱动效：面板、工作台与轮次导航直接到位，不做缩放、位移与宽度动画 */
+  .code-workspace-overlay-enter-active,
+  .code-workspace-overlay-leave-active,
+  .chat-turn-navigator-card,
+  .chat-turn-navigator-copy,
+  .chat-turn-navigator-item-mark,
+  .right-panel-shell-frame,
+  .right-panel-shell-enter-active,
+  .right-panel-shell-leave-active,
+  .mobile-context-sheet-enter-active,
+  .mobile-context-sheet-leave-active,
+  .chat-conversation-canvas,
+  .chat-surface-enter,
+  .right-panel-content {
+    transition: none;
+    animation: none;
+  }
+
+  .mobile-context-sheet-enter-from .mobile-context-sheet-panel,
+  .mobile-context-sheet-leave-to .mobile-context-sheet-panel,
+  .right-panel-shell-enter-from .right-panel-content,
+  .right-panel-shell-leave-to .right-panel-content {
+    filter: none;
+    transform: none;
+  }
+}
+
+.older-message-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 7px 12px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--app-surface) 94%, var(--text-primary) 6%);
+}
+
+.older-message-loading span {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  color: var(--text-muted);
+  opacity: 0.38;
+  animation: older-message-dot 1.35s ease-in-out infinite;
+}
+
+.older-message-loading span:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.older-message-loading span:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+/* 减弱动效：历史加载的三个点不跳动。必须写在上面的默认动画之后：选择器相同，后声明的才生效 */
+@media (prefers-reduced-motion: reduce) {
+  .older-message-loading span {
+    animation: none;
+  }
+}
+
+/* 空状态垂直节奏：上下等比弹性留白，标题/输入框/胶囊行整体垂直居中；
+   预设卡片是浮层（不占文档流），无需任何占位补偿 */
+.chat-empty-spacer-top {
+  flex: 1 1 0%;
+  min-height: 1.5rem;
+}
+
+.chat-empty-spacer-bottom {
+  flex: 1 1 0%;
+  min-height: 4.5rem;
+}
+
+@keyframes older-message-dot {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+}

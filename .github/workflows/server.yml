@@ -1,0 +1,84 @@
+name: Server
+
+# 后端唯一门禁：一次 install 之后依次跑类型检查、边界与内核预算检查、共享合同包测试、
+# 内核包测试、全量 Jest（含覆盖率阈值与测试输出密钥扫描）和 Nest 构建。
+# 扩展包评分卡独立在 packs.yml。
+# packages/** 变更也会触发：server 通过 tsconfig 别名直接消费 packages/contracts
+# 与 packages/runtime-core 的源码。
+
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - '.github/workflows/server.yml'
+      - '.github/actions/**'
+      - 'package.json'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'server/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - '.github/workflows/server.yml'
+      - '.github/actions/**'
+      - 'package.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          cache-dependency-path: server/pnpm-lock.yaml
+
+      - name: Install server dependencies
+        run: pnpm --dir server install --frozen-lockfile
+
+      - name: Type-check server
+        # 含测试文件：单测只逐文件转译（isolatedModules），测试代码的类型错误在这一步拦截
+        run: pnpm --dir server exec tsc -p tsconfig.json --noEmit
+
+      - name: Kernel / pack boundary check
+        run: node server/scripts/check-pack-boundaries.mjs
+
+      - name: Kernel budget (kernel may only shrink)
+        run: node scripts/check-kernel-budget.mjs
+
+      - name: Kernel module edges (no new runtime imports between kernel modules)
+        run: node scripts/check-kernel-edges.mjs
+
+      - name: Shared contracts package
+        run: node --test packages/contracts/tests/*.test.mjs
+
+      - name: Agent runtime-core package
+        working-directory: packages/runtime-core
+        run: |
+          ../../server/node_modules/.bin/tsc -p tsconfig.json --noEmit
+          node scripts/check-boundaries.mjs
+          node --test tests/*.test.mjs
+
+      - name: Server tests with coverage
+        working-directory: server
+        run: |
+          set -o pipefail
+          pnpm test:cov -- --runInBand 2>&1 | tee /tmp/99agent-server-test-cov.log
+          node scripts/check-test-output-secrets.js /tmp/99agent-server-test-cov.log
+
+      - name: Build server
+        run: pnpm --dir server build

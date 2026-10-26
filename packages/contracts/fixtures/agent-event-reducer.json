@@ -1,0 +1,1076 @@
+{
+  "contractVersion": 1,
+  "cases": [
+    {
+      "name": "two tool rounds hand off without losing the public projection",
+      "covers": ["multi_tool_rounds", "handoff", "object_output"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-1",
+          "messageId": "assistant-reducer-1",
+          "turnId": "turn-reducer-1",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-1",
+              "status": "running",
+              "startedAt": "2026-09-10T03:00:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "reasoning.delta",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-1",
+          "roundId": "0",
+          "timestamp": 2,
+          "data": { "delta": "plan" }
+        },
+        {
+          "type": "tool.start",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-1",
+          "roundId": "0",
+          "toolCallId": "call-1",
+          "timestamp": 3,
+          "data": {
+            "name": "reader",
+            "displayName": "Reader",
+            "status": "running",
+            "inputSummary": "one"
+          }
+        },
+        {
+          "type": "tool.end",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-1",
+          "roundId": "0",
+          "toolCallId": "call-1",
+          "timestamp": 4,
+          "data": {
+            "name": "reader",
+            "displayName": "Reader",
+            "status": "success",
+            "inputSummary": "one",
+            "durationMs": 7,
+            "output": { "summary": "ok-1" }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 5,
+          "chatId": "assistant-reducer-1",
+          "roundId": "0",
+          "timestamp": 5,
+          "data": { "delta": "first" }
+        },
+        {
+          "type": "message.end",
+          "workflowSeq": 6,
+          "chatId": "assistant-reducer-1",
+          "roundId": "0",
+          "timestamp": 6,
+          "data": {}
+        },
+        {
+          "type": "reasoning.delta",
+          "workflowSeq": 7,
+          "chatId": "assistant-reducer-1",
+          "roundId": "1",
+          "timestamp": 7,
+          "data": { "delta": "next" }
+        },
+        {
+          "type": "tool.start",
+          "workflowSeq": 8,
+          "chatId": "assistant-reducer-1",
+          "roundId": "1",
+          "toolCallId": "call-2",
+          "timestamp": 8,
+          "data": {
+            "name": "writer",
+            "displayName": "Writer",
+            "status": "running",
+            "inputSummary": "two"
+          }
+        },
+        {
+          "type": "tool.end",
+          "workflowSeq": 9,
+          "chatId": "assistant-reducer-1",
+          "roundId": "1",
+          "toolCallId": "call-2",
+          "timestamp": 9,
+          "data": {
+            "name": "writer",
+            "displayName": "Writer",
+            "status": "success",
+            "inputSummary": "two",
+            "durationMs": 11,
+            "output": { "summary": "ok-2" }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 10,
+          "chatId": "assistant-reducer-1",
+          "roundId": "1",
+          "timestamp": 10,
+          "data": { "delta": " second" }
+        },
+        {
+          "type": "message.end",
+          "workflowSeq": 11,
+          "chatId": "assistant-reducer-1",
+          "roundId": "1",
+          "timestamp": 11,
+          "data": {}
+        },
+        {
+          "type": "turn.end",
+          "workflowSeq": 12,
+          "chatId": "assistant-reducer-1",
+          "turnId": "turn-reducer-1",
+          "timestamp": 12,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-1",
+              "status": "completed",
+              "startedAt": "2026-09-10T03:00:00.000Z",
+              "completedAt": "2026-09-10T03:00:01.000Z",
+              "durationMs": 1000
+            },
+            "finishReason": "handoff",
+            "nextAction": "start_queued_turn"
+          }
+        },
+        {
+          "type": "agent.end",
+          "workflowSeq": 13,
+          "chatId": "assistant-reducer-1",
+          "turnId": "turn-reducer-1",
+          "timestamp": 13,
+          "data": {
+            "finishReason": "handoff",
+            "turnStatus": "completed"
+          }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 9,
+        "chatId": "assistant-reducer-1",
+        "messageId": "assistant-reducer-1",
+        "turnId": "turn-reducer-1",
+        "timestamp": 9,
+        "data": {
+          "reason": "resync",
+          "content": "first",
+          "thinking": "plannext",
+          "status": "streaming",
+          "turn": {
+            "id": "turn-reducer-1",
+            "status": "running",
+            "startedAt": "2026-09-10T03:00:00.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "first",
+            "rounds": [
+              {
+                "text": "first",
+                "thinking": "plan",
+                "completed": true,
+                "toolCalls": [
+                  {
+                    "id": "call-1",
+                    "name": "Reader",
+                    "toolName": "reader",
+                    "displayName": "Reader",
+                    "status": "success",
+                    "arguments": {},
+                    "inputSummary": "one",
+                    "duration": 7,
+                    "output": { "summary": "ok-1" }
+                  }
+                ]
+              },
+              {
+                "text": null,
+                "thinking": "next",
+                "completed": false,
+                "toolCalls": [
+                  {
+                    "id": "call-2",
+                    "name": "Writer",
+                    "toolName": "writer",
+                    "displayName": "Writer",
+                    "status": "success",
+                    "arguments": {},
+                    "inputSummary": "two",
+                    "duration": 11,
+                    "output": { "summary": "ok-2" }
+                  }
+                ]
+              }
+            ],
+            "turn": {
+              "id": "turn-reducer-1",
+              "status": "running",
+              "startedAt": "2026-09-10T03:00:00.000Z"
+            }
+          }
+        }
+      },
+      "suffixStart": 9,
+      "expected": {
+        "workflowSeq": 13,
+        "content": "first\n\n second",
+        "thinking": "plannext",
+        "roundCount": 2,
+        "toolCount": 2,
+        "status": "completed",
+        "finishReason": "handoff",
+        "terminal": true
+      }
+    },
+    {
+      "name": "provider unknown converges to the same failed terminal",
+      "covers": ["error", "usage_before_barrier"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-2",
+          "turnId": "turn-reducer-2",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-2",
+              "status": "running",
+              "startedAt": "2026-09-10T03:01:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-2",
+          "roundId": "0",
+          "timestamp": 2,
+          "data": { "delta": "partial" }
+        },
+        {
+          "type": "usage.update",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-2",
+          "turnId": "turn-reducer-2",
+          "timestamp": 3,
+          "data": {
+            "inputTokens": 11,
+            "outputTokens": 5,
+            "totalTokens": 16
+          }
+        },
+        {
+          "type": "agent.error",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-2",
+          "turnId": "turn-reducer-2",
+          "timestamp": 4,
+          "data": {
+            "code": "MODEL_OUTCOME_UNKNOWN",
+            "message": "模型请求结果无法确认",
+            "turnStatus": "failed",
+            "turn": {
+              "id": "turn-reducer-2",
+              "status": "failed",
+              "startedAt": "2026-09-10T03:01:00.000Z",
+              "completedAt": "2026-09-10T03:01:01.000Z"
+            }
+          }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 3,
+        "chatId": "assistant-reducer-2",
+        "turnId": "turn-reducer-2",
+        "timestamp": 3,
+        "data": {
+          "reason": "resync",
+          "content": "partial",
+          "thinking": "",
+          "status": "streaming",
+          "usage": {
+            "inputTokens": 11,
+            "outputTokens": 5,
+            "totalTokens": 16
+          },
+          "turn": {
+            "id": "turn-reducer-2",
+            "status": "running",
+            "startedAt": "2026-09-10T03:01:00.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "partial",
+            "rounds": [
+              {
+                "text": "partial",
+                "thinking": null,
+                "completed": false,
+                "toolCalls": []
+              }
+            ]
+          }
+        }
+      },
+      "suffixStart": 3,
+      "expected": {
+        "workflowSeq": 4,
+        "content": "partial",
+        "thinking": "",
+        "roundCount": 1,
+        "toolCount": 0,
+        "status": "failed",
+        "finishReason": "error",
+        "terminal": true,
+        "usage": {
+          "inputTokens": 11,
+          "outputTokens": 5,
+          "totalTokens": 16
+        }
+      }
+    },
+    {
+      "name": "durable cancellation converges to interrupted",
+      "covers": ["abort"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-3",
+          "turnId": "turn-reducer-3",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-3",
+              "status": "running",
+              "startedAt": "2026-09-10T03:02:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "reasoning.delta",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-3",
+          "roundId": "0",
+          "timestamp": 2,
+          "data": { "delta": "checking" }
+        },
+        {
+          "type": "turn.end",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-3",
+          "turnId": "turn-reducer-3",
+          "timestamp": 3,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-3",
+              "status": "interrupted",
+              "startedAt": "2026-09-10T03:02:00.000Z",
+              "completedAt": "2026-09-10T03:02:01.000Z"
+            },
+            "finishReason": "abort",
+            "nextAction": "none"
+          }
+        },
+        {
+          "type": "agent.end",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-3",
+          "turnId": "turn-reducer-3",
+          "timestamp": 4,
+          "data": {
+            "finishReason": "abort",
+            "turnStatus": "interrupted"
+          }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 2,
+        "chatId": "assistant-reducer-3",
+        "turnId": "turn-reducer-3",
+        "timestamp": 2,
+        "data": {
+          "reason": "resync",
+          "content": "",
+          "thinking": "checking",
+          "status": "streaming",
+          "turn": {
+            "id": "turn-reducer-3",
+            "status": "running",
+            "startedAt": "2026-09-10T03:02:00.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "rounds": [
+              {
+                "text": null,
+                "thinking": "checking",
+                "completed": false,
+                "toolCalls": []
+              }
+            ]
+          }
+        }
+      },
+      "suffixStart": 2,
+      "expected": {
+        "workflowSeq": 4,
+        "content": "",
+        "thinking": "checking",
+        "roundCount": 1,
+        "toolCount": 0,
+        "status": "interrupted",
+        "finishReason": "abort",
+        "terminal": true
+      }
+    },
+    {
+      "name": "plain text stop converges across a usage snapshot barrier",
+      "covers": ["text", "stop", "usage_before_barrier"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-4",
+          "messageId": "assistant-reducer-4",
+          "turnId": "turn-reducer-4",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-4",
+              "status": "running",
+              "startedAt": "2026-09-10T03:03:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-4",
+          "roundId": "0",
+          "timestamp": 2,
+          "data": { "delta": "plain answer" }
+        },
+        {
+          "type": "usage.update",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-4",
+          "turnId": "turn-reducer-4",
+          "timestamp": 3,
+          "data": {
+            "inputTokens": 7,
+            "outputTokens": 3,
+            "totalTokens": 10
+          }
+        },
+        {
+          "type": "message.end",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-4",
+          "roundId": "0",
+          "timestamp": 4,
+          "data": {}
+        },
+        {
+          "type": "turn.end",
+          "workflowSeq": 5,
+          "chatId": "assistant-reducer-4",
+          "turnId": "turn-reducer-4",
+          "timestamp": 5,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-4",
+              "status": "completed",
+              "startedAt": "2026-09-10T03:03:00.000Z",
+              "completedAt": "2026-09-10T03:03:01.000Z"
+            },
+            "finishReason": "stop",
+            "nextAction": "none"
+          }
+        },
+        {
+          "type": "agent.end",
+          "workflowSeq": 6,
+          "chatId": "assistant-reducer-4",
+          "turnId": "turn-reducer-4",
+          "timestamp": 6,
+          "data": { "finishReason": "stop", "turnStatus": "completed" }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 3,
+        "chatId": "assistant-reducer-4",
+        "messageId": "assistant-reducer-4",
+        "turnId": "turn-reducer-4",
+        "timestamp": 3,
+        "data": {
+          "reason": "resync",
+          "content": "plain answer",
+          "thinking": "",
+          "status": "streaming",
+          "usage": { "inputTokens": 7, "outputTokens": 3, "totalTokens": 10 },
+          "turn": {
+            "id": "turn-reducer-4",
+            "status": "running",
+            "startedAt": "2026-09-10T03:03:00.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "plain answer",
+            "rounds": [
+              {
+                "text": "plain answer",
+                "thinking": null,
+                "completed": false,
+                "toolCalls": []
+              }
+            ]
+          }
+        }
+      },
+      "suffixStart": 3,
+      "expected": {
+        "workflowSeq": 6,
+        "content": "plain answer",
+        "thinking": "",
+        "roundCount": 1,
+        "toolCount": 0,
+        "status": "completed",
+        "finishReason": "stop",
+        "terminal": true,
+        "usage": { "inputTokens": 7, "outputTokens": 3, "totalTokens": 10 }
+      }
+    },
+    {
+      "name": "plain text length terminal survives a final snapshot barrier",
+      "covers": ["text", "length"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-5",
+          "messageId": "assistant-reducer-5",
+          "turnId": "turn-reducer-5",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-5",
+              "status": "running",
+              "startedAt": "2026-09-10T03:04:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-5",
+          "roundId": "0",
+          "timestamp": 2,
+          "data": { "delta": "limited answer" }
+        },
+        {
+          "type": "message.end",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-5",
+          "roundId": "0",
+          "timestamp": 3,
+          "data": {}
+        },
+        {
+          "type": "turn.end",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-5",
+          "turnId": "turn-reducer-5",
+          "timestamp": 4,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-5",
+              "status": "completed",
+              "startedAt": "2026-09-10T03:04:00.000Z",
+              "completedAt": "2026-09-10T03:04:01.000Z"
+            },
+            "finishReason": "length",
+            "nextAction": "none"
+          }
+        },
+        {
+          "type": "agent.end",
+          "workflowSeq": 5,
+          "chatId": "assistant-reducer-5",
+          "turnId": "turn-reducer-5",
+          "timestamp": 5,
+          "data": { "finishReason": "length", "turnStatus": "completed" }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 5,
+        "chatId": "assistant-reducer-5",
+        "messageId": "assistant-reducer-5",
+        "turnId": "turn-reducer-5",
+        "timestamp": 5,
+        "data": {
+          "reason": "resync",
+          "content": "limited answer",
+          "thinking": "",
+          "status": "completed",
+          "finishReason": "length",
+          "turn": {
+            "id": "turn-reducer-5",
+            "status": "completed",
+            "startedAt": "2026-09-10T03:04:00.000Z",
+            "completedAt": "2026-09-10T03:04:01.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "limited answer",
+            "rounds": [
+              {
+                "text": "limited answer",
+                "thinking": null,
+                "completed": true,
+                "toolCalls": []
+              }
+            ]
+          }
+        }
+      },
+      "suffixStart": 5,
+      "expected": {
+        "workflowSeq": 5,
+        "content": "limited answer",
+        "thinking": "",
+        "roundCount": 1,
+        "toolCount": 0,
+        "status": "completed",
+        "finishReason": "length",
+        "terminal": true
+      }
+    },
+    {
+      "name": "primitive string and object outputs converge through Service snapshots",
+      "covers": ["primitive_string_output", "primitive_object_output", "stop"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-6",
+          "messageId": "assistant-reducer-6",
+          "turnId": "turn-reducer-6",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-6",
+              "status": "running",
+              "startedAt": "2026-09-10T03:05:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "tool.start",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-6",
+          "roundId": "0",
+          "toolCallId": "call-string",
+          "timestamp": 2,
+          "data": { "name": "read", "status": "running" }
+        },
+        {
+          "type": "tool.end",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-6",
+          "roundId": "0",
+          "toolCallId": "call-string",
+          "timestamp": 3,
+          "data": {
+            "name": "read",
+            "status": "success",
+            "output": "plain output"
+          }
+        },
+        {
+          "type": "tool.start",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-6",
+          "roundId": "0",
+          "toolCallId": "call-object",
+          "timestamp": 4,
+          "data": { "name": "ls", "status": "running" }
+        },
+        {
+          "type": "tool.end",
+          "workflowSeq": 5,
+          "chatId": "assistant-reducer-6",
+          "roundId": "0",
+          "toolCallId": "call-object",
+          "timestamp": 5,
+          "data": {
+            "name": "ls",
+            "status": "success",
+            "output": { "summary": "structured output" }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 6,
+          "chatId": "assistant-reducer-6",
+          "roundId": "1",
+          "timestamp": 6,
+          "data": { "delta": "tools complete" }
+        },
+        {
+          "type": "turn.end",
+          "workflowSeq": 7,
+          "chatId": "assistant-reducer-6",
+          "turnId": "turn-reducer-6",
+          "timestamp": 7,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-6",
+              "status": "completed",
+              "startedAt": "2026-09-10T03:05:00.000Z",
+              "completedAt": "2026-09-10T03:05:01.000Z"
+            },
+            "finishReason": "stop",
+            "nextAction": "none"
+          }
+        },
+        {
+          "type": "agent.end",
+          "workflowSeq": 8,
+          "chatId": "assistant-reducer-6",
+          "turnId": "turn-reducer-6",
+          "timestamp": 8,
+          "data": { "finishReason": "stop", "turnStatus": "completed" }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 5,
+        "chatId": "assistant-reducer-6",
+        "messageId": "assistant-reducer-6",
+        "turnId": "turn-reducer-6",
+        "timestamp": 5,
+        "data": {
+          "reason": "resync",
+          "content": "",
+          "thinking": "",
+          "status": "streaming",
+          "turn": {
+            "id": "turn-reducer-6",
+            "status": "running",
+            "startedAt": "2026-09-10T03:05:00.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "rounds": [
+              {
+                "text": null,
+                "thinking": null,
+                "completed": false,
+                "toolCalls": [
+                  {
+                    "id": "call-string",
+                    "name": "read",
+                    "toolName": "read",
+                    "status": "success",
+                    "arguments": {},
+                    "output": "plain output"
+                  },
+                  {
+                    "id": "call-object",
+                    "name": "ls",
+                    "toolName": "ls",
+                    "status": "success",
+                    "arguments": {},
+                    "output": { "summary": "structured output" }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "suffixStart": 5,
+      "expected": {
+        "workflowSeq": 8,
+        "content": "tools complete",
+        "thinking": "",
+        "roundCount": 2,
+        "toolCount": 2,
+        "status": "completed",
+        "finishReason": "stop",
+        "terminal": true
+      }
+    },
+    {
+      "name": "process notes stay out of the answer and a corrected round returns to it",
+      "covers": ["process_phase", "phase_correction", "presentation_output", "stop"],
+      "fullEvents": [
+        {
+          "type": "turn.start",
+          "workflowSeq": 1,
+          "chatId": "assistant-reducer-7",
+          "messageId": "assistant-reducer-7",
+          "turnId": "turn-reducer-7",
+          "timestamp": 1,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-7",
+              "status": "running",
+              "startedAt": "2026-09-10T03:06:00.000Z"
+            }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 2,
+          "chatId": "assistant-reducer-7",
+          "roundId": "0",
+          "timestamp": 2,
+          "data": {
+            "delta": "我先读一下数据。"
+          }
+        },
+        {
+          "type": "message.phase",
+          "workflowSeq": 3,
+          "chatId": "assistant-reducer-7",
+          "roundId": "0",
+          "timestamp": 3,
+          "data": {
+            "phase": "process"
+          }
+        },
+        {
+          "type": "tool.start",
+          "workflowSeq": 4,
+          "chatId": "assistant-reducer-7",
+          "roundId": "0",
+          "toolCallId": "call-read",
+          "timestamp": 4,
+          "data": {
+            "name": "read",
+            "status": "running"
+          }
+        },
+        {
+          "type": "tool.end",
+          "workflowSeq": 5,
+          "chatId": "assistant-reducer-7",
+          "roundId": "0",
+          "toolCallId": "call-read",
+          "timestamp": 5,
+          "data": {
+            "name": "read",
+            "status": "success",
+            "output": {
+              "summary": "rows: 3"
+            }
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 6,
+          "chatId": "assistant-reducer-7",
+          "roundId": "1",
+          "timestamp": 6,
+          "data": {
+            "delta": "结论：三行数据都有效。"
+          }
+        },
+        {
+          "type": "message.phase",
+          "workflowSeq": 7,
+          "chatId": "assistant-reducer-7",
+          "roundId": "1",
+          "timestamp": 7,
+          "data": {
+            "phase": "process"
+          }
+        },
+        {
+          "type": "message.phase",
+          "workflowSeq": 8,
+          "chatId": "assistant-reducer-7",
+          "roundId": "1",
+          "timestamp": 8,
+          "data": {
+            "phase": "answer"
+          }
+        },
+        {
+          "type": "tool.start",
+          "workflowSeq": 9,
+          "chatId": "assistant-reducer-7",
+          "roundId": "1",
+          "toolCallId": "call-present",
+          "timestamp": 9,
+          "data": {
+            "name": "present_files",
+            "status": "running"
+          }
+        },
+        {
+          "type": "tool.end",
+          "workflowSeq": 10,
+          "chatId": "assistant-reducer-7",
+          "roundId": "1",
+          "toolCallId": "call-present",
+          "timestamp": 10,
+          "data": {
+            "name": "present_files",
+            "type": "presentation",
+            "status": "success",
+            "display": {
+              "summary": "展示 1 个文件",
+              "json": {
+                "presentation": [
+                  {
+                    "fileId": "file-public-007",
+                    "caption": "清洗后的数据"
+                  }
+                ]
+              }
+            },
+            "assets": [
+              {
+                "fileId": "file-public-007",
+                "role": "final",
+                "displayName": "clean.csv",
+                "mimeType": "text/csv"
+              }
+            ]
+          }
+        },
+        {
+          "type": "message.delta",
+          "workflowSeq": 11,
+          "chatId": "assistant-reducer-7",
+          "roundId": "2",
+          "timestamp": 11,
+          "data": {
+            "delta": "以上。"
+          }
+        },
+        {
+          "type": "message.end",
+          "workflowSeq": 12,
+          "chatId": "assistant-reducer-7",
+          "roundId": "2",
+          "timestamp": 12,
+          "data": {}
+        },
+        {
+          "type": "turn.end",
+          "workflowSeq": 13,
+          "chatId": "assistant-reducer-7",
+          "turnId": "turn-reducer-7",
+          "timestamp": 13,
+          "data": {
+            "turn": {
+              "id": "turn-reducer-7",
+              "status": "completed",
+              "startedAt": "2026-09-10T03:06:00.000Z",
+              "completedAt": "2026-09-10T03:06:01.000Z"
+            },
+            "finishReason": "stop",
+            "nextAction": "none"
+          }
+        },
+        {
+          "type": "agent.end",
+          "workflowSeq": 14,
+          "chatId": "assistant-reducer-7",
+          "turnId": "turn-reducer-7",
+          "timestamp": 14,
+          "data": {
+            "finishReason": "stop",
+            "turnStatus": "completed"
+          }
+        }
+      ],
+      "snapshotEvent": {
+        "type": "snapshot.sync",
+        "workflowSeq": 7,
+        "chatId": "assistant-reducer-7",
+        "messageId": "assistant-reducer-7",
+        "turnId": "turn-reducer-7",
+        "timestamp": 7,
+        "data": {
+          "reason": "resync",
+          "content": "",
+          "thinking": "",
+          "status": "streaming",
+          "turn": {
+            "id": "turn-reducer-7",
+            "status": "running",
+            "startedAt": "2026-09-10T03:06:00.000Z"
+          },
+          "message": {
+            "role": "assistant",
+            "content": "",
+            "rounds": [
+              {
+                "text": "我先读一下数据。",
+                "thinking": null,
+                "completed": false,
+                "phase": "process",
+                "toolCalls": [
+                  {
+                    "id": "call-read",
+                    "name": "read",
+                    "toolName": "read",
+                    "status": "success",
+                    "arguments": {},
+                    "output": {
+                      "summary": "rows: 3"
+                    }
+                  }
+                ]
+              },
+              {
+                "text": "结论：三行数据都有效。",
+                "thinking": null,
+                "completed": false,
+                "phase": "process",
+                "toolCalls": []
+              }
+            ]
+          }
+        }
+      },
+      "suffixStart": 7,
+      "expected": {
+        "workflowSeq": 14,
+        "content": "结论：三行数据都有效。\n\n以上。",
+        "thinking": "",
+        "roundCount": 3,
+        "toolCount": 2,
+        "status": "completed",
+        "finishReason": "stop",
+        "terminal": true
+      }
+    }
+  ]
+}

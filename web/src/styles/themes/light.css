@@ -1,0 +1,79 @@
+/* 浅色主题的配色取值；语义变量在 tokens.css 里引用这些值。 */
+:root {
+  --semantic-success: #10b981;
+  --semantic-warning: #f59e0b;
+  --semantic-danger: #ef4444;
+  --semantic-info: #3b82f6;
+  --semantic-success-text: #047857;
+  --semantic-warning-text: #92400e;
+  --semantic-danger-text: #b91c1c;
+  --semantic-info-text: #2563eb;
+  --app-canvas: #ffffff;
+  --app-canvas-muted: #f9fafb;
+  --app-surface: #ffffff;
+  --app-surface-elevated: #ffffff;
+  /* 普通浅灰表面与侧栏同源，组件不再各自派生一档灰。 */
+  --app-surface-sunken: var(--app-canvas-muted);
+  --app-border: rgb(0 0 0 / 0.1);
+  --app-border-strong: rgb(0 0 0 / 0.16);
+  --app-overlay: rgb(0 0 0 / 0.24);
+  --text-primary: #0f1115;
+  --text-secondary: #61666b;
+  /*
+   * 弱化文字在白底、侧栏底以及悬停、选中行的底色上都不低于 4.5:1（信息性文字的最低对比度）；
+   * --text-subtle 只用于占位、禁用与装饰
+   */
+  --text-muted: #686c72;
+  --text-subtle: #adb2b8;
+  --text-inverse: #ffffff;
+  --interaction-bg-hover: #eef0f3;
+  --interaction-bg-active: #e5e8ec;
+  --menu-scrollbar-thumb: var(--text-subtle);
+  --scrollbar-thumb: color-mix(in srgb, var(--text-muted) 48%, transparent);
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--text-muted) 68%, transparent);
+  /* 选中项的底色（侧栏会话、分段控件、菜单与弹窗里的选中行共用） */
+  --interaction-bg-selected: #ebeef2;
+  --dialog-focus-ring: color-mix(in srgb, rgb(var(--primary-600)) 18%, transparent);
+  --dialog-tag-bg: var(--dialog-control-bg);
+  --tooltip-bg: #2c2c2e;
+  --tooltip-text: #ffffff;
+  --tooltip-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.55);
+  --chat-user-text: rgb(var(--primary-900));
+  /* 从搜索跳到某条消息时，那条消息短暂高亮的底色 */
+  --message-highlight-bg: rgb(var(--primary-50) / 0.7);
+  --chat-input-surface: #ffffff;
+  --model-slider-thumb-bg: #ffffff;
+  --model-slider-track-bg: #f3f3f3;
+  --agent-preparing: #edf3fe;
+  --component-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  /* 输入框聚焦：边框换成强调色，外加一圈浅光晕 */
+  --input-focus-ring: 0 0 0 2px rgb(var(--primary-600) / 0.13);
+  --btn-border-width: 1px;
+  --tab-group-bg: color-mix(in srgb, var(--app-surface-sunken) 88%, var(--app-border) 12%);
+  --tab-active-bg: var(--app-surface);
+  --code-block-text: #383a42;
+  --code-token-keyword: #a626a4;
+  --code-token-title: #4078f2;
+  --code-token-string: #50a14f;
+  --code-token-number: #986801;
+  --code-token-comment: #a0a1a7;
+  --code-token-meta: #e45649;
+  /* Markdown 行内代码底色（消息正文与后台配置的公告 / 协议共用） */
+  --md-inline-code-bg: color-mix(in srgb, var(--text-muted) 13%, transparent);
+  /* 页面水印文字 */
+  --watermark-text: rgb(0 0 0 / 0.08);
+  --file-kind-presentation: #f97316;
+  --file-kind-generic: #64748b;
+  --file-kind-video: #8b5cf6;
+  --file-kind-audio: #ec4899;
+  --file-kind-image: #06b6d4;
+  --file-kind-archive: #f59e0b;
+  --accent: rgb(var(--primary-600));
+  --accent-hover: rgb(var(--primary-700));
+  --control-track: #e9edf2;
+  /* 网页预览的设备外框（HTML 渲染器的预览台） */
+  --preview-stage-bg: #f9f9f9;
+  --preview-frame-bg: #ffffff;
+  --preview-device-border: #cdcdcd;
+  --preview-device-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+}

@@ -1,0 +1,217 @@
+/*
+ * 页面里的出现、切换与消失。时长与缓动取 tokens.css 的 --motion-duration-* / --motion-easing。
+ * 挂在 Vue <Transition> 上的用关键帧动画（进场 / 离场各一段）；两页面板与分段滑块这类常驻元素
+ * 由组件用 Web Animations 播放位移，这里只给静止时的布局。
+ * 系统开启「减弱动态效果」时去掉位移与缩放，只保留淡入淡出，或者直接到位。
+ */
+
+@keyframes motion-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes motion-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* 从锚点一侧略微放大着出现 */
+@keyframes motion-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 从略低处升上来 */
+@keyframes motion-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
+}
+
+/* ---------- 弹出菜单（DropdownMenu 的 <Transition name="menu-pop">）；变形原点由组件按弹出方向写在行内 ---------- */
+
+.menu-pop-enter-active {
+  animation: motion-pop-in var(--motion-duration-sm) var(--motion-easing);
+}
+.menu-pop-leave-active {
+  pointer-events: none;
+  animation: motion-fade-out var(--motion-duration-xs) ease-in forwards;
+}
+
+/* ---------- 文字更替：新文字升起淡入；旧文字要么淡出，要么由使用处直接让位 ---------- */
+
+.text-rise-enter {
+  animation: motion-rise-in var(--motion-duration-sm) var(--motion-easing);
+}
+.text-fade-leave {
+  animation: motion-fade-out var(--motion-duration-xs) ease-in forwards;
+}
+
+/* ---------- 复制反馈（CopyFeedbackIcon）：外框按图标尺寸固定，切换时新旧图标在同一格里交叉淡变 ---------- */
+
+.copy-feedback {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+}
+.copy-feedback__icon {
+  grid-area: 1 / 1;
+}
+.copy-feedback-enter-active {
+  animation: motion-fade-in var(--motion-duration-sm) ease-in-out;
+}
+.copy-feedback-leave-active {
+  animation: motion-fade-out var(--motion-duration-sm) ease-in-out forwards;
+}
+
+/* ---------- 两页面板（PanelSwitcher）：两页叠在同一格，只有当前页可见；外框高度由组件写入 ---------- */
+
+.panel-switcher {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+}
+.panel-switcher__page {
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+}
+.panel-switcher__page:not([data-current='true']) {
+  visibility: hidden;
+}
+.panel-switcher__content {
+  display: flow-root;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 出现只保留淡入；离场与图标切换直接到位 */
+  .menu-pop-enter-active,
+  .text-rise-enter {
+    animation-name: motion-fade-in;
+  }
+  .menu-pop-leave-active,
+  .text-fade-leave,
+  .copy-feedback-enter-active,
+  .copy-feedback-leave-active {
+    animation: none;
+  }
+}
+
+/* 加载指示环（components/common/UiSpinner.vue）：匀速旋转；减弱动效时放慢而不停止，进行中状态仍可感知 */
+.ui-spinner {
+  animation: ui-spinner-rotate 1s linear infinite;
+}
+
+@keyframes ui-spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* 流式正文与活动行不做过渡：新块直接出现，活动行原地换字（见 views/chat/components/Message/Text/useMessageActivityRow.ts）。 */
+
+.chat-message-enter {
+  animation: chat-message-appear var(--motion-duration-lg) var(--motion-easing);
+}
+
+@keyframes chat-message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-message-enter {
+    animation-duration: 1ms;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-footer-input-shell .btn-send,
+  .chat-footer-input-shell .btn-stop {
+    transition: none;
+  }
+
+  .chat-footer-input-shell .btn-send:active:not(:disabled),
+  .chat-footer-input-shell .btn-stop:active:not(:disabled) {
+    transform: none;
+  }
+
+  .chat-sidebar-frame,
+  .message-user-bubble-content,
+  .chat-sidebar-surface,
+  .chat-layout-offset,
+  .chat-sidebar-layer,
+  .chat-sidebar-brand-logo,
+  .chat-sidebar-brand-expand,
+  .chat-sidebar-brand-name,
+  .model-selector-trigger-chevron,
+  .model-selector-item,
+  .model-selector-model-entry,
+  .model-selector-entry-chevron,
+  .discrete-slider-fill,
+  .discrete-slider-tick,
+  .discrete-slider-thumb,
+  .discrete-slider-thumb-face,
+  .model-selector-check-enter-active,
+  .model-selector-check-leave-active {
+    transition-duration: 1ms;
+  }
+
+  .chat-sidebar-layer.is-active {
+    transition-delay: 0ms;
+  }
+
+  .chat-sidebar-layer,
+  .model-selector-entry-chevron,
+  .model-selector-item:active,
+  .model-selector-model-entry:active,
+  .model-selector-check-enter-from,
+  .model-selector-check-leave-to {
+    transform: none;
+    filter: none;
+    scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discrete-slider-thumb-face {
+    transform: none !important;
+  }
+
+  .discrete-slider-tick.is-hovered {
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* 通用淡入淡出（只改透明度，不需要减弱动效的额外处理），如设置弹窗切换页签 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--motion-duration-xl) ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

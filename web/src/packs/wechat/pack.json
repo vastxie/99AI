@@ -1,0 +1,18 @@
+{
+  "id": "wechat",
+  "tier": "feature",
+  "description": "微信公众号扫码 / 微信内授权登录、开放平台网站登录与微信 Bot 绑定的用户端部分",
+  "flag": "VITE_WECHAT_ENABLED",
+  "identifiers": [
+    "wechat",
+    "Wechat",
+    "WECHAT",
+    "weixin",
+    "Weixin",
+    "WEIXIN",
+    "micromessenger",
+    "WeixinJSBridge",
+    "wechat_official",
+    "wechat_open_web"
+  ]
+}
