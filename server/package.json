@@ -62,7 +62,7 @@
     "reflect-metadata": "0.2.2",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.4",
-    "stripe": "^22.6.2",
+    "stripe": "^23.0.1",
     "tencentcloud-sdk-nodejs-asr": "4.1.205",
     "tencentcloud-sdk-nodejs-ses": "4.1.221",
     "tencentcloud-sdk-nodejs-sms": "4.1.221",
