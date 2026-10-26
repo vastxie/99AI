@@ -8,7 +8,7 @@
 
 简体中文 · [English](./README.en.md)
 
-[安装部署](./site/deployment/index.md) · [后台配置](./site/configuration/index.md) · [二次开发](./site/guide/development.md) · [更新日志](./site/changelog.md)
+[安装部署](./site/deployment/index.md) · [后台配置](./site/configuration/index.md) · [二次开发](./site/guide/development.md) · [更新日志](./site/changelog.md) · [交流群](#交流群)
 
 ## 演示视频
 
@@ -45,6 +45,12 @@ cd 99AI
 后端使用 NestJS，用户端与管理端使用 Vue 3。你可以通过 Skills、MCP、沙箱镜像和可裁剪的扩展包构建自己的 Agent 产品。
 
 [贡献指南](./CONTRIBUTING.md) · [扩展包指南](./site/deployment/packs.md) · [Issues](https://github.com/vastxie/99AI/issues) · [安全策略](./SECURITY.md)
+
+## 交流群
+
+微信扫码，备注 **99** 进群交流。进群后请先阅读群公告；作者不提供私聊技术咨询。
+
+<img src="https://github.com/user-attachments/assets/9fed8343-73ae-43b0-9ce7-dc1a4c30c7a5" alt="微信扫码备注 99 加入交流群" width="200">
 
 ---
 

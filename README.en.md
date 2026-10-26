@@ -8,7 +8,7 @@ From tasks in the browser to sandboxed execution and file delivery. Includes a w
 
 [简体中文](./README.md) · English
 
-[Deployment](./site/deployment/index.md) · [Configuration](./site/configuration/index.md) · [Development](./site/guide/development.md) · [Changelog](./site/changelog.md)
+[Deployment](./site/deployment/index.md) · [Configuration](./site/configuration/index.md) · [Development](./site/guide/development.md) · [Changelog](./site/changelog.md) · [Community](#community)
 
 ## Demo video
 
@@ -47,6 +47,12 @@ The linked guides are currently in Chinese.
 Built with NestJS and Vue 3. Use Skills, MCP, sandbox images, and removable extension packs to build your own agent product.
 
 [Contributing](./CONTRIBUTING.md) · [Extension packs](./site/deployment/packs.md) · [Issues](https://github.com/vastxie/99AI/issues) · [Security](./SECURITY.md)
+
+## Community
+
+Scan with WeChat and include **99** in your friend request to join the group. Please read the group notice after joining. The author does not offer private technical consultations.
+
+<img src="https://github.com/user-attachments/assets/9fed8343-73ae-43b0-9ce7-dc1a4c30c7a5" alt="Scan with WeChat and include 99 to join the community" width="200">
 
 ---
 
