@@ -4,7 +4,7 @@
   "private": true,
   "description": "commerce 扩展包自己的运行时依赖：支付二维码（qrcode / @vueuse/integrations）与支付方式图标（@iconify/vue）。删包即随包卸载。",
   "dependencies": {
-    "@iconify/vue": "^5.0.3",
+    "@iconify/vue": "^5.0.4",
     "@vueuse/integrations": "^15.0.0",
     "qrcode": "^1.5.4"
   }
