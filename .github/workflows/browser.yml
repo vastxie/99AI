@@ -71,6 +71,9 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
+          # 与服务端 TypeORM 的 timezone '+08:00' 一致：否则库里 DEFAULT CURRENT_TIMESTAMP（UTC）
+          # 被按 +08:00 读回，自动生成的时间整体偏 8 小时。用 POSIX 写法（东八区），不依赖镜像里的 tzdata
+          TZ: CST-8
           MYSQL_ROOT_PASSWORD: journey-root
           MYSQL_DATABASE: aiweb_journey
         ports:

@@ -10,7 +10,7 @@
 
 ## 环境
 
-- Node.js ≥ 22.15（NestJS 12 构建所需，pnpm 11 本身要求 ≥ 22.13；推荐 24，见 `.nvmrc`；运行 server 测试需要 ≥ 24.9）、pnpm 11（各 `package.json` 的 `packageManager` 固定为同一版本，`corepack enable` 后自动使用）、MySQL 8（utf8mb4）、Redis；用户沙箱需要 Docker（生产另需 gVisor）。
+- Node.js ≥ 22.15（NestJS 12 构建所需，pnpm 11 本身要求 ≥ 22.13；推荐 24，见 `.nvmrc`；运行 server 测试需要 ≥ 24.9）、pnpm 11（各 `package.json` 的 `packageManager` 固定为同一版本，`corepack enable` 后自动使用）、MySQL 8（utf8mb4；时区用东八区 `+08:00`，与 server 里 TypeORM 的 `timezone` 一致，否则数据库自动生成的时间会整体偏移）、Redis；用户沙箱需要 Docker（生产另需 gVisor）。
 - 依赖只在各端目录安装：`server/`、`web/`、`admin/`、`site/` 各自 `pnpm install`；仓库根没有依赖。web / admin 里带 `package.json` 的扩展包是 workspace 子包，同一次 `pnpm install` 会一并装好。
 - 后端配置复制 `server/.env.example` 为 `server/.env`；全新空库先 `node dist/main db:init`。
 
