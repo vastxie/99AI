@@ -121,3 +121,37 @@ describe('StripeService.retrieveSessionForQuery', () => {
     expect(retrieve.mock.calls[1]).toEqual(['cs_1', { expand: ['payment_intent', 'line_items'] }]);
   });
 });
+
+describe('StripeService.createCheckoutSession', () => {
+  it('keeps the request on the pinned acacia API version and still limits Checkout to cards', async () => {
+    // stripe-node 23 的类型删掉了 payment_method_types；请求固定在 2024-12-18.acacia，参数仍要原样发出
+    const service = new StripeService(
+      createGlobalConfigFake(jest.fn, {
+        stripeSecretKey: 'sk_test_smoke_only_a',
+        siteName: 'Demo',
+        siteUrl: 'https://example.com',
+      }) as any,
+    );
+    const client = await (service as any).getStripeClient();
+    jest.spyOn(Logger, 'log').mockImplementation((): void => undefined);
+    const create = jest.spyOn(client.checkout.sessions, 'create').mockResolvedValue({
+      id: 'cs_test_2',
+      payment_status: 'unpaid',
+      url: 'https://checkout.stripe.com/c/pay/cs_test_2',
+      amount_total: 1234,
+      currency: 'usd',
+    } as any);
+
+    await expect(service.createCheckoutSession('12.34', 'ORDER_002')).resolves.toMatchObject({
+      id: 'cs_test_2',
+      amount_total: 1234,
+    });
+    expect(client.getApiField('version')).toBe('2024-12-18.acacia');
+    const [params] = create.mock.calls[0];
+    expect(params.payment_method_types).toEqual(['card']);
+    expect(params).not.toHaveProperty('allowed_payment_method_types');
+    expect(params.mode).toBe('payment');
+    expect(params.line_items[0].price_data.unit_amount).toBe(1234);
+    expect(params.metadata).toEqual({ orderId: 'ORDER_002' });
+  });
+});

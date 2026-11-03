@@ -3,7 +3,7 @@ import { createHash } from 'crypto';
 import { getErrorStack } from '@/common/utils/error-stack.util';
 import { GlobalConfigService } from '@/modules/globalConfig/globalConfig.service';
 import { buildPaymentCallbackUrls, validateSiteUrl } from '../payment-callback-url.helper';
-// stripe 22 的 CommonJS 入口是 module.exports = Stripe（没有 .default），不能用默认导入
+// stripe 22/23 的 CommonJS 入口是 module.exports = Stripe（没有 .default），不能用默认导入
 import Stripe = require('stripe');
 
 /** 与 Stripe.Checkout.Session 一致：url / amount_total / currency 在部分模式下为 null */
@@ -85,7 +85,11 @@ export class StripeService {
     try {
       Logger.log(`创建Stripe订单`, 'StripeService');
 
-      const session = await stripe.checkout.sessions.create({
+      // 请求固定在 API 版本 2024-12-18.acacia（见 getStripeClient），该版本仍支持 payment_method_types；
+      // stripe-node 23 的类型按 2026-09-30.endive 生成，已删掉这个参数（改为 allowed_payment_method_types，
+      // 语义也不同：只是动态支付方式的过滤器）。这里继续发送 ['card']，与升级前的请求完全一致；
+      // 升级 apiVersion 时再改用新参数并在测试模式核对 Checkout 页可选的支付方式。
+      const params: Stripe.Checkout.SessionCreateParams & { payment_method_types: string[] } = {
         payment_method_types: ['card'],
         mode: 'payment',
         line_items: [
@@ -111,7 +115,8 @@ export class StripeService {
             orderId,
           },
         },
-      });
+      };
+      const session = await stripe.checkout.sessions.create(params);
 
       Logger.log(`Stripe Session创建成功`, 'StripeService');
       return {
