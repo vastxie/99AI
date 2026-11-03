@@ -103,8 +103,8 @@ importers:
         specifier: ^10.11.1
         version: 10.11.1(@typescript-eslint/parser@8.71.1(eslint@10.12.0(jiti@1.21.7))(typescript@6.0.3))(eslint@10.12.0(jiti@1.21.7))(vue-eslint-parser@10.4.0(eslint@10.12.0(jiti@1.21.7)))
       happy-dom:
-        specifier: 20.14.5
-        version: 20.14.5
+        specifier: 21.0.4
+        version: 21.0.4
       jsdom:
         specifier: ^30.1.2
         version: 30.1.2
@@ -134,7 +134,7 @@ importers:
         version: 8.3.3(@types/node@24.19.1)(jiti@1.21.7)(terser@5.51.2)(yaml@2.8.3)
       vitest:
         specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2)(vite@8.3.3(@types/node@24.19.1)(jiti@1.21.7)(terser@5.51.2)(yaml@2.8.3))
+        version: 5.0.3(@types/node@24.19.1)(happy-dom@21.0.4)(jsdom@30.1.2)(vite@8.3.3(@types/node@24.19.1)(jiti@1.21.7)(terser@5.51.2)(yaml@2.8.3))
       vue-tsc:
         specifier: 3.3.11
         version: 3.3.11(typescript@6.0.3)
@@ -2316,8 +2316,8 @@ packages:
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
 
-  happy-dom@20.14.5:
-    resolution: {integrity: sha512-x/RzkpWO40bTjIoT30iQtt64FLLmH/iRcUCN2X//bLx7H3ifkdfPXyqsro/OYtqzIAhiLMMA7mmiOR9C3NOKjQ==}
+  happy-dom@21.0.4:
+    resolution: {integrity: sha512-tFm+GaLBgo6o0awHnvHaNoraVo27qJ+2tZEtZ+cIa08hXbeitrxAJajLI05hsUy/2/YTKcUjQYzHe5mCcraLBw==}
     engines: {node: '>=20.0.0'}
 
   has-bigints@1.1.0:
@@ -6238,7 +6238,7 @@ snapshots:
 
   hachure-fill@0.5.2: {}
 
-  happy-dom@20.14.5:
+  happy-dom@21.0.4:
     dependencies:
       '@types/node': 24.19.1
       '@types/whatwg-mimetype': 3.0.2
@@ -7749,7 +7749,7 @@ snapshots:
       terser: 5.51.2
       yaml: 2.8.3
 
-  vitest@5.0.3(@types/node@24.19.1)(happy-dom@20.14.5)(jsdom@30.1.2)(vite@8.3.3(@types/node@24.19.1)(jiti@1.21.7)(terser@5.51.2)(yaml@2.8.3)):
+  vitest@5.0.3(@types/node@24.19.1)(happy-dom@21.0.4)(jsdom@30.1.2)(vite@8.3.3(@types/node@24.19.1)(jiti@1.21.7)(terser@5.51.2)(yaml@2.8.3)):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.3(vite@8.3.3(@types/node@24.19.1)(jiti@1.21.7)(terser@5.51.2)(yaml@2.8.3))
@@ -7767,7 +7767,7 @@ snapshots:
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 24.19.1
-      happy-dom: 20.14.5
+      happy-dom: 21.0.4
       jsdom: 30.1.2
     transitivePeerDependencies:
       - msw
