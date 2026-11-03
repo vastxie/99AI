@@ -13,6 +13,11 @@ function conversations(page: Page) {
   return page.getByRole('button', { name: 'Smoke conversation', exact: true })
 }
 
+/** 侧栏里不是当前打开的那个对话：两个对话标题相同，按「非当前」定位，不依赖列表排序何时稳定 */
+function otherConversation(page: Page) {
+  return conversations(page).and(page.locator(':not([aria-current="page"])'))
+}
+
 test('密码登录后问候语带昵称；退出后回到访客', async ({ page }) => {
   const user = await registerUser()
   await login(page, user)
@@ -70,13 +75,13 @@ test('新开一个对话后，从侧栏切回原来的对话', async ({ page }) 
   await expect(tables).toHaveCount(2)
   await expect(conversations(page)).toHaveCount(2)
 
-  // 列表按最近使用排序：第二项是先建的那个对话
-  await conversations(page).nth(1).click()
+  // 不按位置点：新会话的排序要等本轮结束（refreshAfterTurn）才稳定，按位置点可能点到当前会话本身
+  await otherConversation(page).click()
   await expect(page.getByText('第一个对话的问题')).toBeVisible()
   await expect(reply(page, TOOL_TURN_DONE)).toBeVisible()
   await expect(tables).toHaveCount(0)
 
-  await conversations(page).nth(0).click()
+  await otherConversation(page).click()
   await expect(tables).toHaveCount(2)
   await expect(page.getByText('第一个对话的问题')).toBeHidden()
 })

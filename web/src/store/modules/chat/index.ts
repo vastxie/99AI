@@ -250,15 +250,44 @@ function getConversationGroupActivityValue(group: Chat.ConversationGroup) {
   )
 }
 
+/*
+ * 侧栏「最近使用」排序只看 updatedAt，它有两种来源：
+ * - 服务端时间（列表、建会话、标题推送）：精度只到秒，部署时区配错时还会整体偏移；
+ * - 本机时间（本机刚用过的会话顶到最前）。
+ * 两者混排不可靠，所以统一三条规则：
+ * 1. 本机刚用过（新建、一轮结束、改名置顶等）一律用 nextTopActivity：比列表里最新的还新，必定排第一；
+ * 2. 合入服务端推来的同一会话时取较大的更新时间，旧的服务端时间不把已经顶到前面的会话压回去；
+ * 3. 整张列表从服务端重拉时以服务端顺序为准（queryMyGroup 直接替换）。
+ */
 function sortConversationGroups(groups: Chat.ConversationGroup[]) {
   return groups.toSorted((left, right) => {
     const stickyDelta = Number(Boolean(right.isSticky)) - Number(Boolean(left.isSticky))
     if (stickyDelta !== 0) return stickyDelta
-    return (
-      getConversationGroupUpdatedAtValue(right.updatedAt) -
-      getConversationGroupUpdatedAtValue(left.updatedAt)
-    )
+    return getConversationGroupActivityValue(right) - getConversationGroupActivityValue(left)
   })
+}
+
+/** 本机刚用过的会话该用的更新时间：取本机现在与列表最新者 +1 中的较大值（本机时钟慢于服务端时也排第一） */
+function nextTopActivity(groups: Chat.ConversationGroup[]) {
+  const latest = groups.reduce(
+    (max, item) => Math.max(max, getConversationGroupActivityValue(item)),
+    0
+  )
+  return Math.max(Date.now(), latest + 1)
+}
+
+/** 把 group 合入列表并重排；同一会话已在列表里时，更新时间取两者较大值（规则 2） */
+function mergeConversationGroup(groups: Chat.ConversationGroup[], group: Chat.ConversationGroup) {
+  const existing = groups.find(item => item.uuid === group.uuid)
+  const merged =
+    existing &&
+    getConversationGroupActivityValue(existing) > getConversationGroupActivityValue(group)
+      ? { ...group, updatedAt: existing.updatedAt ?? existing.createdAt }
+      : group
+  return {
+    merged,
+    groups: sortConversationGroups([merged, ...groups.filter(item => item.uuid !== group.uuid)]),
+  }
 }
 
 function getConversationGroupChannel(group?: Pick<Chat.ConversationGroup, 'channel'> | null) {
@@ -634,26 +663,30 @@ export const useChatStore = defineStore('chat', {
       const group = workspaceId ? this.groupList.find(item => item.uuid === workspaceId) : undefined
       if (!group?.title || options.resumed) {
         await this.queryMyGroup()
-        return
+        // 恢复接上的那一轮可能早就结束了：保持服务端顺序
+        if (options.resumed) return
       }
-      const latest = this.groupList.reduce(
-        (max, item) => Math.max(max, getConversationGroupUpdatedAtValue(item.updatedAt)),
-        0
-      )
-      const updatedAt = Math.max(Date.now(), latest + 1)
-      this.groupList = sortConversationGroups(
-        this.groupList.map(item => (item.uuid === workspaceId ? { ...item, updatedAt } : item))
-      )
+      // 刚结束一轮：顶到最前。重拉列表后也要顶：服务端更新时间只到秒，同一秒内的两个会话顺序不定
+      this.bumpConversationGroup(workspaceId)
+    },
+
+    /** 本机刚用过的会话排到最前（规则 1）；不在列表里时什么也不做 */
+    bumpConversationGroup(workspaceId?: string) {
+      if (!workspaceId) return
+      const current = this.groupList.find(item => item.uuid === workspaceId)
+      if (!current) return
+      this.groupList = mergeConversationGroup(this.groupList, {
+        ...current,
+        updatedAt: nextTopActivity(this.groupList),
+      }).groups
     },
 
     upsertConversationGroup(groupInput: ChatGroupSummary | Chat.ConversationGroup | any) {
       const group = normalizeConversationGroup(groupInput)
       if (!group) return null
-      this.groupList = sortConversationGroups([
-        group,
-        ...this.groupList.filter(item => item.uuid !== group.uuid),
-      ])
-      return group
+      const { merged, groups } = mergeConversationGroup(this.groupList, group)
+      this.groupList = groups
+      return merged
     },
 
     async updateConversationGroup(
@@ -672,18 +705,14 @@ export const useChatStore = defineStore('chat', {
         return true
       }
 
-      const nextGroup: Chat.ConversationGroup = {
+      this.groupList = mergeConversationGroup(this.groupList, {
         ...current,
         ...(input.title !== undefined ? { title: normalizeConversationTitle(input.title) } : {}),
         ...(input.isSticky !== undefined ? { isSticky: input.isSticky } : {}),
         ...(input.config !== undefined ? { config: input.config } : {}),
         ...(input.params !== undefined ? { params: input.params } : {}),
-        updatedAt: Date.now(),
-      }
-      this.groupList = sortConversationGroups([
-        nextGroup,
-        ...this.groupList.filter(item => item.uuid !== uuid),
-      ])
+        updatedAt: nextTopActivity(this.groupList),
+      }).groups
       this.persist()
       return true
     },
@@ -813,7 +842,11 @@ export const useChatStore = defineStore('chat', {
         })
         // 期间身份换了：旧身份建好的会话不放进新身份的列表，也不搬新身份的首页草稿与附件
         if (epoch !== chatEpoch) throw new IdentityChangedError()
-        const group = this.upsertConversationGroup(pickResponseData<ChatGroupSummary>(res))
+        const created = normalizeConversationGroup(pickResponseData<ChatGroupSummary>(res))
+        // 刚建的会话就是最近使用的（规则 1）：不用服务端的建档时间，免得排到刚被本机顶过的会话下面
+        const group =
+          created &&
+          this.upsertConversationGroup({ ...created, updatedAt: nextTopActivity(this.groupList) })
         if (!group) throw new Error(t('chat.createConversationFailed'))
         this.active = group.uuid
         this.chatList = []
