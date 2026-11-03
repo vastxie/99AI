@@ -45,7 +45,7 @@
     "unplugin-auto-import": "21.1.0",
     "unplugin-vue-components": "32.1.0",
     "vite": "8.3.5",
-    "vue-tsc": "3.3.14"
+    "vue-tsc": "3.3.11"
   },
   "name": "99agent-admin",
   "description": "99Agent admin console"
