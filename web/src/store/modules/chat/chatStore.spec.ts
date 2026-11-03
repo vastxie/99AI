@@ -2041,6 +2041,82 @@ describe('一轮结束后的侧栏更新', () => {
   })
 })
 
+describe('侧栏排序：服务端时间与本机时间混排', () => {
+  const EIGHT_HOURS = 8 * 60 * 60 * 1000
+
+  it('新建的会话立刻排第一：服务端建档时间偏旧（时区配错）也不排到刚顶过的会话下面', async () => {
+    const store = useChatStore()
+    store.groupList = [
+      { ...makeGroup(OTHER_GID, {}), title: '别的会话', updatedAt: Date.now() },
+    ] as any
+    vi.mocked(fetchCreateChatGroupAPI).mockResolvedValueOnce({
+      success: true,
+      data: {
+        gid: GID,
+        title: '新对话',
+        createdAt: new Date(Date.now() - EIGHT_HOURS).toISOString(),
+        updatedAt: new Date(Date.now() - EIGHT_HOURS).toISOString(),
+      },
+    } as any)
+    await expect(store.initializeWorkspace(0, { modelInfo: {} })).resolves.toBe(GID)
+    expect(store.groupList.map(item => item.uuid)).toEqual([GID, OTHER_GID])
+  })
+
+  it('服务端推来同一会话的旧更新时间：不把已经顶到前面的会话压回去，标题照常更新', async () => {
+    const store = useChatStore()
+    store.groupList = [
+      { ...makeGroup(OTHER_GID, {}), title: '别的会话', updatedAt: 2000 },
+      { ...makeGroup(GID, {}), title: '', updatedAt: 1000 },
+    ] as any
+    store.bumpConversationGroup(GID)
+    expect(store.groupList[0].uuid).toBe(GID)
+
+    store.upsertConversationGroup({ gid: GID, title: '周报', updatedAt: 1500 })
+    expect(store.groupList.map(item => item.uuid)).toEqual([GID, OTHER_GID])
+    expect(store.groupList[0].title).toBe('周报')
+
+    // 服务端时间确实更新时以它为准
+    store.upsertConversationGroup({
+      gid: OTHER_GID,
+      title: '别的会话',
+      updatedAt: Date.now() + 60_000,
+    })
+    expect(store.groupList[0].uuid).toBe(OTHER_GID)
+  })
+
+  it('服务端时间只到秒、本机到毫秒：同一秒内先顶过的会话不被秒级时间排乱', () => {
+    const store = useChatStore()
+    const second = Math.floor(Date.now() / 1000) * 1000
+    store.groupList = [
+      { ...makeGroup(OTHER_GID, {}), title: '别的会话', updatedAt: second + 900 },
+      { ...makeGroup(GID, {}), title: '周报', updatedAt: second - 5000 },
+    ] as any
+    store.bumpConversationGroup(GID)
+    // 标题推送带的是截到秒的服务端时间（比本机顶过的时间旧）
+    store.upsertConversationGroup({
+      gid: GID,
+      title: '周报',
+      updatedAt: new Date(second).toISOString(),
+    })
+    expect(store.groupList.map(item => item.uuid)).toEqual([GID, OTHER_GID])
+  })
+
+  it('还没有标题的会话一轮结束：重拉列表后仍排第一（服务端同一秒内的两条顺序不定）', async () => {
+    const store = useChatStore()
+    const sameSecond = new Date(Math.floor(Date.now() / 1000) * 1000).toISOString()
+    store.groupList = [{ ...makeGroup(GID, {}), title: '' }] as any
+    vi.mocked(fetchQueryChatGroupsAPI).mockResolvedValueOnce({
+      success: true,
+      data: [
+        { gid: OTHER_GID, title: '别的会话', updatedAt: sameSecond },
+        { gid: GID, title: '周报', updatedAt: sameSecond },
+      ],
+    } as any)
+    await store.refreshAfterTurn(GID)
+    expect(store.groupList.map(item => item.uuid)).toEqual([GID, OTHER_GID])
+  })
+})
+
 describe('消息缓存的上限', () => {
   it(`只保留最近打开的 ${MESSAGE_CACHE_LIMIT} 个会话的消息缓存；当前会话不丢，重新打开的排到最新`, () => {
     const store = useChatStore()
