@@ -4,6 +4,7 @@ name: Packs
 # 这里独立成一条，只在扩展包与脚本变更时触发。
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       # 评分卡读取三端的内核与扩展包源码、宿主依赖与共享脚本，这些改动都要重跑

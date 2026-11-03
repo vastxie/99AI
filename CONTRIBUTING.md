@@ -45,7 +45,9 @@
 | packages | `packages/contracts` 与 `packages/runtime-core` 各自 `pnpm check`                                                                                                                            |
 | 根目录   | `node scripts/pack-scorecard.mjs --min-grade A`、`node scripts/check-kernel-budget.mjs`、`node scripts/check-kernel-edges.mjs`；改内核边界后再跑 `node scripts/check-pack-removal.mjs --all` |
 
-CI 有九个 workflow（server / web / admin / site / packs / sandbox / smoke / browser / source-secrets），除 smoke 与 browser 外本地命令与之一一对应。smoke 会真实启动服务：连上 MySQL 与 Redis 后先 `node dist/main db:init`，再启动 `node scripts/smoke/mock-openai.mjs`（模拟模型）和 `node dist/main`，最后运行 `node scripts/smoke/run-smoke.mjs`；环境变量以 `.github/workflows/smoke.yml` 为准，请使用一次性的测试库。
+CI 有九个 workflow（server / web / admin / site / packs / sandbox / smoke / browser / source-secrets），均可在仓库 Actions 页面选择分支后手动运行，用于补跑未触发的检查。手动运行 smoke 只验证当前版本，不执行“前一个提交建库”的升级路径检查。
+
+除 smoke 与 browser 外，本地命令与 CI 一一对应。smoke 会真实启动服务：连上 MySQL 与 Redis 后先 `node dist/main db:init`，再启动 `node scripts/smoke/mock-openai.mjs`（模拟模型）和 `node dist/main`，最后运行 `node scripts/smoke/run-smoke.mjs`；环境变量以 `.github/workflows/smoke.yml` 为准，请使用一次性的测试库。
 
 browser 用无头浏览器走一遍主流程（登录、对话与工具、文件下载、切换会话、停止、断线重连、后台改配置、后台新增 / 修改 / 删除模型、手机宽度下的表格），用例在 `web/e2e/`。它对着一套已经启动的环境跑，自己不启动服务：
 

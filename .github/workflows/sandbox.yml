@@ -4,6 +4,7 @@ name: Sandbox image
 # runsc 下的基本执行链路由 smoke.yml 的 gvisor job 覆盖；容量上限与联网代理仍需在宿主机上人工验收（见 sandbox/README.md）。
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'sandbox/**'
