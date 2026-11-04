@@ -47,10 +47,19 @@ export function normalizeHistoricalAssistantRound(value: unknown): HistoricalAss
       round.text !== null &&
       typeof round.text !== 'string') ||
     (hasToolCalls && !Array.isArray(round.toolCalls));
+  const toolCalls = Array.isArray(round.toolCalls) ? round.toolCalls : [];
+  const hosted = toolCalls.filter(tool => tool?.origin === 'hosted');
   return {
     value: round,
-    text: typeof round.text === 'string' ? round.text : '',
-    toolCalls: Array.isArray(round.toolCalls) ? round.toolCalls : [],
+    text: [
+      typeof round.text === 'string' ? round.text : '',
+      ...hosted.map(
+        tool => `[原生工具观察 ${tool.status}]\n${getHistoricalToolModelContent(tool)}`,
+      ),
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    toolCalls: toolCalls.filter(tool => tool?.origin !== 'hosted'),
     malformed,
   };
 }
@@ -58,7 +67,7 @@ export function normalizeHistoricalAssistantRound(value: unknown): HistoricalAss
 export function getHistoricalToolModelContent(
   toolCall: any,
 ): ReturnType<typeof getToolModelContent> {
-  if (toolCall?.status === 'loading') return INTERRUPTED_HISTORICAL_TOOL_CONTENT;
+  if (!['success', 'error'].includes(toolCall?.status)) return INTERRUPTED_HISTORICAL_TOOL_CONTENT;
   const content = getToolModelContent(toolCall);
   if (toolCall?.status === 'error' && content === '工具执行完成') {
     return FAILED_HISTORICAL_TOOL_CONTENT;

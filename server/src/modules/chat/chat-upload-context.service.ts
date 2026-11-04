@@ -19,10 +19,7 @@ export class ChatUploadContextService {
   }
 
   resolveApiToolName(toolCall: { toolName?: unknown }): string {
-    if (!this.isValidApiToolName(toolCall?.toolName)) {
-      throw new Error('历史工具调用缺少有效工具名');
-    }
-    return toolCall.toolName;
+    return this.isValidApiToolName(toolCall?.toolName) ? toolCall.toolName : '';
   }
 
   getUploadUrl(item: any): string {

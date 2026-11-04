@@ -891,6 +891,9 @@ describe('tool-result-payload frontend projection', () => {
   it('keeps hosted web search sources after repeated frontend and backend projection', () => {
     const hostedToolCall = {
       id: 'hosted_web_search_test',
+      origin: 'hosted',
+      toolName: 'openai_web_search',
+      model: { content: 'HOSTED_OBSERVATION_FACT' },
       displayName: '联网搜索',
       name: '联网搜索',
       status: 'success',
@@ -930,6 +933,12 @@ describe('tool-result-payload frontend projection', () => {
     };
 
     const firstFrontend = toFrontendToolCall(hostedToolCall);
+    const authoritative = toBackendToolCall(hostedToolCall);
+    expect(authoritative.origin).toBe('hosted');
+    expect(authoritative.toolName).toBe('openai_web_search');
+    expect(authoritative.model.content).toBe('HOSTED_OBSERVATION_FACT');
+    expect(firstFrontend.origin).toBeUndefined();
+    expect(firstFrontend.model).toBeUndefined();
     const secondFrontend = toFrontendToolCall(firstFrontend);
     const backendProjection = toBackendToolCall(secondFrontend);
 

@@ -97,6 +97,7 @@ export interface AgentLoopOptions {
       | 'text'
       | 'tool_call'
       | 'tool_result'
+      | 'tool_update'
       | 'progress'
       | 'round_phase'
       | 'round_complete'

@@ -82,6 +82,8 @@ export interface ModelStreamToolCallDelta {
 }
 
 export interface ModelStreamHostedToolCall {
+  /** 已结束调用的元数据补充，不再次启动或结束工具。 */
+  update?: true;
   id: string;
   name: string;
   displayName?: string;

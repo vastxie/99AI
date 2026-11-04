@@ -3,6 +3,7 @@ import { ChatLogStatus } from '@/constants/chatLogStatus'
 import type { AgentEvent } from '@99agent/contracts'
 import { resolveChatTerminalStatus } from './events'
 import { createAgentStreamSession, type FrameScheduler } from './streamSession'
+import { buildMessageActivity } from '../components/Message/Text/activityTimeline'
 
 /** 恢复投影相关的用例不关心节拍：每次增量立即落盘 */
 const syncFrameScheduler: FrameScheduler = {
@@ -382,6 +383,83 @@ describe('createAgentStreamSession recovery projection', () => {
 describe('createAgentStreamSession reply phases', () => {
   const lastMessage = (patches: Partial<Chat.Chat>[]) =>
     JSON.parse(String(patches.filter(patch => 'message' in patch).at(-1)?.message))
+
+  it('keeps completed search activity settled while the answer streams and late sources arrive', async () => {
+    const patches: Partial<Chat.Chat>[] = []
+    const session = createAgentStreamSession({
+      cid: 'assistant_1',
+      applyPatch: patch => patches.push(patch),
+      frameScheduler: syncFrameScheduler,
+      smoothReveal: false,
+    })
+    const source = { url: 'https://example.com/first' }
+    await session.applyEvent(
+      makeEvent({
+        type: 'tool.start',
+        seq: 1,
+        roundId: '0',
+        toolCallId: 'native_1',
+        data: {
+          name: 'openai_web_search',
+          type: 'search',
+          status: 'running',
+          output: { sources: [source] },
+        },
+      })
+    )
+    await session.applyEvent(
+      makeEvent({
+        type: 'tool.end',
+        seq: 2,
+        roundId: '0',
+        toolCallId: 'native_1',
+        data: {
+          name: 'openai_web_search',
+          type: 'search',
+          status: 'success',
+          output: { sources: [source] },
+        },
+      })
+    )
+    await session.applyEvent(
+      makeEvent({
+        type: 'message.delta',
+        seq: 3,
+        roundId: '0',
+        data: { delta: 'Answer is streaming.' },
+      })
+    )
+    const late = { url: 'https://example.org/late' }
+    await session.applyEvent(
+      makeEvent({
+        type: 'tool.update',
+        seq: 4,
+        roundId: '0',
+        toolCallId: 'native_1',
+        data: {
+          name: 'openai_web_search',
+          type: 'search',
+          status: 'success',
+          output: { sources: [source], results: [late] },
+        },
+      })
+    )
+    await session.applyEvent(
+      makeEvent({ type: 'message.delta', seq: 5, roundId: '0', data: { delta: ' More text.' } })
+    )
+    const message = lastMessage(patches)
+    expect(message.rounds[0].toolCalls).toHaveLength(1)
+    expect(message.rounds[0].toolCalls[0]).toMatchObject({
+      status: 'success',
+      output: { sources: [source], results: [late] },
+    })
+    const activity = buildMessageActivity(message.rounds, { loading: true })
+    expect(activity.events.filter(event => event.type === 'search')).toEqual([
+      expect.objectContaining({ status: 'success' }),
+    ])
+    expect(activity.events.some(event => event.status === 'loading')).toBe(false)
+    expect(patches.at(-1)?.loading).toBe(true)
+  })
 
   it('marks a round as process with its full text and clears the mark on correction', async () => {
     const patches: Partial<Chat.Chat>[] = []
