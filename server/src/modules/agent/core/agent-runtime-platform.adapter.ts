@@ -778,6 +778,10 @@ export class AgentRuntimePlatformAdapter {
       this.commitHosted(data);
       return;
     }
+    if (event.type === 'capability.updated' && data.origin === 'hosted') {
+      this.commitHosted(data, true);
+      return;
+    }
     if (event.type === 'capability.completed' && data.origin === 'external') {
       this.commitExternal(data.callId);
     }
@@ -807,66 +811,86 @@ export class AgentRuntimePlatformAdapter {
     });
   }
 
-  private startHosted(data: any): void {
+  private hostedEntry(data: any, action: 'start' | 'commit' | 'update'): CorrelationEntry {
     const callId = String(data.callId || '');
     const existing = this.correlation.get(callId);
-    if (!callId || existing) {
-      throw new Error(`Hosted correlation start rejected: ${callId}`);
+    if (
+      !callId ||
+      (action === 'update' && !existing) ||
+      (action === 'update' &&
+        (data.toolCall?.id !== callId || data.toolCall?.status !== data.status)) ||
+      (existing &&
+        (existing.origin !== 'hosted' ||
+          existing.state !== (action === 'update' ? 'committed' : 'started') ||
+          existing.roundIndex !== data.roundIndex ||
+          existing.platformResult?.name !== data.toolCall?.name ||
+          (action === 'update' && existing.platformResult?.status !== data.status)))
+    ) {
+      throw new Error(`Hosted correlation ${action} rejected: ${callId}`);
     }
-    this.correlation.set(callId, {
+    if (existing) return existing;
+    const entry: CorrelationEntry = {
       callId,
       ordinal: this.correlation.size,
       origin: 'hosted',
       state: 'started',
       roundIndex: data.roundIndex,
-    });
+      platformResult: data.toolCall,
+    };
+    this.correlation.set(callId, entry);
+    return entry;
+  }
+
+  private startHosted(data: any): void {
+    this.hostedEntry(data, 'start').platformResult = data.toolCall;
     this.input.options.onProgress?.({
       type: 'tool_call',
       data: { roundIndex: data.roundIndex, toolCall: { ...data.toolCall, status: 'loading' } },
     });
   }
 
-  private commitHosted(data: any): void {
-    const callId = String(data.callId || '');
-    let entry = this.correlation.get(callId);
-    if (!entry) {
-      if (!callId) throw new Error(`Hosted correlation commit rejected: ${callId}`);
-      entry = {
-        callId,
-        ordinal: this.correlation.size,
-        origin: 'hosted',
-        state: 'resolved',
-        roundIndex: data.roundIndex,
-      };
-      this.correlation.set(callId, entry);
-    } else {
-      if (entry.origin !== 'hosted' || entry.state !== 'started') {
-        throw new Error(`Hosted correlation commit rejected: ${callId}`);
-      }
-      entry.state = 'resolved';
-    }
-    entry.platformResult = { ...data.toolCall, status: data.status };
+  private commitHosted(data: any, update = false): void {
+    const entry = this.hostedEntry(data, update ? 'update' : 'commit');
+    entry.platformResult = {
+      ...data.toolCall,
+      status: data.status,
+      origin: 'hosted',
+      toolName: data.toolCall.name,
+      model: { content: data.toolCall.display?.markdown || data.toolCall.output?.summary || '' },
+    };
     entry.state = 'prepared';
     this.input.options.onProgress?.({
-      type: 'tool_result',
+      type: update ? 'tool_update' : 'tool_result',
       data: { roundIndex: data.roundIndex, toolCall: entry.platformResult },
     });
-    this.writeCommittedToolCall(data.roundIndex, callId, entry.platformResult, undefined);
+    this.writeCommittedToolCall(
+      data.roundIndex,
+      entry.callId,
+      entry.platformResult,
+      undefined,
+      update,
+    );
     entry.state = 'committed';
   }
 
   /**
-   * rounds / trace 的唯一写入口：commit 时用后端投影替换同 callId 的旧条目并按 commit 顺序追加。
+   * rounds / trace 的唯一写入口：commit 按顺序追加，已完成工具的元数据补充原位替换。
    */
   private writeCommittedToolCall(
     roundIndex: number,
     callId: string,
     platformResult: any,
     trace: any,
+    preserveOrder = false,
   ): void {
     const round = this.input.currentMessage.rounds[roundIndex];
     if (!round) return;
     const backendToolCall = toBackendToolCall(platformResult);
+    const existingIndex = round.toolCalls?.findIndex(tool => tool?.id === callId) ?? -1;
+    if (preserveOrder && existingIndex >= 0) {
+      round.toolCalls[existingIndex] = backendToolCall;
+      return;
+    }
     round.toolCalls = (Array.isArray(round.toolCalls) ? round.toolCalls : []).filter(
       (toolCall: any) => toolCall?.id !== callId,
     );
@@ -930,6 +954,19 @@ export class AgentRuntimePlatformAdapter {
     if (this.closed) return;
     this.closed = true;
     for (const entry of this.correlation.values()) {
+      if (entry.origin === 'hosted' && entry.state === 'started') {
+        this.writeCommittedToolCall(
+          entry.roundIndex,
+          entry.callId,
+          {
+            ...entry.platformResult,
+            status: 'loading',
+            origin: 'hosted',
+            toolName: entry.platformResult.name,
+          },
+          undefined,
+        );
+      }
       if (entry.state !== 'committed') entry.state = 'discarded';
     }
     this.correlation.clear();

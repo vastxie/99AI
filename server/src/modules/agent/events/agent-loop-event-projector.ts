@@ -107,11 +107,13 @@ export function projectAgentLoopEvent(
           inputSummary: frontendToolCall.inputSummary,
           outputHint: frontendToolCall.outputHint,
           display: frontendToolCall.display,
+          output: frontendToolCall.output,
         },
       });
       break;
     }
 
+    case 'tool_update':
     case 'tool_result': {
       // rounds 的唯一写者是 AgentRuntimePlatformAdapter（capability commit）；这里只做公开投影
       const frontendToolCall = toFrontendToolCall(data?.toolCall || {}, frontendMessageOptions);
@@ -144,7 +146,7 @@ export function projectAgentLoopEvent(
             }
           : undefined;
       emitInternal({
-        type: 'tool.end',
+        type: type === 'tool_update' ? 'tool.update' : 'tool.end',
         chatId: publicChatId,
         ...(turnId ? { turnId } : {}),
         ...(data?.roundIndex === undefined ? {} : { roundId: String(data.roundIndex) }),
