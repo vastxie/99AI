@@ -29,8 +29,8 @@
     "markmap-common": "0.18.9",
     "markmap-lib": "0.18.12",
     "markmap-view": "0.18.12",
-    "mermaid": "^12.2.0",
-    "pdfjs-dist": "^6.4.299",
+    "mermaid": "^12.3.0",
+    "pdfjs-dist": "^6.5.438",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
