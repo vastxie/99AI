@@ -81,6 +81,77 @@ async function runLoop(
 }
 
 describe('AgentLoop event projection and turn outcome', () => {
+  it('publishes partial search sources in progress before text and the final result', () => {
+    const events: any[] = [];
+    const progress = createAgentLoopEventProjector({
+      currentMessage: createAssistantTurnMessage({ model: 'fixture' }),
+      chatId: 'c_search_progress',
+      onEvent: event => events.push(event),
+    });
+    const source = { title: 'Public source', url: 'https://example.com/source' };
+    const toolCall = {
+      id: 'hosted_search_progress',
+      name: 'openai_web_search',
+      type: 'search',
+      status: 'loading',
+      inputSummary: '搜索：synthetic',
+      display: {
+        summary: '已发现 1 个网页来源',
+        json: { queries: ['synthetic'], sources: [source] },
+      },
+    };
+    progress({ type: 'tool_call', data: { roundIndex: 0, toolCall } });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      type: 'tool.start',
+      toolCallId: toolCall.id,
+      data: { status: 'running', output: { queries: ['synthetic'], sources: [source] } },
+    });
+
+    const sources = [source, { title: 'Second source', url: 'https://example.org/source' }];
+    progress({
+      type: 'tool_call',
+      data: {
+        roundIndex: 0,
+        toolCall: { ...toolCall, display: { ...toolCall.display, json: { sources } } },
+      },
+    });
+    expect(events[1].data.output.sources).toEqual(sources);
+    expect(events.every(event => event.type === 'tool.start')).toBe(true);
+    progress({ type: 'text', data: { roundIndex: 0, content: 'Answer after search.' } });
+    progress({
+      type: 'tool_result',
+      data: { roundIndex: 0, toolCall: { ...toolCall, status: 'success' } },
+    });
+    expect(events.map(event => event.type)).toEqual([
+      'tool.start',
+      'tool.start',
+      'message.delta',
+      'tool.end',
+    ]);
+    expect(events.filter(event => event.type === 'tool.end')).toHaveLength(1);
+    progress({
+      type: 'tool_update',
+      data: {
+        roundIndex: 0,
+        toolCall: {
+          ...toolCall,
+          status: 'success',
+          origin: 'hosted',
+          model: { content: 'private model observation' },
+          display: { json: { sources } },
+        },
+      },
+    });
+    expect(events.at(-1)).toMatchObject({
+      type: 'tool.update',
+      toolCallId: toolCall.id,
+      data: { status: 'success', output: { sources } },
+    });
+    expect(JSON.stringify(events.at(-1))).not.toContain('private model observation');
+    expect(events.filter(event => event.type === 'tool.end')).toHaveLength(1);
+  });
+
   it('projects an aborted runtime result as an interrupted terminal event', async () => {
     const { result, frontendEvents } = await runLoop(
       async (_messages, options) => {

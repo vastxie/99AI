@@ -890,6 +890,7 @@ export function toBackendToolCall(toolResult: any): any {
 
   return {
     ...frontendToolCall,
+    ...(toolResult?.origin === 'hosted' ? { origin: 'hosted' as const } : {}),
     ...(model ? { model } : {}),
     ...(backendToolResult ? { toolResult: backendToolResult } : {}),
     ...(hasInternalProjection(internal) ? { internal } : {}),

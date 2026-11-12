@@ -152,7 +152,6 @@ export class ChatLogService {
       let appendedRound = false;
       for (const rawRound of normalizedMessage.rounds) {
         const normalizedRound = normalizeHistoricalAssistantRound(rawRound);
-        const round = normalizedRound.value;
         if (normalizedRound.malformed) {
           append(
             {
@@ -183,7 +182,7 @@ export class ChatLogService {
           append(
             {
               role: 'assistant',
-              content: round?.text || '',
+              content: normalizedRound.text,
               tool_calls: usableCalls.map((toolCall: any) => ({
                 id: String(toolCall.id),
                 type: 'function',
@@ -216,7 +215,7 @@ export class ChatLogService {
           append(
             {
               role: 'assistant',
-              content: [round?.text, INTERRUPTED_HISTORICAL_ASSISTANT_CONTENT]
+              content: [normalizedRound.text, INTERRUPTED_HISTORICAL_ASSISTANT_CONTENT]
                 .filter(Boolean)
                 .join('\n'),
             },

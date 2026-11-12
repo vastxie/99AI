@@ -190,7 +190,11 @@ export class TurnRunner {
           const completed =
             event.toolCall.status === 'success' || event.toolCall.status === 'error';
           this.ports.progress({
-            type: completed ? 'capability.completed' : 'capability.started',
+            type: event.toolCall.update
+              ? 'capability.updated'
+              : completed
+                ? 'capability.completed'
+                : 'capability.started',
             data: {
               origin: 'hosted',
               roundIndex,
