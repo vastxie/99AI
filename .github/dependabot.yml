@@ -43,9 +43,9 @@ updates:
       # katex 0.17 起内部类名加前缀；消息里的公式 HTML 由仍依赖 katex ^0.16 的 markdown-it 插件生成，单独升级会样式错位
       - dependency-name: katex
         versions: ['>=0.17']
-      # vue-tsc 3.3.12 生成的检查代码会改写组件静态属性里的 `//`（如占位文字里的 https://），其后的模板类型检查失效；等修复版本发布后去掉
+      # vue-tsc 3.3.12~3.3.14 生成的检查代码会破坏含静态 `//`（如占位文字里的 https://）的组件模板检查；等修复版本发布后去掉
       - dependency-name: vue-tsc
-        versions: ['3.3.12']
+        versions: ['>=3.3.12, <=3.3.14']
 
   - package-ecosystem: npm
     directory: /admin
@@ -60,9 +60,9 @@ updates:
         versions: ['>=7']
       - dependency-name: '@types/node'
         versions: ['>=25']
-      # vue-tsc 3.3.12 生成的检查代码会改写组件静态属性里的 `//`（如占位文字里的 https://），其后的模板类型检查失效；等修复版本发布后去掉
+      # vue-tsc 3.3.12~3.3.14 生成的检查代码会破坏含静态 `//`（如占位文字里的 https://）的组件模板检查；等修复版本发布后去掉
       - dependency-name: vue-tsc
-        versions: ['3.3.12']
+        versions: ['>=3.3.12, <=3.3.14']
 
   - package-ecosystem: npm
     directory: /site
