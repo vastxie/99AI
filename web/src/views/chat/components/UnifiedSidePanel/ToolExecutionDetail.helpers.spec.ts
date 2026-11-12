@@ -83,6 +83,8 @@ describe('ToolExecutionDetail.helpers 文本清理', () => {
     expect(extractTitleFromSourceText('# 大标题\n内容')).toBe('大标题')
     expect(extractTitleFromSourceText('无标题')).toBe('')
     expect(isInternalSearchSummary('调用 OpenAI Responses 内置 web_search')).toBe(true)
+    expect(isInternalSearchSummary('正在搜索公开网页')).toBe(true)
+    expect(isInternalSearchSummary('网页检索')).toBe(true)
     expect(isInternalSearchSummary('搜索 Vue')).toBe(false)
   })
 

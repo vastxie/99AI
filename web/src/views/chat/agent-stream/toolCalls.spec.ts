@@ -5,7 +5,11 @@ vi.mock('@/locales', () => ({
   tp: (key: string) => key,
 }))
 
-import { buildStreamingToolCall, restoreMessageFileHandles } from './toolCalls'
+import {
+  buildStreamingToolCall,
+  mergeToolCallIntoRound,
+  restoreMessageFileHandles,
+} from './toolCalls'
 
 describe('buildStreamingToolCall media assets', () => {
   it('normalizes streamed assets into recoverable private file entries', () => {
@@ -119,6 +123,33 @@ describe('buildStreamingToolCall media assets', () => {
 })
 
 describe('buildStreamingToolCall hosted search output', () => {
+  it('updates source cards from public progress output while the search is still loading', () => {
+    const first = { title: 'First source', url: 'https://example.com/first' }
+    const second = { title: 'Second source', url: 'https://example.org/second' }
+    const round: Chat.Round = { text: null, thinking: null, toolCalls: [] }
+    const update = (sources: (typeof first)[]) =>
+      mergeToolCallIntoRound(
+        round,
+        buildStreamingToolCall({
+          id: 'hosted_search',
+          name: '联网搜索',
+          type: 'search',
+          status: 'running',
+          inputSummary: '搜索：synthetic',
+          display: { queries: ['synthetic'], sources },
+          output: { queries: ['synthetic'], sources },
+        })
+      )
+
+    update([first])
+    expect(round.toolCalls[0].status).toBe('loading')
+    expect(round.toolCalls[0].output).toMatchObject({ sources: [first] })
+    expect(update([first, second]).shouldSerialize).toBe(true)
+    expect(round.toolCalls).toHaveLength(1)
+    expect(round.toolCalls[0].status).toBe('loading')
+    expect(round.toolCalls[0].output).toMatchObject({ sources: [first, second] })
+  })
+
   it('keeps OpenAI native search queries and sources from display json', () => {
     const toolCall = buildStreamingToolCall({
       id: 'ws_1',

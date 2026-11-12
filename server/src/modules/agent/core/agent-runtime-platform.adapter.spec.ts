@@ -1302,6 +1302,50 @@ describe('AgentRuntimePlatformAdapter correlation and writer boundaries', () => 
     expect(JSON.stringify({ projected, currentMessage })).toBe(before);
   });
 
+  it.each(['abort', 'error', 'stop'])(
+    'retains latest pending hosted sources as unknown when closing for %s',
+    (reason: 'abort' | 'error' | 'stop') => {
+      const { adapter, currentMessage, projected } = createAdapter();
+      adapter.ports.progress({
+        type: 'round.started',
+        data: { roundIndex: 0, messages: [], tools: [] },
+      });
+      for (const sources of [[], [{ url: 'https://example.com/visible-before-stop' }]]) {
+        adapter.ports.progress({
+          type: 'capability.started',
+          data: {
+            origin: 'hosted',
+            callId: 'pending_search',
+            roundIndex: 0,
+            toolCall: {
+              id: 'pending_search',
+              name: 'openai_web_search',
+              type: 'search',
+              status: 'searching',
+              display: { json: { sources } },
+            },
+          },
+        });
+      }
+      adapter.ports.lifecycle.closeRun(reason);
+      expect(currentMessage.rounds[0].toolCalls).toEqual([
+        expect.objectContaining({
+          id: 'pending_search',
+          origin: 'hosted',
+          toolName: 'openai_web_search',
+          status: 'loading',
+          output: expect.objectContaining({
+            sources: [{ url: 'https://example.com/visible-before-stop' }],
+          }),
+        }),
+      ]);
+      expect(projected.some(event => event.type === 'tool_result')).toBe(false);
+      const snapshot = JSON.stringify(currentMessage);
+      adapter.ports.lifecycle.closeRun(reason);
+      expect(JSON.stringify(currentMessage)).toBe(snapshot);
+    },
+  );
+
   it('routes an arbitrarily named hosted capability solely by structured origin', () => {
     const { adapter, projected } = createAdapter();
     adapter.ports.progress({
@@ -1356,6 +1400,176 @@ describe('AgentRuntimePlatformAdapter correlation and writer boundaries', () => 
     ).toThrow(/commit rejected/);
     expect(JSON.stringify(projected)).toBe(beforeDuplicate);
   });
+
+  it.each(['success', 'error'])(
+    'keeps repeated hosted progress in one call and commits its %s result once',
+    async (status: string) => {
+      const callId = 'hosted_web_search_progress';
+      const modelGateway = {
+        stream: jest.fn(async function* () {
+          for (const state of ['running', 'running', 'searching', 'searching', status]) {
+            yield {
+              type: 'hosted_tool_call',
+              toolCall: {
+                id: callId,
+                name: 'openai_web_search',
+                type: 'search',
+                status: state,
+                inputSummary: `search ${state}`,
+              },
+            };
+          }
+          yield { type: 'text_delta', delta: 'Search finished.' };
+          yield { type: 'done', finishReason: 'stop' };
+        }),
+      };
+      const { adapter, projected, currentMessage } = createAdapter([], { modelGateway });
+      const result = await new AgentRuntimeCore(adapter.ports).run({
+        model: 'fixture',
+        messages: [{ role: 'user', content: 'synthetic search' }],
+        tools: [],
+        maxRounds: 1,
+      });
+
+      expect(result.finishReason).toBe('stop');
+      expect(modelGateway.stream).toHaveBeenCalledTimes(1);
+      expect(projected.filter(event => event.type === 'tool_call')).toHaveLength(4);
+      expect(projected.filter(event => event.type === 'tool_result')).toHaveLength(1);
+      expect(currentMessage.rounds[0].toolCalls).toEqual([
+        expect.objectContaining({
+          id: callId,
+          status,
+          toolName: 'openai_web_search',
+          origin: 'hosted',
+        }),
+      ]);
+      expect(currentMessage.content).toBe('Search finished.');
+    },
+  );
+
+  it('updates completed hosted sources in place without restarting or ending the tool twice', async () => {
+    const modelGateway = {
+      stream: jest.fn(async function* () {
+        const toolCall = {
+          id: 'hosted_first',
+          name: 'native_search',
+          type: 'search',
+          status: 'success',
+          output: { summary: 'first source' },
+        };
+        yield { type: 'hosted_tool_call', toolCall };
+        yield { type: 'hosted_tool_call', toolCall: { ...toolCall, id: 'hosted_second' } };
+        yield { type: 'text_delta', delta: 'Answer is still streaming.' };
+        yield {
+          type: 'hosted_tool_call',
+          toolCall: {
+            ...toolCall,
+            update: true,
+            output: { summary: 'late source', sources: [{ url: 'https://example.com/late' }] },
+          },
+        };
+        yield { type: 'done', finishReason: 'stop' };
+      }),
+    };
+    const { adapter, projected, currentMessage } = createAdapter([], { modelGateway });
+    await new AgentRuntimeCore(adapter.ports).run({
+      model: 'fixture',
+      messages: [{ role: 'user', content: 'search' }],
+      tools: [],
+      maxRounds: 1,
+    });
+    expect(projected.filter(event => event.type === 'tool_result')).toHaveLength(2);
+    expect(projected.filter(event => event.type === 'tool_update')).toHaveLength(1);
+    expect(projected.filter(event => event.type === 'tool_call')).toHaveLength(0);
+    expect(currentMessage.rounds[0].toolCalls.map((tool: any) => tool.id)).toEqual([
+      'hosted_first',
+      'hosted_second',
+    ]);
+    expect(currentMessage.rounds[0].toolCalls[0]).toMatchObject({
+      status: 'success',
+      model: { content: 'late source' },
+      output: { sources: [{ url: 'https://example.com/late' }] },
+    });
+    const open = createAdapter();
+    open.adapter.ports.progress({
+      type: 'capability.completed',
+      data: {
+        origin: 'hosted',
+        callId: 'hosted_first',
+        roundIndex: 0,
+        status: 'success',
+        toolCall: { id: 'hosted_first', name: 'native_search', status: 'success' },
+      },
+    });
+    const before = JSON.stringify(open.projected);
+    for (const change of [
+      { status: 'error' },
+      { roundIndex: 1 },
+      { callId: 'missing' },
+      { toolCall: { id: 'hosted_first', name: 'different', status: 'success' } },
+    ]) {
+      expect(() =>
+        open.adapter.ports.progress({
+          type: 'capability.updated',
+          data: {
+            origin: 'hosted',
+            callId: 'hosted_first',
+            roundIndex: 0,
+            status: 'success',
+            toolCall: { id: 'hosted_first', name: 'native_search', status: 'success' },
+            ...change,
+          },
+        }),
+      ).toThrow(/update rejected/);
+    }
+    expect(JSON.stringify(open.projected)).toBe(before);
+  });
+
+  it.each(['other round', 'other tool', 'external call', 'committed call'])(
+    'rejects hosted progress that reuses the ID of an %s without new projection',
+    (conflict: string) => {
+      const { adapter, projected } = createAdapter();
+      const data = {
+        origin: 'hosted',
+        roundIndex: 0,
+        callId: 'hosted_conflict',
+        toolCall: { id: 'hosted_conflict', name: 'search', type: 'search', status: 'running' },
+      };
+      if (conflict === 'external call') {
+        adapter.startExternal({
+          callId: data.callId,
+          ordinal: 0,
+          roundIndex: 0,
+          functionName: 'external',
+          displayName: 'external',
+          toolType: 'tool',
+        });
+      } else {
+        adapter.ports.progress({ type: 'capability.started', data });
+        if (conflict === 'committed call') {
+          adapter.ports.progress({
+            type: 'capability.completed',
+            data: { ...data, status: 'success', toolCall: { ...data.toolCall, status: 'success' } },
+          });
+        }
+      }
+      const before = JSON.stringify(projected);
+      expect(() =>
+        adapter.ports.progress({
+          type: 'capability.started',
+          data: {
+            ...data,
+            roundIndex: conflict === 'other round' ? 1 : 0,
+            toolCall: {
+              ...data.toolCall,
+              name: conflict === 'other tool' ? 'different' : 'search',
+            },
+          },
+        }),
+      ).toThrow(/start rejected/);
+      expect(JSON.stringify(projected)).toBe(before);
+    },
+  );
 
   it.each(['success', 'error'])(
     'projects a terminal-only hosted %s as one end event without synthesizing start',

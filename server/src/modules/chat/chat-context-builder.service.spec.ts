@@ -1,4 +1,5 @@
 import { ChatContextBuilderService } from './chat-context-builder.service';
+import { ChatUploadContextService } from './chat-upload-context.service';
 import { AgentContextBuilder } from '../agent/context/agent-context-builder';
 import { ContextCheckpointCoordinator } from '../agent/context/context-checkpoint-coordinator';
 import { ModelMessageMapper } from '../agent/context/model-message-mapper';
@@ -12,6 +13,112 @@ declare const it: any;
 declare const jest: any;
 
 describe('ChatContextBuilderService source boundaries', () => {
+  it('replays native observations as text while keeping external function pairs in both history paths', async () => {
+    const native = {
+      id: 'hosted_search',
+      origin: 'hosted',
+      toolName: 'openai_web_search',
+      name: '联网搜索',
+      status: 'success',
+      model: { content: 'NATIVE_SOURCE_FACT' },
+    };
+    const external = {
+      id: 'external_ls',
+      toolName: 'ls',
+      name: 'List',
+      status: 'success',
+      model: { content: 'EXTERNAL_RESULT_FACT' },
+    };
+    const historical = {
+      id: 2,
+      role: 'assistant',
+      direction: 'out',
+      content: 'ANSWER_FACT',
+      createdAt: new Date(2),
+      message: JSON.stringify({ rounds: [{ text: 'ANSWER_FACT', toolCalls: [native, external] }] }),
+    };
+    const source = await new ChatContextBuilderService(
+      new ChatUploadContextService(),
+    ).buildMessageFromParentMessageId({ user: { id: 7 }, groupId: 5, currentUserLogId: 3 }, {
+      collectRoundsForGroup: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 1, role: 'user', content: 'Search', createdAt: new Date(1) },
+          historical,
+          { id: 3, role: 'user', content: 'Follow up', createdAt: new Date(3) },
+        ]),
+    } as any);
+    const backfill = (ChatLogService.prototype as any).buildCheckpointBackfillMessages.call(
+      Object.create(ChatLogService.prototype),
+      [historical],
+    );
+    for (const messages of [source.messages, backfill]) {
+      expect(
+        messages.flatMap((m: any) => m.tool_calls || []).map((t: any) => t.function.name),
+      ).toEqual(['ls']);
+      expect(JSON.stringify(messages)).toContain('NATIVE_SOURCE_FACT');
+      expect(JSON.stringify(messages)).toContain('EXTERNAL_RESULT_FACT');
+      expect(messages.filter((m: any) => m.role === 'tool')).toHaveLength(1);
+      expect(messages.filter((m: any) => m.role === 'assistant')[0].content).toContain(
+        'ANSWER_FACT',
+      );
+    }
+  });
+
+  it.each([undefined, '', '联网搜索', 'invalid.tool'])(
+    'keeps a search answer with an unusable API name (%s) in follow-up context',
+    async (toolName: unknown) => {
+      const answer = '99Agent is a Web Agent platform. Source: https://example.com/agent';
+      const rows = [
+        { id: 1, role: 'user', content: 'Search for 99Agent.', createdAt: new Date(1) },
+        {
+          id: 2,
+          role: 'assistant',
+          content: answer,
+          createdAt: new Date(2),
+          message: JSON.stringify({
+            rounds: [
+              {
+                text: answer,
+                toolCalls: [
+                  {
+                    id: 'hosted_search',
+                    name: '联网搜索',
+                    toolName,
+                    type: 'search',
+                    status: 'success',
+                  },
+                ],
+              },
+            ],
+          }),
+        },
+        { id: 3, role: 'user', content: 'Who is this suitable for?', createdAt: new Date(3) },
+      ];
+      const source = await new ChatContextBuilderService(
+        new ChatUploadContextService(),
+      ).buildMessageFromParentMessageId({ user: { id: 7 }, groupId: 5, currentUserLogId: 3 }, {
+        collectRoundsForGroup: jest.fn().mockResolvedValue(rows),
+      } as any);
+      expect(source.contextBoundary.candidateLogIds).toEqual([1, 2, 3]);
+      const replay = source.messages.filter(message => message.__agent_context?.chatLogId === 2);
+      expect(replay).toHaveLength(1);
+      expect(replay[0].content).toContain(answer);
+      expect(replay[0].content).toContain('格式不完整或执行已中断');
+      expect(replay[0].tool_calls).toBeUndefined();
+      const coordinator = new ContextCheckpointCoordinator({} as any, {} as any).createSession({
+        modelConfig: { model: 'fixture' } as any,
+        contextWindowTokens: 64_000,
+        contextBoundary: source.contextBoundary,
+      });
+      await expect(coordinator.prepareInitial(source.messages)).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ content: expect.stringContaining(answer) }),
+        ]),
+      );
+    },
+  );
+
   it('keeps owner-scoped chatlog IDs as internal-only projection metadata', async () => {
     const uploadContext = {
       mergeFileRefMappings: jest.fn().mockReturnValue({ version: 1, entries: [] }),

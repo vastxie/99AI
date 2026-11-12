@@ -71,7 +71,8 @@ export class OpenAIResponsesAdapter implements ModelStreamAdapter {
       const toolNames = new Map<number, string>();
       const toolIds = new Map<number, string>();
       const reasoningDeltaKeys = new Set<string>();
-      const webSearchState = createWebSearchState();
+      const webSearchStates = new Map<string, WebSearchToolState>();
+      const pendingCitations: WebSearchCitation[] = [];
 
       for await (const event of stream as any) {
         switch (event.type) {
@@ -117,39 +118,49 @@ export class OpenAIResponsesAdapter implements ModelStreamAdapter {
                 rawName: event.item.name,
               };
             } else if (event.item?.type === 'web_search_call') {
-              yield buildWebSearchToolEvent(webSearchState, event.item.id, 'running');
+              yield* webSearchToolEvents(
+                getWebSearchState(webSearchStates, event.item.id, pendingCitations),
+                'running',
+              );
             }
             break;
           case 'response.output_item.done':
             if (event.item?.type === 'web_search_call') {
-              webSearchState.seen = true;
-              trackWebSearchProviderItem(webSearchState, event.item.id);
-              collectWebSearchAction(webSearchState, event.item.action);
-              if (event.item.status === 'failed') {
-                yield buildWebSearchToolEvent(webSearchState, webSearchState.id, 'error');
-              } else {
-                yield buildWebSearchToolEvent(webSearchState, webSearchState.id, 'searching');
-              }
+              const state = getWebSearchState(webSearchStates, event.item.id, pendingCitations);
+              collectWebSearchAction(state, event.item.action);
+              yield* webSearchToolEvents(
+                state,
+                event.item.status === 'completed'
+                  ? 'success'
+                  : event.item.status === 'failed' || event.item.status === 'incomplete'
+                    ? 'error'
+                    : 'searching',
+              );
             } else if (event.item?.type === 'message') {
-              collectMessageAnnotations(webSearchState, event.item);
+              yield* collectMessageAnnotations(webSearchStates, event.item, pendingCitations);
             }
             break;
           case 'response.web_search_call.in_progress':
-            yield buildWebSearchToolEvent(webSearchState, event.item_id, 'running');
+            yield* webSearchToolEvents(
+              getWebSearchState(webSearchStates, event.item_id, pendingCitations),
+              'running',
+            );
             break;
           case 'response.web_search_call.searching':
-            yield buildWebSearchToolEvent(webSearchState, event.item_id, 'searching');
+            yield* webSearchToolEvents(
+              getWebSearchState(webSearchStates, event.item_id, pendingCitations),
+              'searching',
+            );
             break;
           case 'response.output_text.annotation.added':
           case 'response.output_text_annotation.added':
-            collectWebCitation(webSearchState, event.annotation);
-            if (webSearchState.seen) {
-              yield buildWebSearchToolEvent(webSearchState, webSearchState.id, 'searching');
-            }
+            yield* collectWebSearchCitation(webSearchStates, event.annotation, pendingCitations);
             break;
           case 'response.web_search_call.completed':
-            webSearchState.seen = true;
-            trackWebSearchProviderItem(webSearchState, event.item_id);
+            yield* webSearchToolEvents(
+              getWebSearchState(webSearchStates, event.item_id, pendingCitations),
+              'success',
+            );
             break;
           case 'response.function_call_arguments.delta': {
             const index = event.output_index ?? 0;
@@ -164,10 +175,11 @@ export class OpenAIResponsesAdapter implements ModelStreamAdapter {
           }
           case 'response.completed':
             terminalObserved = true;
-            collectWebSearchOutput(webSearchState, event.response?.output);
-            if (webSearchState.seen) {
-              yield buildWebSearchToolEvent(webSearchState, webSearchState.id, 'success');
-            }
+            yield* collectWebSearchOutput(
+              webSearchStates,
+              event.response?.output,
+              pendingCitations,
+            );
             finalFinishReason = event.response?.status || 'completed';
             if (event.response?.usage) {
               finalUsage = this.normalizeUsage(event.response.usage);
@@ -175,17 +187,26 @@ export class OpenAIResponsesAdapter implements ModelStreamAdapter {
             }
             break;
           case 'response.failed':
-            if (webSearchState.seen) {
-              yield buildWebSearchToolEvent(webSearchState, webSearchState.id, 'error');
+            yield* collectWebSearchOutput(
+              webSearchStates,
+              event.response?.output,
+              pendingCitations,
+            );
+            for (const state of webSearchStates.values()) {
+              if (!state.terminal) yield* webSearchToolEvents(state, 'error');
             }
             throw toClassifiedProviderError(event.response?.error || event, {
               requestOutcome: 'rejected',
             });
           case 'response.incomplete':
             terminalObserved = true;
-            collectWebSearchOutput(webSearchState, event.response?.output);
-            if (webSearchState.seen) {
-              yield buildWebSearchToolEvent(webSearchState, webSearchState.id, 'success');
+            yield* collectWebSearchOutput(
+              webSearchStates,
+              event.response?.output,
+              pendingCitations,
+            );
+            for (const state of webSearchStates.values()) {
+              if (!state.terminal) yield* webSearchToolEvents(state, 'error');
             }
             finalFinishReason = event.response?.incomplete_details?.reason || 'incomplete';
             if (event.response?.usage) {
@@ -449,7 +470,8 @@ interface WebSearchSource {
 
 interface WebSearchToolState {
   id: string;
-  seen: boolean;
+  terminal?: 'success' | 'error';
+  lastPayload?: string;
   providerItemIds: string[];
   queries: string[];
   citations: WebSearchCitation[];
@@ -460,59 +482,123 @@ function createHostedToolCallId(): string {
   return `hosted_web_search_${Date.now().toString(36)}`;
 }
 
-function createWebSearchState(): WebSearchToolState {
-  return {
-    id: createHostedToolCallId(),
-    seen: false,
-    providerItemIds: [],
-    queries: [],
-    citations: [],
-    sources: [],
-  };
+function getWebSearchState(
+  states: Map<string, WebSearchToolState>,
+  id: unknown,
+  pending: WebSearchCitation[] = [],
+): WebSearchToolState {
+  const key = typeof id === 'string' && id.trim() ? id.trim() : 'unidentified';
+  let state = states.get(key);
+  if (!state) {
+    state = {
+      id: `${createHostedToolCallId()}_${states.size}`,
+      providerItemIds: [],
+      queries: [],
+      citations: pending.splice(0),
+      sources: [],
+    };
+    states.set(key, state);
+  }
+  trackWebSearchProviderItem(state, id);
+  return state;
 }
 
-function collectWebCitation(state: WebSearchToolState, annotation: unknown): void {
+/** Search completion is independent of response completion; later citations only amend metadata. */
+function* webSearchToolEvents(
+  state: WebSearchToolState,
+  status: 'running' | 'searching' | 'success' | 'error',
+): Generator<ModelStreamEvent> {
+  if (state.terminal && status !== state.terminal) return;
+  const event = buildWebSearchToolEvent(state, status);
+  const payload = JSON.stringify(event);
+  if (payload === state.lastPayload) return;
+  state.lastPayload = payload;
+  if (state.terminal && event.type === 'hosted_tool_call') event.toolCall.update = true;
+  if (status === 'success' || status === 'error') state.terminal = status;
+  yield event;
+}
+
+function* collectWebSearchCitation(
+  states: Map<string, WebSearchToolState>,
+  annotation: unknown,
+  pending: WebSearchCitation[],
+): Generator<ModelStreamEvent> {
+  if (!annotation || typeof annotation !== 'object') return;
+  const url = (annotation as Record<string, unknown>).url;
+  const candidates = [...states.values()].reverse();
+  const state =
+    candidates.find(
+      item =>
+        item.sources.some(source => source.url === url) ||
+        item.citations.some(citation => citation.url === url),
+    ) || candidates[0];
+  if (!state) {
+    collectWebCitation(pending, annotation);
+    return;
+  }
+  const count = state.citations.length;
+  collectWebCitation(state.citations, annotation);
+  if (state.citations.length !== count)
+    yield* webSearchToolEvents(state, state.terminal || 'searching');
+}
+
+function collectWebCitation(citations: WebSearchCitation[], annotation: unknown): void {
   if (!annotation || typeof annotation !== 'object') return;
   const value = annotation as Record<string, unknown>;
   if (value.type !== 'url_citation') return;
   const url = typeof value.url === 'string' ? value.url.trim() : '';
   const title = typeof value.title === 'string' ? value.title.trim() : '';
   if (!url && !title) return;
-  if (url && state.citations.some(item => item.url === url)) return;
-  state.citations.push({
+  if (url && citations.some(item => item.url === url)) return;
+  citations.push({
     ...(title ? { title } : {}),
     ...(url ? { url } : {}),
   });
 }
 
-function collectWebSearchOutput(state: WebSearchToolState, output: unknown): void {
+function* collectWebSearchOutput(
+  states: Map<string, WebSearchToolState>,
+  output: unknown,
+  pending: WebSearchCitation[],
+): Generator<ModelStreamEvent> {
   if (!Array.isArray(output)) return;
   for (const item of output) {
     if (!item || typeof item !== 'object') continue;
     const value = item as Record<string, unknown>;
     if (value.type === 'web_search_call') {
-      state.seen = true;
-      trackWebSearchProviderItem(state, value.id);
+      const state = getWebSearchState(states, value.id);
       collectWebSearchAction(state, value.action);
+      yield* webSearchToolEvents(
+        state,
+        state.terminal ||
+          (value.status === 'completed'
+            ? 'success'
+            : value.status === 'failed' || value.status === 'incomplete'
+              ? 'error'
+              : 'searching'),
+      );
     }
-    if (value.type === 'message') {
-      collectMessageAnnotations(state, value);
-    }
+  }
+  for (const citation of pending.splice(0)) {
+    yield* collectWebSearchCitation(states, { type: 'url_citation', ...citation }, pending);
+  }
+  for (const item of output) {
+    if (item?.type === 'message') yield* collectMessageAnnotations(states, item, pending);
   }
 }
 
-function collectMessageAnnotations(
-  state: WebSearchToolState,
+function* collectMessageAnnotations(
+  states: Map<string, WebSearchToolState>,
   message: Record<string, unknown>,
-): void {
+  pending: WebSearchCitation[],
+): Generator<ModelStreamEvent> {
   if (!Array.isArray(message.content)) return;
   for (const part of message.content) {
     if (!part || typeof part !== 'object') continue;
     const annotations = (part as Record<string, unknown>).annotations;
     if (!Array.isArray(annotations)) continue;
-    for (const annotation of annotations) {
-      collectWebCitation(state, annotation);
-    }
+    for (const annotation of annotations)
+      yield* collectWebSearchCitation(states, annotation, pending);
   }
 }
 
@@ -572,12 +658,9 @@ function trackWebSearchProviderItem(state: WebSearchToolState, id: unknown): voi
 
 function buildWebSearchToolEvent(
   state: WebSearchToolState,
-  id: unknown,
   status: 'running' | 'searching' | 'success' | 'error',
 ): ModelStreamEvent {
-  trackWebSearchProviderItem(state, id);
   const toolCallId = state.id;
-  state.seen = true;
   const citations = state.citations.slice(0, 10);
   const sources = state.sources
     .filter(source => !source.url || !citations.some(citation => citation.url === source.url))
@@ -620,19 +703,23 @@ function buildWebSearchToolEvent(
       displayName: '联网搜索',
       type: 'search',
       status,
-      inputSummary: primaryQuery ? `搜索：${primaryQuery}` : '正在搜索公开网页',
+      inputSummary: primaryQuery
+        ? `搜索：${primaryQuery}`
+        : status === 'success' || status === 'error'
+          ? '网页检索'
+          : '正在搜索公开网页',
       output: {
         summary: statusText,
-        queries: state.queries,
+        queries: [...state.queries],
         results: citations,
         sources,
-        providerItemIds: state.providerItemIds,
+        providerItemIds: [...state.providerItemIds],
       },
       display: {
         title: '联网搜索',
         summary: statusText,
         ...(markdown ? { markdown } : {}),
-        json: { queries: state.queries, results: citations, sources },
+        json: { queries: [...state.queries], results: citations, sources },
       },
     },
   };
