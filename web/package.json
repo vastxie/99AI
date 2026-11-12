@@ -32,7 +32,7 @@
     "format": "prettier --write '{src,scripts,config}/**/*.{vue,ts,tsx,mts,js,jsx,css,scss,less,json,md,html,yml,yaml}' '*.{js,ts,mts,json,md,yml}'"
   },
   "dependencies": {
-    "@lucide/vue": "^1.69.0",
+    "@lucide/vue": "^1.70.0",
     "@vue/devtools-api": "^8.2.1",
     "@vueuse/core": "^15.0.0",
     "axios": "~1.21.0",
