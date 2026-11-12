@@ -460,7 +460,168 @@ describe('OpenAIResponsesAdapter', () => {
     );
   });
 
-  it('coalesces multiple native web search provider items into one hosted tool call', async () => {
+  it('finishes each native search item before answering and retains late citations as updates', async () => {
+    const adapter = createAdapter();
+    const source = { type: 'url', url: 'https://example.com/result' };
+    const citation = {
+      type: 'url_citation',
+      title: 'Late citation',
+      url: 'https://example.org/cited',
+    };
+    (adapter as any).createClient = jest.fn().mockReturnValue({
+      responses: {
+        create: jest.fn().mockResolvedValue(
+          (async function* () {
+            yield { type: 'response.web_search_call.searching', item_id: 'ws_early' };
+            yield { type: 'response.web_search_call.completed', item_id: 'ws_early' };
+            yield {
+              type: 'response.output_item.done',
+              item: {
+                id: 'ws_early',
+                type: 'web_search_call',
+                status: 'completed',
+                action: { type: 'search', query: 'synthetic', sources: [source] },
+              },
+            };
+            yield { type: 'response.output_text.delta', delta: 'Answer is streaming.' };
+            yield { type: 'response.output_text.annotation.added', annotation: citation };
+            yield { type: 'response.web_search_call.searching', item_id: 'ws_early' };
+            yield {
+              type: 'response.completed',
+              response: {
+                status: 'completed',
+                output: [
+                  {
+                    id: 'ws_early',
+                    type: 'web_search_call',
+                    status: 'completed',
+                    action: { type: 'search', query: 'synthetic', sources: [source] },
+                  },
+                ],
+              },
+            };
+          })(),
+        ),
+      },
+    });
+    const mapped: any[] = [];
+    for await (const event of adapter.stream(baseRequest)) mapped.push(event);
+    const hosted = mapped.filter(event => event.type === 'hosted_tool_call');
+    const ends = hosted.filter(
+      event => event.toolCall.status === 'success' && !event.toolCall.update,
+    );
+    expect(ends).toHaveLength(1);
+    expect(mapped.indexOf(ends[0])).toBeLessThan(
+      mapped.findIndex(event => event.type === 'text_delta'),
+    );
+    const late = hosted.find(
+      event =>
+        event.toolCall.update &&
+        event.toolCall.output.results.some((item: any) => item.url === citation.url),
+    );
+    expect(late?.toolCall).toMatchObject({ id: ends[0].toolCall.id, status: 'success' });
+    expect(
+      hosted
+        .slice(hosted.indexOf(ends[0]) + 1)
+        .every(event => event.toolCall.update && event.toolCall.status === 'success'),
+    ).toBe(true);
+  });
+
+  it.each(['failed', 'incomplete', 'aborted'])(
+    'does not change completed searches or invent success when the response is %s',
+    async (outcome: string) => {
+      const adapter = createAdapter();
+      (adapter as any).createClient = jest.fn().mockReturnValue({
+        responses: {
+          create: jest.fn().mockResolvedValue(
+            (async function* () {
+              yield { type: 'response.web_search_call.completed', item_id: 'ws_done' };
+              yield { type: 'response.web_search_call.searching', item_id: 'ws_pending' };
+              if (outcome === 'aborted')
+                throw Object.assign(new Error('aborted'), { name: 'AbortError' });
+              yield {
+                type: `response.${outcome}`,
+                response: {
+                  status: outcome,
+                  error: { message: 'synthetic provider failure' },
+                  output: [
+                    {
+                      id: 'ws_done',
+                      type: 'web_search_call',
+                      status: 'completed',
+                      action: {
+                        type: 'search',
+                        sources: [{ url: 'https://example.com/final-source' }],
+                      },
+                    },
+                  ],
+                },
+              };
+            })(),
+          ),
+        },
+      });
+      const mapped: any[] = [];
+      try {
+        for await (const event of adapter.stream(baseRequest)) mapped.push(event);
+      } catch {
+        /* Provider failure is expected. */
+      }
+      const hosted = mapped.filter(event => event.type === 'hosted_tool_call');
+      expect(
+        hosted.filter(event => event.toolCall.status === 'success' && !event.toolCall.update),
+      ).toHaveLength(1);
+      const doneId = hosted[0].toolCall.id;
+      expect(
+        hosted.filter(event => event.toolCall.id === doneId && !event.toolCall.update),
+      ).toHaveLength(1);
+      if (outcome !== 'aborted')
+        expect(hosted.find(event => event.toolCall.update)?.toolCall.output.sources).toEqual([
+          { url: 'https://example.com/final-source' },
+        ]);
+      expect(
+        hosted.some(event => event.toolCall.id !== doneId && event.toolCall.status === 'success'),
+      ).toBe(false);
+      expect(hosted.filter(event => event.toolCall.status === 'error')).toHaveLength(
+        outcome === 'aborted' ? 0 : 1,
+      );
+    },
+  );
+
+  it('uses the completed search signal before text when the item payload is delayed', async () => {
+    const adapter = createAdapter();
+    (adapter as any).createClient = jest.fn().mockReturnValue({
+      responses: {
+        create: jest.fn().mockResolvedValue(
+          (async function* () {
+            yield { type: 'response.web_search_call.completed', item_id: 'ws_delayed' };
+            yield { type: 'response.output_text.delta', delta: 'Streaming answer' };
+            yield {
+              type: 'response.output_item.done',
+              item: {
+                id: 'ws_delayed',
+                type: 'web_search_call',
+                status: 'completed',
+                action: { type: 'search', sources: [{ url: 'https://example.com/delayed' }] },
+              },
+            };
+            yield { type: 'response.completed', response: { status: 'completed' } };
+          })(),
+        ),
+      },
+    });
+    const mapped: any[] = [];
+    for await (const event of adapter.stream(baseRequest)) mapped.push(event);
+    expect(mapped[0].toolCall.status).toBe('success');
+    expect(mapped[1].type).toBe('text_delta');
+    expect(mapped[2].toolCall).toMatchObject({
+      update: true,
+      status: 'success',
+      output: { sources: [{ url: 'https://example.com/delayed' }] },
+    });
+  });
+
+  it('keeps separate lifecycles for multiple native web search provider items', async () => {
     const adapter = createAdapter();
     const events = [
       {
@@ -551,20 +712,16 @@ describe('OpenAIResponsesAdapter', () => {
 
     const hostedEvents = mapped.filter(event => event.type === 'hosted_tool_call');
     const hostedIds = new Set(hostedEvents.map(event => event.toolCall.id));
-    expect(hostedIds.size).toBe(1);
+    expect(hostedIds.size).toBe(2);
+    expect(hostedEvents.at(-1).toolCall.inputSummary).not.toMatch(/正在/);
     expect(hostedEvents.at(-1)).toEqual(
       expect.objectContaining({
         toolCall: expect.objectContaining({
           displayName: '联网搜索',
-          inputSummary: '搜索：GPT-5.6 latest public news OpenAI',
           status: 'success',
           output: expect.objectContaining({
-            queries: ['GPT-5.6 latest public news OpenAI'],
-            sources: [
-              { type: 'url', url: 'https://example.com/search-result' },
-              { type: 'url', url: 'https://openai.com/index/previewing-gpt-5-6-sol/' },
-            ],
-            providerItemIds: ['ws_search', 'ws_open_page'],
+            sources: [{ type: 'url', url: 'https://openai.com/index/previewing-gpt-5-6-sol/' }],
+            providerItemIds: ['ws_open_page'],
           }),
         }),
       }),
@@ -595,6 +752,84 @@ describe('OpenAIResponsesAdapter', () => {
       retryable: false,
       requestOutcome: 'rejected',
     });
+  });
+
+  it.each([
+    'pending at response end',
+    'pending final payload',
+    'missing item status',
+    'citation before search',
+    'message before search',
+  ])('preserves search evidence conservatively for %s', async (scenario: string) => {
+    const adapter = createAdapter();
+    const annotation = {
+      type: 'url_citation',
+      title: 'Only citation',
+      url: 'https://example.com/only-citation',
+    };
+    const search = {
+      id: 'ws_ordered',
+      type: 'web_search_call',
+      status: 'completed',
+      action: { type: 'search', query: 'synthetic' },
+    };
+    const events: any[] =
+      scenario.startsWith('pending') || scenario === 'missing item status'
+        ? [
+            { type: 'response.web_search_call.in_progress', item_id: search.id },
+            {
+              type: 'response.completed',
+              response: {
+                status: 'completed',
+                output:
+                  scenario === 'pending at response end'
+                    ? []
+                    : [
+                        {
+                          ...search,
+                          status: scenario === 'missing item status' ? undefined : 'in_progress',
+                        },
+                      ],
+              },
+            },
+          ]
+        : scenario === 'citation before search'
+          ? [
+              { type: 'response.output_text.annotation.added', annotation },
+              { type: 'response.output_item.added', item: { ...search, status: 'in_progress' } },
+              { type: 'response.output_item.done', item: search },
+              { type: 'response.completed', response: { status: 'completed' } },
+            ]
+          : [
+              {
+                type: 'response.completed',
+                response: {
+                  status: 'completed',
+                  output: [{ type: 'message', content: [{ annotations: [annotation] }] }, search],
+                },
+              },
+            ];
+    (adapter as any).createClient = jest.fn().mockReturnValue({
+      responses: {
+        create: jest.fn().mockResolvedValue(
+          (async function* () {
+            yield* events;
+          })(),
+        ),
+      },
+    });
+    const mapped: any[] = [];
+    for await (const event of adapter.stream(baseRequest)) mapped.push(event);
+    const hosted = mapped.filter(event => event.type === 'hosted_tool_call');
+    if (scenario.startsWith('pending') || scenario === 'missing item status')
+      expect(hosted.some(event => ['success', 'error'].includes(event.toolCall.status))).toBe(
+        false,
+      );
+    else
+      expect(
+        hosted.flatMap(event => event.toolCall.output.results).map((item: any) => item.url),
+      ).toContain(annotation.url);
+    expect(mapped.at(-1)?.type).toBe('done');
   });
 
   it('does not synthesize success when a Responses stream ends without a terminal event', async () => {

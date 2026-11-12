@@ -29,6 +29,8 @@ export type MessagePart =
  */
 export interface ToolCall {
   id: string;
+  /** 服务端原生能力观察；历史回放不合成外部函数调用。 */
+  origin?: 'hosted';
   /** API-safe 工具名，用于重建 LLM tool_calls.function.name */
   toolName?: string;
   /** 前端展示名，通常为中文或带业务语义的动态名称 */

@@ -58,6 +58,8 @@ export interface AgentRuntimeCapabilityResult {
 }
 
 export interface AgentRuntimeHostedToolCall {
+  /** Metadata-only update for an already completed call. */
+  update?: true;
   id: string;
   name: string;
   displayName?: string;
@@ -170,6 +172,7 @@ export interface AgentRuntimeProgressEvent {
     | 'round.tool_call'
     | 'capability.started'
     | 'capability.completed'
+    | 'capability.updated'
     | 'round.completed'
     | 'run.progress';
   data: Record<string, unknown>;

@@ -41,7 +41,7 @@ function stripSourceInputLabel(value: string): string {
 }
 
 export function isInternalSearchSummary(value: unknown): boolean {
-  return /OpenAI Responses|内置\s*web_search|native\s*web_search|hosted\s*tool/iu.test(
+  return /OpenAI Responses|内置\s*web_search|native\s*web_search|hosted\s*tool|^(?:正在搜索公开网页|网页检索)$/iu.test(
     String(value || '')
   )
 }
