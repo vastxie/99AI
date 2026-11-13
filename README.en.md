@@ -40,6 +40,8 @@ cd 99AI
 
 > **0.1.0 beta.** A fresh deployment is required; databases and configuration from the previous 99AI are incompatible. APIs and data structures may change before 1.0.
 
+You can also build a release bundle locally and deploy it over SSH / rsync while keeping the server's configuration, database, and user files; see [Artifact deployment](./site/deployment/index.md#artifact-deploy). Building and deploying do not require pushing to GitHub first.
+
 The linked guides are currently in Chinese.
 
 ## Development and contributing
