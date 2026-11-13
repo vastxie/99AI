@@ -2,6 +2,7 @@
 # 发版打包：构建三端，产出一个可直接部署到 Node.js 宿主机的目录与 ZIP。
 #
 # 用法：./build.sh            → 输出到 ./release-build/<version>-<time>/ 与同名 .zip
+# 已安装依赖时：SKIP_INSTALL=1 ./build.sh（仍执行三端构建与构建中的类型检查）
 #       RELEASE_DIR=/path ./build.sh  → 自定义输出根目录
 # 部署包内容：server/dist、public/{admin,chat}、data（运行期数据；本机的敏感词库默认不打包）、pm2.conf.json、
 # package.json + pnpm-lock.yaml（部署机执行 pnpm install --prod）、.env.example。
@@ -19,7 +20,9 @@ for app in admin web server; do
   echo "==> 构建 $app"
   (
     cd "$ROOT_DIR/$app"
-    pnpm_install
+    if [ "${SKIP_INSTALL:-0}" != "1" ]; then
+      pnpm_install
+    fi
     pnpm build
   )
 done
