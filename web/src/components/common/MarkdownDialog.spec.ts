@@ -1,9 +1,11 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import MarkdownDialog from './MarkdownDialog.vue'
+import { nextTick } from 'vue'
 
-function mountDialog(props: Record<string, unknown> = {}) {
+function mountDialog(props: Record<string, unknown> = {}, attachTo?: HTMLElement) {
   return mount(MarkdownDialog, {
+    ...(attachTo ? { attachTo } : {}),
     props: {
       visible: true,
       title: '平台公告',
@@ -16,6 +18,31 @@ function mountDialog(props: Record<string, unknown> = {}) {
 }
 
 describe('MarkdownDialog 配置类 Markdown 弹窗', () => {
+  it('打开时聚焦阅读弹窗而非关闭按钮，键盘循环和关闭后的焦点归还仍正常', async () => {
+    const layout = vi
+      .spyOn(HTMLElement.prototype, 'getClientRects')
+      .mockReturnValue([new DOMRect(0, 0, 100, 30)] as unknown as DOMRectList)
+    const opener = document.createElement('button')
+    document.body.append(opener)
+    opener.focus()
+    const wrapper = mountDialog({}, document.body)
+    await nextTick()
+    await nextTick()
+    const dialog = wrapper.get('[role="dialog"]')
+    expect(document.activeElement).toBe(dialog.element)
+    await dialog.trigger('keydown', { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(wrapper.get('.btn-primary').element)
+    await wrapper.get('.btn-primary').trigger('keydown', { key: 'Tab' })
+    expect(document.activeElement).toBe(wrapper.get('button[aria-label]').element)
+    await dialog.trigger('keydown', { key: 'Escape' })
+    expect(wrapper.emitted('update:visible')).toEqual([[false]])
+    await wrapper.setProps({ visible: false })
+    await nextTick()
+    expect(document.activeElement).toBe(opener)
+    wrapper.unmount()
+    opener.remove()
+    layout.mockRestore()
+  })
   it('渲染标题、只读 Markdown 正文与确认文案，标题作为对话框的无障碍名称', () => {
     const wrapper = mountDialog()
     const dialog = wrapper.find('[role="dialog"]')

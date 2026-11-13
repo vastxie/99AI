@@ -1,6 +1,6 @@
 {
   "serverKernelLines": 50546,
-  "webKernelLines": 36993,
+  "webKernelLines": 36999,
   "adminKernelLines": 13408,
   "databaseTables": 21,
   "serverRuntimeDependencies": 30
