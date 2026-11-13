@@ -33,6 +33,9 @@ const emit = defineEmits<{
 const { isMobile } = useViewport()
 const titleId = useId()
 const doNotRemind = ref(false)
+const titleRef = ref<HTMLElement | null>(null)
+// 阅读弹窗先聚焦容器，避免打开时自动高亮关闭按钮并展开其提示。
+const initialFocus = () => titleRef.value?.closest<HTMLElement>('[role="dialog"]')
 
 // Esc、遮罩点击、关闭按钮与确认按钮同走 handleClose
 function handleClose() {
@@ -53,16 +56,19 @@ watch(
   <UiDialog
     :open="visible"
     layer="notification"
-    class="relative flex flex-col overflow-hidden"
+    class="relative flex flex-col overflow-hidden outline-none"
     :class="isMobile ? 'dialog-shell-fullscreen' : 'dialog-shell-wide'"
     :aria-labelledby="titleId"
+    :initial-focus="initialFocus"
     @close="handleClose"
   >
     <!-- 标题栏 -->
     <header
       class="flex shrink-0 items-center justify-between gap-4 border-b border-app-divider px-5 pb-4 pt-[max(1rem,var(--safe-top))] md:px-6"
     >
-      <h3 :id="titleId" class="type-dialog-title min-w-0 break-words">{{ title }}</h3>
+      <h3 :id="titleId" ref="titleRef" class="type-dialog-title min-w-0 break-words">
+        {{ title }}
+      </h3>
       <UiTooltip class="shrink-0" :text="t('common.close')" placement="bottom">
         <UiButton icon :aria-label="t('common.close')" @click="handleClose">
           <X :size="20" />
