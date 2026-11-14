@@ -122,7 +122,14 @@
   --chat-user-bubble: color-mix(in srgb, rgb(var(--primary-400)) 14%, var(--app-surface));
   --chat-input-border: var(--app-border);
   --chat-input-shell-shadow:
-    0 0 0 0.5px var(--app-border), 0 4px 16px rgb(0 0 0 / 0.03), 0 0 24px rgb(0 0 0 / 0.03);
+    0 0 0 1px var(--chat-input-border), 0 6px 20px -4px rgb(0 0 0 / 0.06),
+    0 2px 6px -1px rgb(0 0 0 / 0.04);
+  --chat-input-shell-shadow-hover:
+    0 0 0 1px var(--input-border-hover), 0 8px 24px -4px rgb(0 0 0 / 0.08),
+    0 2px 8px -1px rgb(0 0 0 / 0.04);
+  --chat-input-shell-shadow-focus:
+    0 0 0 1px color-mix(in srgb, var(--accent) 36%, var(--input-border-hover)),
+    var(--input-focus-ring), 0 10px 28px -6px rgb(0 0 0 / 0.09);
   --chat-activity-accent: var(--accent);
   --agent-thinking: var(--app-surface-sunken);
   --agent-running: var(--accent);
@@ -252,7 +259,7 @@
   --btn-bg-danger-active: var(--control-danger-bg-active);
   --btn-text-danger: var(--control-danger-fg);
   --btn-border-danger: var(--control-danger-fg);
-  --chat-content-width: 42.5rem;
+  --chat-content-width: 46rem;
   /* 生成中（输入框在「加入下一轮」模式）时输入框的强调描边 */
   --composer-emphasis-border: rgb(var(--primary-500) / 0.7);
   /* 对话栏左右留白（消息、输入区、骨架与只读提示一致）：桌面 2rem，手机 1rem */

@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/modules/auth'
 import { useChatStore } from '@/store/modules/chat'
 import { isAssistantRunning } from '@/store/modules/chat/messageState'
 import '@/styles/chat-page.css'
+import { canAnimate, cancelAnimations, readDuration, readEasing } from '@/utils/motion'
 import { isAuthenticatedChatUser } from './chatAccess.helpers'
 import { chatMessageKey } from './chatBase.helpers'
 import { ChatActionsKey, ChatReadonlyKey } from './chatActions'
@@ -37,20 +38,14 @@ import { useSelectionQuote } from './composables/useSelectionQuote'
 import { useMessageEntrance } from './hooks/useMessageEntrance'
 import { useScroll } from './hooks/useScroll'
 
-/**
- * 对话页：侧栏、页头、消息画布、输入区与辅助面板的组装。
- * 一轮对话的编排在 useChatTurnController，按路由激活会话在 useChatRouteState；
- * 滚动跟随、会话切换、历史分页、轮次导航与面板各在自己的组合式函数或组件里。
- */
+/** 对话页：侧栏、页头、消息画布、输入区与辅助面板的组装（编排与路由激活见各自组合式函数） */
 const { isMobile } = useViewport()
 const authStore = useAuthStore()
 const chatStore = useChatStore()
 const {
   isConversationRoute,
   isConversationLoading,
-  isConversationEmpty,
   isConversationUnavailable,
-  isNewChatInitialState,
   shouldRenderConversationCanvas,
   retryRouteSync,
   recheckRouteAfterReconnect,
@@ -91,6 +86,7 @@ const isAuthenticatedUser = computed(() =>
   isAuthenticatedChatUser({ token: authStore.token, role: authStore.userInfo?.role })
 )
 
+const emptyStateRef = ref<HTMLElement | null>(null)
 const chatFooterDockRef = ref<HTMLElement | null>(null)
 const layout = useConversationLayoutFollow({
   scrollRef,
@@ -105,13 +101,10 @@ const chatFooterInsetStyle = computed(() => ({
   '--chat-footer-dock-height': `${Math.ceil(layout.footerDockHeight.value)}px`,
 }))
 
-/* 一轮对话的编排（发送、恢复、停止、别处同步），详见 useChatTurnController */
 const turns = useChatTurnController({
   view: {
     followLatest: () => scrollControls.followIfPinned(),
-    scrollToBottom: async () => {
-      await scrollControls.scrollToBottom()
-    },
+    scrollToBottom: async () => void (await scrollControls.scrollToBottom()),
     settleLayout: () => layout.settle(),
     isAtBottom: () => isAtBottom.value,
     markEnteringUserMessage,
@@ -141,14 +134,16 @@ const {
   bottomInset: () => layout.footerDockHeight.value,
 })
 
-// 打开一个会话、消息还没加载到时不显示新对话的欢迎页（否则会先闪一下欢迎页）
-const shouldShowEmptyChatState = computed(
-  () =>
-    (isNewChatInitialState.value || isConversationEmpty.value) &&
-    !(isConversationRoute.value && isConversationLoading.value)
-)
 const activePagination = computed(() =>
   activeWorkspaceId.value ? chatStore.messagePaginationByWorkspace[activeWorkspaceId.value] : null
+)
+// 打开尚未拉取过消息的会话时不显示欢迎页并给出骨架；新建空会话已标记 initialized，保持空状态不闪烁
+const isInitialConversationLoading = computed(
+  () =>
+    isConversationRoute.value && isConversationLoading.value && !activePagination.value?.initialized
+)
+const shouldShowEmptyChatState = computed(
+  () => chatMessages.value.length === 0 && !isInitialConversationLoading.value
 )
 /** 会话内容没取到（也没有缓存）：给出重试，不显示成空会话 */
 const isActiveConversationLoadFailed = computed(
@@ -191,11 +186,50 @@ const headerConversationTitle = computed(() => {
   const title = String(chatStore.getChatByGroupInfo()?.title || '').trim()
   return title || t('common.newConversation')
 })
-/** 打开还没缓存的会话、消息还在路上：先给骨架，不显示成空白 */
 const showsConversationSkeleton = computed(
-  () => isConversationRoute.value && isConversationLoading.value && !chatMessages.value.length
+  () => isInitialConversationLoading.value && !chatMessages.value.length
 )
 const isLatestReplyRunning = computed(() => isAssistantRunning(chatMessages.value.at(-1)))
+
+// 空状态发首条消息时，输入框从居中原位平滑滑入底部停靠栏并收敛高度（切换会话不触发）
+let composerGlideSeq = 0
+watch(
+  shouldShowEmptyChatState,
+  (isEmpty, wasEmpty) => {
+    if (!wasEmpty || isEmpty || !chatStore.isSubmitting) return
+    const fromRect = emptyStateRef.value
+      ?.querySelector<HTMLElement>('.chat-footer-input-shell')
+      ?.getBoundingClientRect()
+    if (!fromRect || fromRect.height <= 0) return
+    const seq = ++composerGlideSeq
+    void (async () => {
+      for (let i = 0; i < 6 && chatStore.isSubmitting; i++) await Promise.resolve()
+      await nextTick()
+      if (seq !== composerGlideSeq) return
+      const toShell = chatFooterDockRef.value?.querySelector<HTMLElement>(
+        '.chat-footer-input-shell'
+      )
+      if (!canAnimate(toShell)) return
+      cancelAnimations(toShell)
+      const toRect = toShell.getBoundingClientRect()
+      const dx = fromRect.left - toRect.left
+      const dy = fromRect.top - toRect.top
+      if (toRect.height <= 0 || (Math.abs(dy) < 2 && Math.abs(fromRect.height - toRect.height) < 2))
+        return
+      toShell.animate(
+        [
+          { transform: `translate3d(${dx}px, ${dy}px, 0)`, minHeight: `${fromRect.height}px` },
+          { transform: 'translate3d(0, 0, 0)', minHeight: `${toRect.height}px` },
+        ],
+        {
+          duration: readDuration(toShell, '--motion-duration-2xl', 450),
+          easing: readEasing(toShell, '--motion-easing', 'cubic-bezier(0.22, 1, 0.36, 1)'),
+        }
+      )
+    })()
+  },
+  { flush: 'sync' }
+)
 
 const navigation = useConversationNavigator()
 useChatShortcuts({
@@ -239,23 +273,18 @@ watch(
   { immediate: true }
 )
 
-/* 会话切换过渡：唯一的进入/切换滚动定位机制，详见 useConversationSwitchTransition */
 const { isCanvasSwitching } = useConversationSwitchTransition({
   scrollRef,
   isConversationLoading,
   activeWorkspaceId,
   hasActivePendingFocus: hasPendingFocus,
-  // 切换期间的钉底经滚动账本记账，露出后底部归程序所有
   pinToBottom: scrollControls.pinToBottomNow,
   onReveal: () => {
-    // 露出后短暂冷却，避免布局还在抖动时误触发「加载更早消息」的顶部预取
     suppressHistoryPrefetch(300)
-    // 兜底跟随高亮 / 图片等异步渲染把内容高度撑大的情况
     layout.settle()
   },
 })
 
-/* 历史分页：顶部预取更早消息 + 视口锚定恢复，详见 useHistoryPagination */
 const {
   isLoadingOlderMessages,
   suppressHistoryPrefetch,
@@ -280,18 +309,11 @@ function handleChatScroll() {
 
 const landingQuery = useLandingQuery()
 onMounted(async () => {
+  void authStore.getUserInfo().catch(() => undefined)
   await nextTick()
   await layout.refreshLayoutObserver()
   await landingQuery.consume()
-  // 最后一条回复如果还在生成就接上
   await turns.checkAndReconnect()
-})
-onMounted(async () => {
-  try {
-    await authStore.getUserInfo()
-  } catch {
-    // 未登录或用户信息加载失败不阻塞界面
-  }
 })
 
 provide(ChatActionsKey, {
@@ -311,14 +333,12 @@ provide(ChatReadonlyKey, isReadonlyChannel)
     <div class="ds-chat-frame relative flex h-full w-full flex-1 overflow-hidden">
       <!-- 设置/文件/会员改为 chat.vue 中的弹窗层，对话画布常驻 -->
       <div class="ds-chat-main flex h-full w-full flex-1">
-        <!-- Main container flex -->
         <div class="relative h-full min-w-0 flex flex-1 flex-col overflow-hidden">
           <ChatHeader
             :conversation-title="headerConversationTitle"
             :show-home-brand="shouldShowEmptyChatState && !isReadonlyChannel"
             class="ds-chat-header chat-header-surface relative z-header flex-shrink-0"
           />
-
           <!-- 对话画布：内容层（z-content），压在输入区浮层与页头之下 -->
           <main
             v-if="shouldRenderConversationCanvas"
@@ -438,7 +458,7 @@ provide(ChatReadonlyKey, isReadonlyChannel)
             <ScrollToBottomButton
               :visible="!isAtBottom"
               :generating="isLatestReplyRunning"
-              @click="scrollControls.scrollToBottom()"
+              @click="scrollControls.scrollToBottomSmooth()"
             />
             <TurnNavigator
               ref="turnNavigatorRef"
@@ -453,18 +473,15 @@ provide(ChatReadonlyKey, isReadonlyChannel)
           >
             <ConversationSkeleton />
           </div>
-
           <div v-if="isReadonlyChannel && shouldShowEmptyChatState" class="flex-1"></div>
-
-          <!-- 空状态（桌面/移动统一）：标题/输入框/预设一体居中的文档流布局 -->
+          <!-- 空状态（桌面/移动统一）：标题/输入框一体居中的文档流布局 -->
           <div
             v-if="!isReadonlyChannel && shouldShowEmptyChatState"
+            ref="emptyStateRef"
             class="chat-empty-state-scroll ds-chat-canvas chat-surface-enter relative z-content flex-1 overflow-y-auto custom-scrollbar"
           >
-            <!-- 文档流布局：上下弹性留白做视觉居中，欢迎语/输入框/预设依次排列 -->
-            <div class="flex min-h-full w-full flex-col items-center px-4">
+            <div class="chat-content-inset flex min-h-full w-full flex-col items-center">
               <div class="chat-empty-spacer-top" aria-hidden="true"></div>
-
               <div class="chat-composer-width">
                 <!-- 会话内容没取到：先重试，暂不显示输入框，免得在看不到上下文的会话里继续发 -->
                 <div
@@ -489,25 +506,21 @@ provide(ChatReadonlyKey, isReadonlyChannel)
                   </UiButton>
                 </div>
                 <template v-else>
-                  <WelcomeComponent class="mb-8" />
-
+                  <WelcomeComponent class="mb-6 md:mb-7" />
                   <FooterComponent class="relative z-1" @pause-request="turns.stopReply()" />
                 </template>
               </div>
-
               <div class="chat-empty-spacer-bottom" aria-hidden="true"></div>
             </div>
           </div>
-
-          <!-- Footer when there are messages（会话切换 loading 期间保持挂载，避免输入框闪烁） -->
+          <!-- 有消息或首屏加载期间保持底部挂载，避免切换会话闪烁 -->
           <div
             v-else-if="!isReadonlyChannel"
             ref="chatFooterDockRef"
             class="chat-footer-dock ds-input-dock chat-content-inset pointer-events-none absolute inset-x-0 bottom-0 z-composer bg-transparent"
           >
-            <FooterComponent class="relative z-1 pb-3" @pause-request="turns.stopReply()" />
+            <FooterComponent class="relative z-1 pb-3 md:pb-4" @pause-request="turns.stopReply()" />
           </div>
-
           <!-- 非 web 渠道会话：只读提示，替代输入框 -->
           <div
             v-else
@@ -524,14 +537,10 @@ provide(ChatReadonlyKey, isReadonlyChannel)
               }}</span>
             </div>
           </div>
-
-          <!-- 底部Copyright Area -->
           <ChatCopyright v-if="shouldShowCopyright" />
         </div>
-
         <SidePanelDock />
       </div>
-
       <PanelOverlays />
     </div>
   </div>

@@ -88,16 +88,17 @@ function setRenameInputRef(el: Element | ComponentPublicInstance | null) {
 }
 
 function focusRenameInput() {
-  nextTick(() => {
-    const focusInput = () => {
-      const input = renameInputRef.value
-      if (!input) return
-      input.focus({ preventScroll: true })
-      input.select()
-    }
+  nextTick(() =>
+    window.requestAnimationFrame(() => {
+      renameInputRef.value?.focus({ preventScroll: true })
+      renameInputRef.value?.select()
+    })
+  )
+}
 
-    window.requestAnimationFrame(focusInput)
-  })
+function runMenuAction(action: () => unknown, close: () => void) {
+  action()
+  close()
 }
 
 function startRenameConversation(item: Chat.ConversationGroup) {
@@ -117,14 +118,11 @@ function closeConversationMenu(item: Chat.ConversationGroup) {
 
 async function commitRenameConversation(item: Chat.ConversationGroup) {
   if (renameSubmitting.value || renamingConversationId.value !== item.uuid) return
-
   const nextTitle = renameValue.value.trim()
-  // 未命名会话的输入框预填的是显示用的「新对话」：原样确认等于没改，不能把兜底文案写进服务端
+  // 未命名会话预填显示用的「新对话」：原样确认等于没改，不把兜底文案写进服务端
   if (!nextTitle || nextTitle === (item.title || newConversationLabel.value)) {
-    cancelRenameConversation()
-    return
+    return cancelRenameConversation()
   }
-
   renameSubmitting.value = true
   try {
     await chatStore.updateConversationGroup(item.uuid, { title: nextTitle })
@@ -138,11 +136,7 @@ async function commitRenameConversation(item: Chat.ConversationGroup) {
 
 async function toggleConversationSticky(item: Chat.ConversationGroup) {
   closeConversationMenu(item)
-  if (isNavigationLocked.value) {
-    ms.info(t('chat.waitForSending'))
-    return
-  }
-
+  if (isNavigationLocked.value) return void ms.info(t('chat.waitForSending'))
   try {
     await chatStore.updateConversationGroup(item.uuid, { isSticky: !item.isSticky })
   } catch (error: any) {
@@ -153,10 +147,8 @@ async function toggleConversationSticky(item: Chat.ConversationGroup) {
 async function deleteGroupWorkspace(item: Chat.ConversationGroup) {
   closeConversationMenu(item)
   if (isStreamIn.value && chatStore.active === item.uuid) {
-    ms.info(t('chat.waitForAiResponse'))
-    return
+    return void ms.info(t('chat.waitForAiResponse'))
   }
-
   const confirmed = await confirmDialog({
     title: t('chat.deleteConversation'),
     content: t('chat.deleteConversationConfirm'),
@@ -165,17 +157,13 @@ async function deleteGroupWorkspace(item: Chat.ConversationGroup) {
     tone: 'danger',
   })
   if (!confirmed) return
-
   const wasActive = chatStore.active === item.uuid
   try {
     const nextWorkspaceId = await chatStore.deleteConversationGroup(item.uuid)
     ms.success(t('chat.deleteSuccess'))
     if (!wasActive) return
-
-    if (nextWorkspaceId) {
-      await navigation.openConversation(nextWorkspaceId, { checkLock: false })
-      return
-    }
+    if (nextWorkspaceId)
+      return void (await navigation.openConversation(nextWorkspaceId, { checkLock: false }))
     await navigation.leaveConversation()
   } catch (error: any) {
     ms.error(error?.message || t('common.deleteFailed'))
@@ -231,130 +219,116 @@ async function deleteGroupWorkspace(item: Chat.ConversationGroup) {
         </div>
 
         <!-- 整行可点；键盘与读屏走行内的打开按钮（行里还有「更多」按钮，不能再把整行做成按钮） -->
-        <div
-          v-for="item in conversationGroups"
-          :key="item.uuid"
-          class="chat-sidebar-conversation group/conversation relative flex w-full cursor-pointer items-center gap-2 text-text-primary"
-          :class="{ 'is-active': chatStore.active === item.uuid }"
-          :data-conversation-id="item.uuid"
-          @click="handleConversationRowClick(item)"
-        >
-          <template v-if="renamingConversationId === item.uuid">
-            <span class="invisible block min-w-0 flex-1 truncate text-left" aria-hidden="true">
-              {{ item.title || newConversationLabel }}
-            </span>
-            <input
-              :ref="setRenameInputRef"
-              v-model="renameValue"
-              class="absolute inset-0 h-full w-full rounded-lg border border-[color:var(--app-border)] bg-app-elevated px-3 py-0 text-text-primary outline-none focus:border-[color:var(--input-border-focus)]"
-              :disabled="renameSubmitting"
-              :aria-label="t('common.editTitle')"
-              @click.stop
-              @keydown.stop
-              @keydown.enter.prevent="commitRenameConversation(item)"
-              @keydown.esc.prevent="cancelRenameConversation"
-              @blur="commitRenameConversation(item)"
-            />
-          </template>
-          <template v-else>
-            <button
-              type="button"
-              class="chat-sidebar-conversation-open flex h-full min-w-0 flex-1 items-center gap-1.5 text-left"
-              :aria-current="chatStore.active === item.uuid ? 'page' : undefined"
-            >
-              <Pin
-                v-if="item.isSticky"
-                :size="12"
-                class="shrink-0 text-text-muted"
-                aria-hidden="true"
+        <TransitionGroup name="sidebar-list" tag="div" class="relative">
+          <div
+            v-for="item in conversationGroups"
+            :key="item.uuid"
+            class="chat-sidebar-conversation group/conversation relative flex w-full cursor-pointer items-center gap-2 text-text-primary"
+            :class="{ 'is-active': chatStore.active === item.uuid }"
+            :data-conversation-id="item.uuid"
+            @click="handleConversationRowClick(item)"
+          >
+            <template v-if="renamingConversationId === item.uuid">
+              <span class="invisible block min-w-0 flex-1 truncate text-left" aria-hidden="true">
+                {{ item.title || newConversationLabel }}
+              </span>
+              <input
+                :ref="setRenameInputRef"
+                v-model="renameValue"
+                class="absolute inset-0 h-full w-full rounded-lg border border-[color:var(--app-border)] bg-app-elevated px-3 py-0 text-text-primary outline-none focus:border-[color:var(--input-border-focus)]"
+                :disabled="renameSubmitting"
+                :aria-label="t('common.editTitle')"
+                @click.stop
+                @keydown.stop
+                @keydown.enter.prevent="commitRenameConversation(item)"
+                @keydown.esc.prevent="cancelRenameConversation"
+                @blur="commitRenameConversation(item)"
               />
-              <span v-if="item.isSticky" class="sr-only">{{ t('chat.pinned') }}</span>
-              <span class="block min-w-0 truncate">{{ item.title || newConversationLabel }}</span>
-            </button>
-
-            <div
-              class="-my-1 ml-1 flex shrink-0 items-center transition-opacity"
-              :class="
-                chatStore.active === item.uuid || conversationMenuStates[item.uuid]
-                  ? 'opacity-100'
-                  : isMobile
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover/conversation:opacity-100 group-focus-within/conversation:opacity-100'
-              "
-              @click.stop
-            >
-              <DropdownMenu
-                v-model="conversationMenuStates[item.uuid]"
-                trigger="click"
-                position="auto"
-                teleport
-                menu-class="menu-action"
-                min-width="132px"
+            </template>
+            <template v-else>
+              <button
+                type="button"
+                class="chat-sidebar-conversation-open flex h-full min-w-0 flex-1 items-center gap-1.5 text-left"
+                :aria-current="chatStore.active === item.uuid ? 'page' : undefined"
               >
-                <template #trigger="{ triggerProps }">
-                  <ActionIcon
-                    v-bind="triggerProps"
-                    class="conversation-more"
-                    :scale="false"
-                    :label="t('chat.more')"
-                  >
-                    <Ellipsis :size="16" aria-hidden="true" />
-                  </ActionIcon>
-                </template>
+                <Pin
+                  v-if="item.isSticky"
+                  :size="12"
+                  class="shrink-0 text-text-muted"
+                  aria-hidden="true"
+                />
+                <span v-if="item.isSticky" class="sr-only">{{ t('chat.pinned') }}</span>
+                <span
+                  :key="item.title || newConversationLabel"
+                  class="text-rise-enter block min-w-0 truncate"
+                >
+                  {{ item.title || newConversationLabel }}
+                </span>
+              </button>
 
-                <template #menu="{ close }">
-                  <div class="menu-action-list">
-                    <MenuItem
-                      @click="
-                        () => {
-                          toggleConversationSticky(item)
-                          close()
-                        }
-                      "
+              <div
+                class="-my-1 ml-1 flex shrink-0 items-center transition-opacity"
+                :class="
+                  chatStore.active === item.uuid || conversationMenuStates[item.uuid]
+                    ? 'opacity-100'
+                    : isMobile
+                      ? 'opacity-100'
+                      : 'opacity-0 group-hover/conversation:opacity-100 group-focus-within/conversation:opacity-100'
+                "
+                @click.stop
+              >
+                <DropdownMenu
+                  v-model="conversationMenuStates[item.uuid]"
+                  trigger="click"
+                  position="auto"
+                  teleport
+                  menu-class="menu-action"
+                  min-width="132px"
+                >
+                  <template #trigger="{ triggerProps }">
+                    <ActionIcon
+                      v-bind="triggerProps"
+                      class="conversation-more"
+                      :scale="false"
+                      :label="t('chat.more')"
                     >
-                      <template #icon>
-                        <PinOff v-if="item.isSticky" :size="16" aria-hidden="true" />
-                        <Pin v-else :size="16" aria-hidden="true" />
-                      </template>
-                      <span>{{
-                        item.isSticky ? t('chat.unfavorite') : t('chat.favoriteConversations')
-                      }}</span>
-                    </MenuItem>
+                      <Ellipsis :size="16" aria-hidden="true" />
+                    </ActionIcon>
+                  </template>
 
-                    <MenuItem
-                      @click="
-                        () => {
-                          startRenameConversation(item)
-                          close()
-                        }
-                      "
-                    >
-                      <template #icon>
-                        <Pencil :size="16" aria-hidden="true" />
-                      </template>
-                      <span>{{ t('chat.rename') }}</span>
-                    </MenuItem>
-
-                    <MenuItem
-                      danger
-                      @click="
-                        () => {
-                          deleteGroupWorkspace(item)
-                          close()
-                        }
-                      "
-                    >
-                      <template #icon>
-                        <Trash2 :size="16" aria-hidden="true" />
-                      </template>
-                      <span>{{ t('chat.deleteConversation') }}</span>
-                    </MenuItem>
-                  </div>
-                </template>
-              </DropdownMenu>
-            </div>
-          </template>
-        </div>
+                  <template #menu="{ close }">
+                    <div class="menu-action-list">
+                      <MenuItem @click="runMenuAction(() => toggleConversationSticky(item), close)">
+                        <template #icon>
+                          <PinOff v-if="item.isSticky" :size="16" aria-hidden="true" />
+                          <Pin v-else :size="16" aria-hidden="true" />
+                        </template>
+                        <span>{{
+                          item.isSticky ? t('chat.unfavorite') : t('chat.favoriteConversations')
+                        }}</span>
+                      </MenuItem>
+                      <MenuItem @click="runMenuAction(() => startRenameConversation(item), close)">
+                        <template #icon>
+                          <Pencil :size="16" aria-hidden="true" />
+                        </template>
+                        <span>{{ t('chat.rename') }}</span>
+                      </MenuItem>
+                      <MenuItem
+                        danger
+                        @click="runMenuAction(() => deleteGroupWorkspace(item), close)"
+                      >
+                        <template #icon>
+                          <Trash2 :size="16" aria-hidden="true" />
+                        </template>
+                        <span>{{ t('chat.deleteConversation') }}</span>
+                      </MenuItem>
+                    </div>
+                  </template>
+                </DropdownMenu>
+              </div>
+            </template>
+          </div>
+        </TransitionGroup>
       </div>
     </ScrollShadow>
   </div>

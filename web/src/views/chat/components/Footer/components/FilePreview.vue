@@ -141,7 +141,7 @@ function openLocalFilePreview(attachment: DraftAttachment) {
         <div
           v-for="attachment in mediaAttachments()"
           :key="attachment.id"
-          class="group relative inline-block"
+          class="composer-attachment-enter group relative inline-block"
         >
           <div
             class="attachment-thumb"
@@ -205,7 +205,7 @@ function openLocalFilePreview(attachment: DraftAttachment) {
           <div
             v-for="attachment in fileAttachments()"
             :key="attachment.id"
-            class="uploaded-file-item"
+            class="composer-attachment-enter uploaded-file-item"
           >
             <div
               class="uploaded-file-card is-clickable group"

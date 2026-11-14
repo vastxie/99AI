@@ -22,6 +22,7 @@ import { useComposerAttachmentsStore } from '@/store/modules/chat/attachments'
 import { useGlobalStoreWithOut } from '@/store/modules/global'
 import { confirmDialog } from '@/utils/dialog'
 import { message } from '@/utils/message'
+import { animateHeight } from '@/utils/motion'
 import { ChatActionsKey } from '../../chatActions'
 import { useConversationNavigator } from '../../composables/useConversationNavigator'
 import { useSocketStatus } from '../../composables/useSocketStatus'
@@ -39,10 +40,7 @@ import { useFollowUpQueue } from './useFollowUpQueue'
  * 空闲时发送新一轮，生成中改为把补充要求排进这一轮，并保留停止。
  */
 defineOptions({ inheritAttrs: false })
-
-const emit = defineEmits<{
-  'pause-request': []
-}>()
+const emit = defineEmits<{ 'pause-request': [] }>()
 
 const chatActions = inject(ChatActionsKey)
 const globalStore = useGlobalStoreWithOut()
@@ -60,6 +58,7 @@ const uploadFileSizeLimit = computed(
   () => Number(authStore.globalConfig?.uploadFileSizeLimit) || 20
 )
 
+const shellRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
@@ -151,6 +150,20 @@ watch(previewQuote, quote => {
   if (isMobile.value) globalStore.closePanel()
   else focusInput()
 })
+watch(
+  () =>
+    `${chatStore.active}|${Boolean(previewQuote.value)}|${Boolean(followUpQueuedText.value)}|${attachments.value.length}`,
+  (next, prev) => {
+    if (!prev || next.split('|')[0] !== prev.split('|')[0] || chatStore.isSubmitting) return
+    const fromH = shellRef.value?.getBoundingClientRect().height ?? 0
+    if (fromH <= 0) return
+    void nextTick(() => {
+      if (!chatStore.isSubmitting)
+        animateHeight(shellRef.value, fromH, '--motion-duration-md', 200, 4)
+    })
+  },
+  { flush: 'sync' }
+)
 
 /** 引用拼在问题前面发出去（写法见 quotePrompt.ts，用户气泡按同样的写法拆开显示） */
 function withQuote(text: string) {
@@ -173,21 +186,14 @@ function clearInput() {
   nextTick(focusInput)
 }
 
-/**
- * 排进正在运行的这一轮。回执回来前可能已经切到别的会话：记下排给的是哪个会话，
- * 只清那个会话里这次发出去的文字与引用（等待期间新写的保留）
- */
+/** 排进正在运行的这一轮：回执回来前若已切走，只清原会话里这次发出的文字与引用 */
 async function queueFollowUp(text: string, baseText: string) {
-  if (attachments.value.length > 0) {
-    ms.warning(t('chat.followUpAttachmentsUnsupported'))
-    return
-  }
+  if (attachments.value.length > 0) return void ms.warning(t('chat.followUpAttachmentsUnsupported'))
   const draftKey = chatStore.active
   const quoteSnapshot = previewQuote.value
   const epoch = chatDataEpoch()
-  if (!(await followUp.queue(text, baseText, quoteSnapshot?.id))) return
-  // 期间身份换了：草稿与引用属于新身份，不动
-  if (chatDataEpoch() !== epoch) return
+  if (!(await followUp.queue(text, baseText, quoteSnapshot?.id)) || chatDataEpoch() !== epoch)
+    return
   if (chatStore.drafts[draftKey] === baseText) chatStore.setDraft(draftKey, '')
   if (quoteSnapshot && chatStore.quotes[draftKey]?.id === quoteSnapshot.id) {
     chatStore.clearQuote(draftKey)
@@ -202,16 +208,10 @@ async function handleSubmit() {
   const baseText = prompt.value
   if (!baseText.trim()) return
   const text = withQuote(baseText)
-  if (isFollowUpInputMode.value) {
-    await queueFollowUp(text, baseText)
-    return
-  }
+  if (isFollowUpInputMode.value) return queueFollowUp(text, baseText)
 
-  // 草稿、引用与附件按会话保存，发送成功前都不清：失败时原样留在输入区。
-  // 记下它们属于哪个会话（在首页发送时建会话后跟着新会话走），发送途中切换会话也清对的那一份
+  // 草稿、引用与附件按会话保存，发送成功前不清；先拿提交锁防并发重复提交
   const quoteSnapshot = previewQuote.value
-  // 提交锁：服务端确认前草稿还没清，回车 / 点击可以重复进入，会发出两条请求而前端只保留最后一个订阅。
-  // 建会话要等，锁必须在这之前拿到。锁被停止按钮作废或身份换了之后，这次提交不再改草稿、引用与附件
   const lock = chatStore.acquireSubmitLock()
   if (!lock) return
   const owns = () => chatStore.isSubmitLockCurrent(lock)
@@ -221,13 +221,10 @@ async function handleSubmit() {
       try {
         draftKey = await createConversationForSubmit()
       } catch {
-        // 期间身份换了（建会话、跳转被作废）：静默结束，草稿留着
         return
       }
       if (!draftKey || !owns()) return
     }
-
-    // 附件选中时已在后台上传：这里只等还没传完的
     if (attachmentsStore.list(draftKey).some(item => item.status === 'uploading')) {
       isUploading.value = true
       try {
@@ -240,8 +237,6 @@ async function handleSubmit() {
     const pending = attachmentsStore.list(draftKey)
     const sent = pending.filter(item => item.status === 'uploaded' && item.uploaded)
     const failed = pending.filter(item => item.status !== 'uploaded')
-
-    // 有附件上传失败时，由用户确认是否只发成功的部分，避免「部分发送」被误以为全部发出
     if (failed.length > 0) {
       const sendWithoutFailed = await confirmDialog({
         title: t('chat.attachmentUploadFailedTitle'),
@@ -252,12 +247,8 @@ async function handleSubmit() {
         negativeText: t('common.cancel'),
       })
       if (!owns()) return
-      if (!sendWithoutFailed) {
-        focusInput()
-        return
-      }
+      if (!sendWithoutFailed) return focusInput()
     }
-
     try {
       await chatActions!.onConversation({
         msg: text,
@@ -266,29 +257,21 @@ async function handleSubmit() {
         urlItems: sent.map(item => item.uploaded as Chat.UrlItem),
       })
     } catch {
-      // 失败原因已由发送方提示；被作废（停止、身份变化）的静默结束
       if (owns()) focusInput()
       return
     }
-    // 发送途中被停止按钮作废、或身份换了：草稿、引用、附件都不再由这次提交改动
     if (!owns()) return
-
-    // 只清掉这次发出去的内容：等待期间新输入的文字与新加的引用保留
     if (chatStore.drafts[draftKey] === baseText) chatStore.setDraft(draftKey, '')
     if (quoteSnapshot && chatStore.quotes[draftKey]?.id === quoteSnapshot.id) {
       chatStore.clearQuote(draftKey)
     }
     autosize.reset()
     chatStore.releaseSubmitLock(lock)
-    // 发送按钮在发送途中被换掉，焦点会掉到页面上：放回输入框，接着就能写下一句
     focusInput()
-    // 只放掉随消息发出的附件，上传失败的留在输入框里可以重试
     attachmentsStore.release(
       draftKey,
       sent.map(item => item.id)
     )
-
-    // 正在预览的待发送附件已随消息发出时，关掉预览面板，不停留在已发送的本地文件上
     const panel = globalStore.rightPreviewPanel
     if (
       panel?.type === 'file' &&
@@ -298,16 +281,11 @@ async function handleSubmit() {
       globalStore.closePanel()
     }
   } finally {
-    // 只释放自己仍持有的锁：已被作废的旧提交结束时不会解开新提交的锁
     chatStore.releaseSubmitLock(lock)
   }
 }
 
-/**
- * 输入框按键：桌面回车发送、Shift+回车换行，移动端 Ctrl+回车发送；生成中单按 Esc 停止
- * （带修饰键的 Esc 留给别的快捷键，如 Shift+Esc 聚焦输入框）。
- * 输入法组词期间的按键交给输入法（Safari 结束组词的那次按键 keyCode 为 229）。
- */
+/** 桌面回车发送、Shift+回车换行，移动端 Ctrl+回车发送；生成中单按 Esc 停止；输入法组词期间跳过 */
 function handleComposerKeydown(event: KeyboardEvent) {
   if (event.isComposing || event.keyCode === 229) return
   if (event.key === 'Escape') {
@@ -355,6 +333,7 @@ onMounted(() => nextTick(focusInput))
             <span>{{ t('chat.connectionLost') }}</span>
           </div>
           <div
+            ref="shellRef"
             class="chat-footer-input-shell"
             :class="{
               'ring-1 ring-accent': isDragging,
@@ -373,7 +352,7 @@ onMounted(() => nextTick(focusInput))
 
             <div
               v-if="previewQuote"
-              class="relative mt-2 flex w-full items-start gap-2 rounded-t-2xl rounded-b-md bg-app-sunken px-3 py-2 text-text-secondary shadow-sm"
+              class="composer-tray-enter relative mx-2.5 mb-1 mt-1 flex items-start gap-2 rounded-xl bg-app-sunken px-3 py-2 text-text-secondary shadow-sm"
             >
               <CornerDownRight :size="17" class="mt-0.5 flex-shrink-0 text-text-muted" />
               <div class="min-w-0 flex-1">
@@ -410,7 +389,7 @@ onMounted(() => nextTick(focusInput))
                  「引导」只在生成中有意义 -->
             <div
               v-if="followUpQueuedText"
-              class="relative mt-2 flex h-12 w-full items-center justify-start rounded-t-2xl rounded-b-md bg-app-sunken px-3 text-text-secondary shadow-sm"
+              class="composer-tray-enter relative mx-2.5 mb-1 mt-1 flex h-11 items-center justify-start rounded-xl bg-app-sunken px-3 text-text-secondary shadow-sm"
             >
               <CornerDownRight :size="18" class="mr-2 flex-shrink-0 text-text-muted" />
               <p class="min-w-0 flex-1 truncate pr-3 text-base text-text-secondary">
@@ -447,7 +426,6 @@ onMounted(() => nextTick(focusInput))
 
             <div class="chat-footer-composer-row">
               <div class="chat-footer-editor relative min-w-0">
-                <!-- 长内容操作 -->
                 <div
                   v-if="shouldShowInputActions"
                   class="absolute right-2 top-0 z-1 flex items-center gap-1 bg-[var(--chat-input-surface)]"
@@ -469,7 +447,6 @@ onMounted(() => nextTick(focusInput))
                       <Trash2 :size="15" />
                     </UiButton>
                   </UiTooltip>
-
                   <UiTooltip
                     class="shrink-0"
                     :text="isExpanded ? t('chat.collapse') : t('chat.expand')"
@@ -490,8 +467,6 @@ onMounted(() => nextTick(focusInput))
                     </UiButton>
                   </UiTooltip>
                 </div>
-
-                <!-- 拖拽提示覆盖层 - 替代文本区域 -->
                 <div v-if="isDraggingOverPage" class="flex h-12 w-full items-center justify-center">
                   <div class="flex items-center justify-center gap-2">
                     <ImagePlus
@@ -506,8 +481,6 @@ onMounted(() => nextTick(focusInput))
                     </p>
                   </div>
                 </div>
-
-                <!-- 文本区域 - 非拖拽状态显示 -->
                 <textarea
                   v-if="!isDraggingOverPage"
                   ref="inputRef"
@@ -521,16 +494,12 @@ onMounted(() => nextTick(focusInput))
                   @input="autosize.resize"
                   @keydown="handleComposerKeydown"
                   @paste="files.onPaste"
-                  :style="{
-                    maxHeight: isExpanded ? 'none' : '30vh',
-                  }"
+                  :style="{ maxHeight: isExpanded ? 'none' : '30vh' }"
                   :aria-label="t('chat.chatMessageInput')"
                   role="textbox"
                 ></textarea>
               </div>
-
               <div class="chat-footer-toolbar">
-                <!-- 文件上传按钮区域 -->
                 <div class="chat-footer-leading-action">
                   <UiTooltip :text="uploadButtonLabel">
                     <!-- 生成中补充的要求只能是文字：附件按钮停用并说明原因 -->
@@ -547,7 +516,6 @@ onMounted(() => nextTick(focusInput))
                       <Plus :size="18" aria-hidden="true" />
                     </UiButton>
                   </UiTooltip>
-
                   <input
                     ref="fileInput"
                     type="file"
@@ -557,16 +525,14 @@ onMounted(() => nextTick(focusInput))
                     @change="files.onFileSelect"
                   />
                 </div>
-
                 <div class="chat-footer-trailing-actions">
-                  <!-- 模型选择器 - 在发送按钮左侧 -->
                   <div class="min-w-0 shrink-1">
                     <ModelSelector menu-position="top-right" />
                   </div>
                   <!-- 生成中的停止按钮放在发送 / 加入下一轮的左边：最右侧始终是发送，顺手点不会误停 -->
                   <UiTooltip
                     v-if="isFollowUpInputMode"
-                    class="shrink-0"
+                    class="composer-action-enter shrink-0"
                     :text="t('chat.stopGenerating')"
                   >
                     <UiButton
@@ -588,7 +554,6 @@ onMounted(() => nextTick(focusInput))
                       <Square v-else :size="16" aria-hidden="true" />
                     </UiButton>
                   </UiTooltip>
-
                   <UiTooltip v-if="shouldShowSendButton" class="shrink-0" :text="sendTooltip">
                     <UiButton
                       variant="primary"
@@ -597,9 +562,7 @@ onMounted(() => nextTick(focusInput))
                       :scale="false"
                       type="button"
                       class="btn-send"
-                      :class="{
-                        'cursor-not-allowed': buttonDisabled,
-                      }"
+                      :class="{ 'cursor-not-allowed': buttonDisabled }"
                       :disabled="buttonDisabled || isSending"
                       :aria-busy="isSending || undefined"
                       @click="handleSubmit()"

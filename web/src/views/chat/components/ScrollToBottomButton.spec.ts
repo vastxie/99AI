@@ -120,20 +120,21 @@ describe('回到底部按钮', () => {
     expect(computedStyle(anchor).bottom).toContain('12px')
   })
 
-  it('进出只淡化：进场 base 档、离场 fast 档，过渡里没有 transform / filter', () => {
+  it('进出带轻浮淡化：进场 base 档、离场 fast 档，过渡只含 opacity 与轻微位移，没有 filter', () => {
     const enter = scopedProbe('scroll-bottom-button-enter-active ui-button', 'button')
     const leave = scopedProbe('scroll-bottom-button-leave-active ui-button', 'button')
     const enterTransitions = parseTransitions(computedStyle(enter).transition)
     const leaveTransitions = parseTransitions(computedStyle(leave).transition)
-    expect(enterTransitions.map(item => item.property)).toEqual(['opacity'])
-    expect(leaveTransitions.map(item => item.property)).toEqual(['opacity'])
+    expect(enterTransitions.map(item => item.property)).toEqual(['opacity', 'transform'])
+    expect(leaveTransitions.map(item => item.property)).toEqual(['opacity', 'transform'])
     expect(enterTransitions[0].duration).toBe(rootVar('--motion-duration-md'))
     expect(leaveTransitions[0].duration).toBe(rootVar('--motion-duration-xs'))
     for (const probe of [enter, leave]) {
-      expect(['', 'none']).toContain(computedStyle(probe).transform)
       expect(['', 'none']).toContain(computedStyle(probe).filter)
     }
-    expect(computedStyle(scopedProbe('scroll-bottom-button-enter-from')).opacity).toBe('0')
+    const enterFrom = scopedProbe('scroll-bottom-button-enter-from')
+    expect(computedStyle(enterFrom).opacity).toBe('0')
+    expect(computedStyle(enterFrom).transform).toContain('translateY(6px)')
     expect(computedStyle(scopedProbe('scroll-bottom-button-leave-to')).opacity).toBe('0')
     expect(computedStyle(scopedProbe('scroll-bottom-button-enter-to')).opacity).toBe('1')
     expect(computedStyle(scopedProbe('scroll-bottom-button-leave-from')).opacity).toBe('1')

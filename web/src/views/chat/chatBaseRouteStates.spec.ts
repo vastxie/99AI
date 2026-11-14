@@ -40,6 +40,7 @@ vi.mock('./hooks/useScroll', () => ({
     scrollRef: ref(null),
     isAtBottom: ref(true),
     scrollToBottom: vi.fn(async () => undefined),
+    scrollToBottomSmooth: vi.fn(),
     pinToBottomNow: vi.fn(),
     followIfPinned: vi.fn(),
     adjustScrollTopBy: vi.fn(),
@@ -199,5 +200,113 @@ describe('对话页：会话地址还没确认时的输入区', () => {
     expect(chat.active).toBe('')
     expect(page.findAllComponents(Message)).toHaveLength(0)
     expect(page.findComponent(ConversationSkeleton).exists()).toBe(true)
+  })
+
+  it('首页新建空会话并路由激活期间：已标记 initialized 时保持空状态，不闪现骨架或跳到底栏', async () => {
+    routing.route = reactive({ name: 'Chat', path: '/', params: {}, hash: '', query: {} })
+    const chat = useChatStore()
+    chat.groupPagination.initialized = true
+    chat.groupList = [{ uuid: A, title: '新对话', updatedAt: 1 }] as Chat.ConversationGroup[]
+    const page = mountPage()
+    await flushPromises()
+    expect(page.find('.chat-empty-state-scroll').exists()).toBe(true)
+    expect(page.find('.chat-footer-dock').exists()).toBe(false)
+
+    let finishActivation: () => void = () => undefined
+    vi.spyOn(chat, 'activateWorkspaceFromRoute').mockImplementationOnce(async () => {
+      await new Promise<void>(resolve => (finishActivation = resolve))
+      return true as any
+    })
+    chat.active = A
+    chat.chatList = []
+    chat.messagePaginationByWorkspace[A] = {
+      initialized: true,
+      loading: false,
+      hasMore: false,
+      beforeCursor: null,
+    }
+    Object.assign(routing.route, conversation(A))
+    await flushPromises()
+
+    expect(page.findComponent(ConversationSkeleton).exists()).toBe(false)
+    expect(page.find('.chat-empty-state-scroll').exists()).toBe(true)
+    expect(page.find('.chat-footer-dock').exists()).toBe(false)
+
+    finishActivation()
+    await flushPromises()
+    expect(page.find('.chat-empty-state-scroll').exists()).toBe(true)
+  })
+
+  it('空状态发出首条消息时平滑滑向底部停靠栏；普通切换会话或减弱动效时不播放位移动画', async () => {
+    routing.route = reactive({ name: 'Chat', path: '/', params: {}, hash: '', query: {} })
+    const chat = useChatStore()
+    chat.groupPagination.initialized = true
+    const animateSpy = vi.fn(() => ({ finished: Promise.resolve(), cancel: vi.fn() }) as any)
+    const originalAnimate = HTMLElement.prototype.animate
+    HTMLElement.prototype.animate = animateSpy
+    try {
+      wrapper = shallowMount(ChatBase, {
+        attachTo: document.body,
+        global: {
+          plugins: [i18n],
+          stubs: {
+            UiButton: false,
+            FooterComponent: { template: '<div class="chat-footer-input-shell" />' },
+          },
+        },
+      })
+      await flushPromises()
+
+      const heroShell = wrapper.get('.chat-empty-state-scroll .chat-footer-input-shell').element
+      vi.spyOn(heroShell, 'getBoundingClientRect').mockReturnValue({
+        left: 240,
+        top: 340,
+        width: 768,
+        height: 120,
+      } as DOMRect)
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+        this: HTMLElement
+      ) {
+        if (this === heroShell) {
+          return { left: 240, top: 340, width: 768, height: 120 } as DOMRect
+        }
+        if (this.classList.contains('chat-footer-input-shell')) {
+          return { left: 240, top: 790, width: 768, height: 92 } as DOMRect
+        }
+        return { left: 0, top: 0, width: 0, height: 0 } as DOMRect
+      })
+
+      const lock = chat.acquireSubmitLock()
+      chat.active = A
+      chat.addGroupChat({ role: 'user', cid: 'u-1', content: '你好' } as Chat.Chat)
+      chat.addGroupChat({
+        role: 'assistant',
+        cid: 'a-1',
+        content: '',
+        loading: true,
+      } as Chat.Chat)
+      chat.releaseSubmitLock(lock)
+      await flushPromises()
+
+      expect(animateSpy).toHaveBeenCalledTimes(1)
+      expect(animateSpy).toHaveBeenCalledWith(
+        [
+          { transform: 'translate3d(0px, -450px, 0)', minHeight: '120px' },
+          { transform: 'translate3d(0, 0, 0)', minHeight: '92px' },
+        ],
+        expect.objectContaining({ duration: 450 })
+      )
+
+      // 回到空状态再不带提交锁直接装载历史消息（模拟切换会话）：不触发滑落动画
+      animateSpy.mockClear()
+      chat.chatList = []
+      await flushPromises()
+      chat.chatList = [{ role: 'assistant', cid: 'b-1', content: '历史消息' }] as Chat.Chat[]
+      await flushPromises()
+      expect(animateSpy).not.toHaveBeenCalled()
+    } finally {
+      HTMLElement.prototype.animate = originalAnimate
+      vi.restoreAllMocks()
+    }
   })
 })

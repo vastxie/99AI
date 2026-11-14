@@ -5,7 +5,7 @@ import { t } from '@/locales'
 
 /**
  * 「回到底部」悬浮按钮：锚点绝对定位在输入框 dock 之上且不拦截指针，只有按钮本体可点，
- * 正文滚动区不为它扣除高度；进出只做 opacity 过渡（进 base 档、出 fast 档），不模糊不缩放。
+ * 正文滚动区不为它扣除高度；进出做 opacity + 6px 轻浮过渡（进 base 档、出 fast 档），不模糊不缩放。
  * 下方还在生成时按钮上多一个闪动的点，读屏说明下方仍在生成。
  */
 defineProps<{ visible: boolean; generating?: boolean }>()
@@ -62,21 +62,27 @@ const emit = defineEmits<{ click: [] }>()
 }
 
 .scroll-bottom-button-enter-active.ui-button {
-  transition: opacity var(--motion-duration-md) var(--motion-easing);
+  transition:
+    opacity var(--motion-duration-md) var(--motion-easing),
+    transform var(--motion-duration-md) var(--motion-easing);
 }
 
 .scroll-bottom-button-leave-active.ui-button {
-  transition: opacity var(--motion-duration-xs) var(--motion-easing);
+  transition:
+    opacity var(--motion-duration-xs) var(--motion-easing),
+    transform var(--motion-duration-xs) var(--motion-easing);
 }
 
 .scroll-bottom-button-enter-from,
 .scroll-bottom-button-leave-to {
   opacity: 0;
+  transform: translateY(6px);
 }
 
 .scroll-bottom-button-enter-to,
 .scroll-bottom-button-leave-from {
   opacity: 1;
+  transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -86,6 +92,11 @@ const emit = defineEmits<{ click: [] }>()
   .scroll-bottom-generating-dot {
     transition: none;
     animation: none;
+  }
+
+  .scroll-bottom-button-enter-from,
+  .scroll-bottom-button-leave-to {
+    transform: none;
   }
 }
 </style>

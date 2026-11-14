@@ -9,6 +9,7 @@ import { useCopyFeedback } from '@/composables/useCopyFeedback'
 import { useViewport } from '@/hooks/useViewport'
 import { t } from '@/locales'
 import { parseChatMessage } from '@/utils/messageParser'
+import { animateHeight } from '@/utils/motion'
 import { ChatActionsKey, ChatReadonlyKey } from '@/views/chat/chatActions'
 import { buildQuotedPrompt, parseQuotedPrompt } from '@/views/chat/quotePrompt'
 import MediaOutput from './MediaOutput.vue'
@@ -40,6 +41,7 @@ const draft = ref('')
 const isSubmitting = ref(false)
 /** 有一轮正在发出或生成：编辑重发先停用 */
 const isTurnBusy = computed(() => Boolean(chatActions?.isTurnBusy.value))
+const bodyHostRef = ref<HTMLElement | null>(null)
 const textarea = ref<HTMLTextAreaElement | null>(null)
 const { copied, copy } = useCopyFeedback()
 const collapse = useUserMessageCollapse({
@@ -67,10 +69,12 @@ function fitTextarea() {
 
 /** 编辑、复制的都是问题本身；带引用的提问编辑后重新拼上原来的引用发出 */
 async function startEditing() {
+  const fromH = bodyHostRef.value?.getBoundingClientRect().height ?? 0
   draft.value = bubbleText.value
   isEditing.value = true
   await nextTick()
   fitTextarea()
+  animateHeight(bodyHostRef.value, fromH)
   const element = textarea.value
   if (!element) return
   element.focus()
@@ -78,8 +82,10 @@ async function startEditing() {
 }
 
 function cancelEditing() {
+  const fromH = bodyHostRef.value?.getBoundingClientRect().height ?? 0
   isEditing.value = false
   draft.value = bubbleText.value
+  void nextTick(() => animateHeight(bodyHostRef.value, fromH))
 }
 
 function editedPrompt() {
@@ -134,10 +140,11 @@ watch(draft, () => {
     <div class="message-content-shell relative order-2 w-full max-w-full">
       <div class="message-text-content flex w-full min-w-0 max-w-full overflow-clip">
         <div
+          ref="bodyHostRef"
           class="flex justify-end w-full max-w-full overflow-hidden"
           :class="[isEditing ? 'pl-0' : isMobile ? 'pl-20' : 'pl-28']"
         >
-          <div v-if="isEditing" class="w-full message-user-edit-shell">
+          <div v-if="isEditing" class="composer-tray-enter w-full message-user-edit-shell">
             <blockquote v-if="quoted" class="message-user-quote">
               <span v-if="quoted.source" class="message-user-quote-source">
                 {{ quoted.source }}
