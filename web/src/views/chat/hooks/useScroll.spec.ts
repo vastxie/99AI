@@ -191,4 +191,58 @@ describe('useScroll 观察账本与底部归属', () => {
     api.followIfPinned()
     expect(geometry.scrollTop).toBe(800)
   })
+
+  it('scrollToBottomSmooth 按阻尼平滑滑向实时增长的底部，读者中途上滚立即中断让位', async () => {
+    let now = 1000
+    const frames: FrameRequestCallback[] = []
+    const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => now)
+    const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => {
+      frames.push(cb)
+      return frames.length
+    })
+    const cafSpy = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined)
+    try {
+      const { api, geometry, onReaderDetach } = mountScroller()
+      await nextTick()
+      geometry.scrollTop = 100
+      api.handleScroll()
+      expect(onReaderDetach).toHaveBeenCalledTimes(1)
+
+      api.scrollToBottomSmooth()
+      expect(frames).toHaveLength(1)
+
+      // 滑行途中内容继续长高：逐帧逼近最新底部且不被 followIfPinned 瞬跳打断
+      geometry.scrollHeight = 1200
+      api.followIfPinned()
+      now = 1150
+      frames.shift()!(now)
+      expect(geometry.scrollTop).toBeGreaterThan(400)
+      expect(geometry.scrollTop).toBeLessThan(800)
+
+      now = 1320
+      frames.shift()!(now)
+      expect(geometry.scrollTop).toBe(800)
+      expect(api.isAtBottom.value).toBe(true)
+
+      // 再次从顶部平滑滑行，读者中途向上滚动则立即停止并释放归属
+      geometry.scrollTop = 100
+      api.handleScroll()
+      frames.length = 0
+      now = 2000
+      api.scrollToBottomSmooth()
+      now = 2080
+      frames.shift()!(now)
+      const midTop = geometry.scrollTop
+      geometry.scrollTop = midTop - 80
+      api.handleScroll()
+      expect(cafSpy).toHaveBeenCalled()
+      geometry.scrollHeight = 1500
+      api.followIfPinned()
+      expect(geometry.scrollTop).toBe(midTop - 80)
+    } finally {
+      nowSpy.mockRestore()
+      rafSpy.mockRestore()
+      cafSpy.mockRestore()
+    }
+  })
 })

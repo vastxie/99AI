@@ -109,7 +109,10 @@ async function retryAuthIdentity() {
 
           <!-- 对话中：标题作为页头锚点 -->
           <div v-if="conversationTitle" class="min-w-0 flex-1">
-            <span class="type-control block truncate text-text-secondary">
+            <span
+              :key="conversationTitle"
+              class="text-rise-enter type-control block truncate text-text-secondary"
+            >
               {{ conversationTitle }}
             </span>
           </div>

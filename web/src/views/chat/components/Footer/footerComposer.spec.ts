@@ -48,8 +48,9 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-function render(actions: Partial<ChatActions> = {}) {
+function render(actions: Partial<ChatActions> = {}, attrs: Record<string, unknown> = {}) {
   wrapper = mount(Footer, {
+    attrs,
     attachTo: document.body,
     global: {
       plugins: [i18n],
@@ -84,6 +85,22 @@ describe('聊天输入栏', () => {
     expect(parseFloat(minHeight)).toBeLessThanOrEqual(
       parseFloat(computedStyle(textarea.element).lineHeight) * 1.5
     )
+  })
+
+  it('新对话首页（chat-footer-hero）使用舒展最小高度与对称工具栏内边距，输入首行不跳变', () => {
+    const wrapper = render({}, { class: 'chat-footer-hero' })
+    expect(wrapper.classes()).toContain('chat-footer-hero')
+
+    const textarea = wrapper.get<HTMLTextAreaElement>('textarea')
+    const lineHeight = parseFloat(computedStyle(textarea.element).lineHeight)
+    const minHeight = parseFloat(computedStyle(textarea.element).minHeight)
+    expect(minHeight).toBeGreaterThanOrEqual(lineHeight * 2)
+
+    const toolbar = wrapper.get('.chat-footer-toolbar')
+    const toolbarStyle = computedStyle(toolbar.element)
+    expect(toolbarStyle.paddingLeft).toBe('10px')
+    expect(toolbarStyle.paddingRight).toBe('10px')
+    expect(toolbarStyle.paddingBottom).toBe('10px')
   })
 
   it('空草稿把高度交还给样式，有内容时才按内容测高并决定是否给出展开入口', async () => {

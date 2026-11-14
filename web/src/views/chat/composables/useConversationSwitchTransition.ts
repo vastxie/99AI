@@ -77,6 +77,7 @@ export function useConversationSwitchTransition(options: UseConversationSwitchTr
   const shouldHoldCanvas = computed(
     () =>
       !chatStore.isStreamIn &&
+      !chatStore.isSubmitting &&
       (options.isConversationLoading.value || isActiveMessageLoadPending.value)
   )
 

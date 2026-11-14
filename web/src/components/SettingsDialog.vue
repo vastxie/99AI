@@ -129,7 +129,7 @@
         :aria-labelledby="isMobile ? undefined : tabButtonId(shownTab.id)"
         :tabindex="isMobile ? undefined : 0"
       >
-        <transition name="fade" mode="out-in">
+        <Transition enter-active-class="settings-tab-enter" leave-active-class="hidden">
           <!-- 通用页：通用设置 + 个性设置，一起滚动 -->
           <div v-if="shownTab.merged" key="merged-general">
             <GeneralSettings :visible="visible" />
@@ -143,7 +143,7 @@
               v-bind="shownTab.props || {}"
             />
           </keep-alive>
-        </transition>
+        </Transition>
       </div>
     </section>
   </UiDialog>
@@ -167,17 +167,11 @@ import AnnouncementSettings from './Settings/AnnouncementSettings.vue'
 import GeneralSettings from './Settings/GeneralSettings.vue'
 import PersonalSettings from './Settings/PersonalSettings.vue'
 
-/**
- * 设置：桌面左侧页签、右侧内容；手机先是页签列表，点进去是详情页。一套页签表、一份状态
- * （global store 的 settingsDialog 与 settingsActiveTab），跨过断点时保持打开、停在同一页。
- * 未登录时不打开，改为拉起登录。
- */
+/** 设置弹窗：桌面左侧页签+右侧内容，手机列表进详情；未登录时拉起登录 */
 const props = defineProps<{ visible: boolean }>()
-
 const globalStore = useGlobalStoreWithOut()
 const authStore = useAuthStore()
 const { isMobile } = useViewport()
-// 扩展包贡献的页签（settings.tab 挂载点）
 const packTabs = usePackSlot('settings.tab')
 const canOpenSettings = computed(() => authStore.isLogin && authStore.userInfo?.role !== 'visitor')
 const globalConfig = computed(() => authStore.globalConfig)
@@ -248,10 +242,7 @@ const shownTab = computed(() => {
 const titleRef = ref<HTMLElement | null>(null)
 const panelRef = ref<HTMLElement | null>(null)
 const tabButtonRefs = ref<HTMLElement[]>([])
-/**
- * 手机上从列表进入的页签：返回列表时焦点回到它。从账户菜单等入口直接带着页签打开时没有记录，
- * 返回时按当前页签找；都找不到时落到列表第一项
- */
+/** 手机从列表进入的页签，返回时恢复焦点 */
 let enteredFromList: string | null = null
 
 function tabButtonId(id: string) {
@@ -330,21 +321,3 @@ watch(isMobile, mobile => {
   }
 })
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--motion-duration-md) var(--motion-easing);
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: none;
-  }
-}
-</style>

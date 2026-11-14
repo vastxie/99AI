@@ -1,4 +1,5 @@
 import { nextTick, onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
+import { animateHeight } from '@/utils/motion'
 import { getTextareaMaxHeight } from './footer.helpers'
 
 /**
@@ -39,21 +40,11 @@ export function useComposerAutosize(options: {
   }
 
   function toggleExpanded() {
-    // 收起时先保持当前高度，下一帧再按内容调整，过渡更平滑
-    const currentHeight = isExpanded.value ? options.input.value?.style.height : null
+    const fromHeight = options.input.value?.getBoundingClientRect().height ?? 0
     isExpanded.value = !isExpanded.value
-    nextTick(() => {
-      const textarea = options.input.value
-      if (isExpanded.value) {
-        if (textarea) textarea.style.height = '60vh'
-        return
-      }
-      if (!currentHeight) {
-        resize()
-        return
-      }
-      if (textarea) textarea.style.height = currentHeight
-      requestAnimationFrame(resize)
+    void nextTick(() => {
+      resize()
+      animateHeight(options.input.value, fromHeight, '--motion-duration-lg', 250)
     })
   }
 

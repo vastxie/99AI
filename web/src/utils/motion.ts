@@ -37,3 +37,21 @@ export function cancelAnimations(element: Element): void {
     animation.cancel()
   }
 }
+
+/** 元素高度变化后从旧高度平滑过渡到新高度（减弱动态效果下直接到位） */
+export function animateHeight(
+  element: Element | undefined | null,
+  fromHeight: number,
+  durationName = '--motion-duration-md',
+  fallback = 200,
+  minDelta = 2
+): void {
+  if (fromHeight <= 0 || !canAnimate(element)) return
+  const toHeight = element.getBoundingClientRect().height
+  if (toHeight <= 0 || Math.abs(toHeight - fromHeight) < minDelta) return
+  cancelAnimations(element)
+  element.animate([{ height: `${fromHeight}px` }, { height: `${toHeight}px` }], {
+    duration: readDuration(element, durationName, fallback),
+    easing: readEasing(element, '--motion-easing', 'cubic-bezier(0.22, 1, 0.36, 1)'),
+  })
+}

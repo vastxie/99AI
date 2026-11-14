@@ -52,6 +52,44 @@
   animation: motion-fade-out var(--motion-duration-xs) ease-in forwards;
 }
 
+/* ---------- 输入框动态块、设置页签与右侧面板内容切换 ---------- */
+
+.composer-tray-enter,
+.settings-tab-enter {
+  animation: motion-rise-in var(--motion-duration-sm) var(--motion-easing);
+}
+.composer-attachment-enter,
+.composer-action-enter {
+  animation: motion-pop-in var(--motion-duration-sm) var(--motion-easing);
+}
+.side-panel-view-enter {
+  animation: motion-fade-in var(--motion-duration-sm) ease;
+}
+
+/* ---------- 侧栏会话列表：置顶 / 新建 / 删除与活跃置顶的平滑移位 ---------- */
+
+.sidebar-list-move {
+  transition: transform var(--motion-duration-lg) var(--motion-easing);
+}
+.sidebar-list-enter-active {
+  transition:
+    opacity var(--motion-duration-sm) ease,
+    transform var(--motion-duration-md) var(--motion-easing);
+}
+.sidebar-list-leave-active {
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-duration-xs) ease;
+}
+.sidebar-list-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.sidebar-list-leave-to {
+  opacity: 0;
+}
+
 /* ---------- 复制反馈（CopyFeedbackIcon）：外框按图标尺寸固定，切换时新旧图标在同一格里交叉淡变 ---------- */
 
 .copy-feedback {
@@ -91,14 +129,27 @@
 @media (prefers-reduced-motion: reduce) {
   /* 出现只保留淡入；离场与图标切换直接到位 */
   .menu-pop-enter-active,
-  .text-rise-enter {
+  .text-rise-enter,
+  .composer-tray-enter,
+  .settings-tab-enter,
+  .composer-attachment-enter,
+  .composer-action-enter {
     animation-name: motion-fade-in;
   }
   .menu-pop-leave-active,
   .text-fade-leave,
+  .side-panel-view-enter,
   .copy-feedback-enter-active,
   .copy-feedback-leave-active {
     animation: none;
+  }
+  .sidebar-list-move,
+  .sidebar-list-enter-active,
+  .sidebar-list-leave-active {
+    transition: none;
+  }
+  .sidebar-list-enter-from {
+    transform: none;
   }
 }
 
