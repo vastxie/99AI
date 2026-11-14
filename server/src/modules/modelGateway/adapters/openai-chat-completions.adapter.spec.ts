@@ -451,4 +451,38 @@ describe('OpenAIChatCompletionsAdapter', () => {
       message: '模型请求已取消',
     });
   });
+
+  it('normalizes DeepSeek V4.1 Flash reasoning_effort at runtime and skips unsupported probe levels in test_connection', () => {
+    const adapter = createAdapter();
+    const buildFor = (effort: string, purpose = 'agent_loop') =>
+      adapter.buildRequestBody(
+        {
+          ...baseRequest,
+          purpose,
+          config: {
+            ...baseRequest.config,
+            model: 'deepseek-flash',
+            reasoningEffort: effort,
+            capabilities: {
+              reasoning: 'delta',
+              reasoningControl: {
+                levels: ['off', 'low', 'high', 'max'],
+                defaultLevel: 'high',
+              },
+            },
+          },
+        },
+        true,
+      );
+
+    expect(buildFor('off').thinking).toEqual({ type: 'disabled' });
+    expect(buildFor('low').reasoning_effort).toBe('low');
+    expect(buildFor('medium').reasoning_effort).toBe('high');
+    expect(buildFor('xhigh').reasoning_effort).toBe('max');
+    expect(buildFor('max').reasoning_effort).toBe('max');
+
+    expect(buildFor('medium', 'test_connection').reasoning_effort).toBeUndefined();
+    expect(buildFor('minimal', 'test_connection').reasoning_effort).toBeUndefined();
+    expect(buildFor('high', 'test_connection').reasoning_effort).toBe('high');
+  });
 });

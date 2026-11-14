@@ -76,7 +76,7 @@
 | --------------------- | ---------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | OpenAI                | [OpenAI Platform](https://platform.openai.com/api-keys) → API keys     | `https://api.openai.com/v1`                         | 只在服务端填写，前端和公开文档不要暴露                                                                          |
 | Google Gemini         | [Google AI Studio](https://aistudio.google.com/apikey) → API keys      | `https://generativelanguage.googleapis.com`         | 选择 `Google Gemini Generate Content` 协议，支持多模态输入、拉取远程模型与 Google 原生联网搜索                   |
-| DeepSeek              | [DeepSeek Platform](https://platform.deepseek.com/api_keys) → API keys | `https://api.deepseek.com`                          | 系统会自动补 `/v1`，也可按服务商文档填写完整兼容地址                                                            |
+| DeepSeek              | [DeepSeek Platform](https://platform.deepseek.com/api_keys) → API keys | `https://api.deepseek.com`                          | 推荐选“DeepSeek 原生 Responses”模板（支持图片、PDF、原生联网），或选 OpenAI 兼容协议使用传统对话接口            |
 | 阿里云百炼 / 通义千问 | 阿里云百炼控制台 → API-KEY 管理                                        | `https://dashscope.aliyuncs.com/compatible-mode/v1` | 不同地域可能有不同兼容地址，以百炼控制台和文档为准                                                              |
 | 火山方舟 / 豆包       | 火山方舟控制台 → API Key 管理                                          | `https://ark.cn-beijing.volces.com/api/v3`          | 模型 ID 通常使用方舟推理接入点或模型名称                                                                        |
 | OpenCode Go           | [OpenCode Go 文档](https://dev.opencode.ai/docs/go/)                   | `https://opencode.ai/zen/go`                        | 选择“OpenCode Go”供应商模板或 `OpenCode Go Chat Completions` 协议；系统自动添加所需请求头，不要改用普通兼容协议 |
@@ -118,7 +118,7 @@
 | 上下文量               | 搜索结果占用的上下文预算           | 仅 OpenAI Responses 使用，默认“中”                           |
 | 展示搜索来源           | 请求模型服务返回搜索查询和来源网页 | 建议开启，便于用户确认联网搜索依据                           |
 
-Gemini 3 / 4 系列支持在同一轮同时挂载 Google 原生搜索与沙箱客户端工具；Gemini 2.x 在携带函数工具时会自动跳过内置搜索以避免上游报错。其余协议或自建模型如需联网，请由部署人员接入提供搜索能力的 MCP 服务器。
+Gemini 3 / 4 系列支持在同一轮同时挂载 Google 原生搜索与沙箱客户端工具（Gemini 2.x 在携带函数工具时会自动跳过内置搜索以避免上游报错）；DeepSeek（`OpenAI Responses` 协议）开启原生搜索后，纯对话使用服务端内置联网，携带沙箱工具时自动通过官方检索与网页抓取端点完成联网并展示活动卡片。其余协议或自建模型如需联网，请由部署人员接入提供搜索能力的 MCP 服务器。
 
 ### 全局配置
 
@@ -198,6 +198,15 @@ Gemini 3 / 4 系列支持在同一轮同时挂载 Google 原生搜索与沙箱�
 - 带回用的签名与回放内容只保存在这次回复的内存里：不写进对话记录，不出现在页面、日志和工具的输入里；思考过程的正文与以前一样会显示，并随轮次记录保存。下一条消息开始的新回复不带以前的思考状态。
 - **Claude**：较早的对话被整理（上下文接近上限时压缩），或附件这次没能读取、使之前的内容变了时，之前的思考块不再带回；手动思考的模型（Opus 4.5、Sonnet 4.5 等）这时在本次回复余下的工具调用里不开思考，下一条消息恢复按档位发送。带着思考块的请求被拒（HTTP 400，例如中转服务改动了请求内容）时，自动去掉全部思考状态重试一次；Sonnet 5.5 的「关闭」档在去掉思考块后仍可能被拒，这时按原错误提示。被拒的请求是否计费取决于模型服务或中转服务，这里不作承诺。
 - **Gemini**：签名按记录原样带回，不做上面的整理判定；记录与历史对不上时，Gemini 3 及以后系列给原本带签名的调用补官方文档给出的占位值，尽量避免请求被拒，但不能保证。思考摘要显示为思考过程，不再混进回复正文。
+- **DeepSeek（OpenAI Responses / Chat Completions）**：同一次回复的工具调用循环内，服务端会按 DeepSeek 要求将上一步的 `reasoning_text` 或 `reasoning_content` 原样带回；新一条用户消息开始时自动清空上一轮思考文本。
+
+### DeepSeek 原生 Responses 怎么配置多模态、联网与推理档位？ {#deepseek-responses}
+
+添加 DeepSeek V4 系列模型（`deepseek-flash`、`deepseek-v4-pro`）时，建议在“供应商模板”中选择 **DeepSeek 原生 Responses**（调用协议为 `OpenAI Responses`，基础地址为 `https://api.deepseek.com`）：
+
+- **多模态输入**：`deepseek-flash` 支持图片视觉解析与 PDF 文档理解。上传 PDF 时，服务端会自动通过 DeepSeek Files API（`rich_layout_recognition`）创建 1 小时有效期的文件引用再交由模型解析；运行“真实探针”测试文档能力后会自动删除探针上传的临时文件。
+- **原生联网搜索与网页阅读**：开启“原生搜索”后，纯对话场景使用服务端内置联网工具；当对话同时挂载沙箱工具（如 `bash`、文件读写）时，服务端会自动切换为调用 DeepSeek 官方 `/v1/tools/search` 与 `/v1/tools/fetch` 独立端点闭环执行，实时展示「联网搜索 / 网页阅读」活动卡片与安全网页来源。
+- **推理强度**：DeepSeek 官方接口支持「关闭（`none`）、低（`low`）、高（`high`）、最高（`max`）」四档；若沿用其他档位，服务端会自动归一化到最接近的受支持档位，“真实探针”也会自动跳过官方未单独区分的中间档位。
 
 ### OpenCode Go 拉取到模型，但对话提示请求无效？
 

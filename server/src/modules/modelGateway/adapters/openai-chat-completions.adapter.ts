@@ -231,7 +231,19 @@ function applyThinkingEffort(
   }
 
   if (isDeepSeekV4Model(model)) {
-    body.reasoning_effort = mappedEffort;
+    const levels = request.config.capabilities?.reasoningControl?.levels;
+    if (!baseUrl.includes('deepseek.com') && (!levels?.length || levels.includes(effort))) {
+      body.reasoning_effort = mappedEffort;
+      return;
+    }
+    const map = request.config.capabilities?.reasoningControl?.levelMap;
+    const norm = { minimal: 'low', medium: 'high', xhigh: 'max' }[mappedEffort] || mappedEffort;
+    const allow =
+      request.purpose !== 'test_connection' ||
+      effort === norm ||
+      Boolean(map && Object.prototype.hasOwnProperty.call(map, effort));
+    if (allow && (norm === 'low' || norm === 'high' || norm === 'max'))
+      body.reasoning_effort = norm;
     return;
   }
 
@@ -324,7 +336,7 @@ function isPureReasoningModel(model: string): boolean {
 }
 
 function isDeepSeekV4Model(model: string): boolean {
-  return model.startsWith('deepseek-v4');
+  return /^deepseek-(?:v4|flash)(?:[.-]|$)/i.test(model);
 }
 
 function isOpenAIReasoningModel(model: string, baseUrl: string): boolean {

@@ -125,25 +125,38 @@ const XIAOMI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
   }),
 ];
 
+const DEEPSEEK_REASONING = {
+  levels: ['off', 'low', 'high', 'max'] as ['off', 'low', 'high', 'max'],
+  defaultLevel: 'high' as const,
+};
+
 const DEEPSEEK_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
-  catalogItem({
+  {
+    id: 'deepseek-flash',
+    label: 'DeepSeek V4.1 Flash',
+    providerKey: 'deepseek_openai_compatible',
+    protocol: 'openai_chat_completions',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url'],
+    capabilities: capabilities(['image_url'], {
+      reasoning: 'delta',
+      maxOutputTokens: 393216,
+      reasoningControl: DEEPSEEK_REASONING,
+    }),
+  },
+  {
     id: 'deepseek-v4-pro',
     label: 'DeepSeek V4 Pro',
     providerKey: 'deepseek_openai_compatible',
     protocol: 'openai_chat_completions',
-    maxTokens: 1000000,
+    maxTokens: 1048576,
     multimodalTypes: [],
-    reasoning: 'summary',
-  }),
-  catalogItem({
-    id: 'deepseek-v4-flash',
-    label: 'DeepSeek V4 Flash',
-    providerKey: 'deepseek_openai_compatible',
-    protocol: 'openai_chat_completions',
-    maxTokens: 1000000,
-    multimodalTypes: [],
-    reasoning: 'summary',
-  }),
+    capabilities: capabilities([], {
+      reasoning: 'delta',
+      maxOutputTokens: 393216,
+      reasoningControl: DEEPSEEK_REASONING,
+    }),
+  },
 ];
 
 export const OPENAI_CHAT_COMPLETIONS_PROFILES: ModelGatewayProtocolProfiles = {
@@ -209,10 +222,14 @@ export const OPENAI_CHAT_COMPLETIONS_PROFILES: ModelGatewayProtocolProfiles = {
       protocol: 'openai_chat_completions',
       baseUrl: 'https://api.deepseek.com',
       endpointPath: '/v1/chat/completions',
-      supportsRemoteModelList: false,
+      modelsEndpointPath: '/v1/models',
+      supportsRemoteModelList: true,
       contentProfileKey: 'openai_chat_completions',
-      defaultMultimodalTypes: [],
-      defaultCapabilities: capabilities([], { reasoning: 'summary' }),
+      defaultMultimodalTypes: ['image_url'],
+      defaultCapabilities: capabilities(['image_url'], {
+        reasoning: 'delta',
+        reasoningControl: DEEPSEEK_REASONING,
+      }),
       modelCatalogKeys: DEEPSEEK_MODEL_CATALOG.map(item => item.id),
     },
   ],

@@ -6,8 +6,9 @@ import type {
   ModelGatewayCatalogItem,
   ModelGatewayProtocolProfiles,
 } from '@/modules/modelGateway/provider-profiles.types';
+import { DEEPSEEK_RESPONSES_REASONING_CONTROL } from './deepseek-responses';
 
-/** OpenAI Responses 协议（含豆包方舟 Responses 兼容）的内容格式、模型目录与厂商预设 */
+/** OpenAI Responses 协议（含 DeepSeek 原生 Responses 与豆包方舟兼容）的内容格式、模型目录与厂商预设 */
 const OPENAI_RESPONSES_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
   catalogItem({
     id: 'gpt-4',
@@ -419,6 +420,51 @@ const DOUBAO_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
   }),
 ];
 
+const DEEPSEEK_RESPONSES_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
+  {
+    id: 'deepseek-flash',
+    label: 'DeepSeek V4.1 Flash',
+    providerKey: 'deepseek_responses',
+    protocol: 'openai_responses',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document'],
+    defaultEndpointPath: '/v1/responses',
+    capabilities: capabilities(['image_url', 'document'], {
+      reasoning: 'delta',
+      maxOutputTokens: 393216,
+      reasoningControl: DEEPSEEK_RESPONSES_REASONING_CONTROL,
+      nativeTools: {
+        webSearch: {
+          enabled: true,
+          mode: 'auto',
+          includeSources: true,
+        },
+      },
+    }),
+  },
+  {
+    id: 'deepseek-v4-pro',
+    label: 'DeepSeek V4 Pro',
+    providerKey: 'deepseek_responses',
+    protocol: 'openai_responses',
+    maxTokens: 1048576,
+    multimodalTypes: [],
+    defaultEndpointPath: '/v1/responses',
+    capabilities: capabilities([], {
+      reasoning: 'delta',
+      maxOutputTokens: 393216,
+      reasoningControl: DEEPSEEK_RESPONSES_REASONING_CONTROL,
+      nativeTools: {
+        webSearch: {
+          enabled: true,
+          mode: 'auto',
+          includeSources: true,
+        },
+      },
+    }),
+  },
+];
+
 export const OPENAI_RESPONSES_PROFILES: ModelGatewayProtocolProfiles = {
   contentProfiles: [
     {
@@ -433,6 +479,15 @@ export const OPENAI_RESPONSES_PROFILES: ModelGatewayProtocolProfiles = {
       reasoningFormat: 'reasoning_summary',
     },
     {
+      key: 'deepseek_responses',
+      label: 'DeepSeek 原生 Responses 内容格式',
+      fileDataRequiresDataUrl: true,
+      documentFilenameRequired: false,
+      documentInputStyle: 'input_file_file_data',
+      documentInputMimeTypes: ['application/pdf'],
+      reasoningFormat: 'reasoning_summary',
+    },
+    {
       key: 'doubao_responses',
       label: '豆包方舟 Responses 内容格式',
       fileDataRequiresDataUrl: true,
@@ -444,7 +499,11 @@ export const OPENAI_RESPONSES_PROFILES: ModelGatewayProtocolProfiles = {
       reasoningFormat: 'reasoning_summary',
     },
   ],
-  catalog: [...OPENAI_RESPONSES_MODEL_CATALOG, ...DOUBAO_MODEL_CATALOG],
+  catalog: [
+    ...OPENAI_RESPONSES_MODEL_CATALOG,
+    ...DEEPSEEK_RESPONSES_MODEL_CATALOG,
+    ...DOUBAO_MODEL_CATALOG,
+  ],
   providerProfiles: [
     {
       key: 'openai_responses',
@@ -458,6 +517,31 @@ export const OPENAI_RESPONSES_PROFILES: ModelGatewayProtocolProfiles = {
       defaultMultimodalTypes: ['image_url'],
       defaultCapabilities: capabilities(['image_url'], { reasoning: 'summary' }),
       modelCatalogKeys: OPENAI_RESPONSES_MODEL_CATALOG.map(item => item.id),
+    },
+    {
+      key: 'deepseek_responses',
+      label: 'DeepSeek 原生 Responses',
+      description: '适用于 DeepSeek V4.1 Flash / V4 Pro 原生多模态、PDF 解析与联网搜索',
+      protocol: 'openai_responses',
+      baseUrl: 'https://api.deepseek.com',
+      endpointPath: '/v1/responses',
+      modelsEndpointPath: '/v1/models',
+      supportsRemoteModelList: true,
+      contentProfileKey: 'deepseek_responses',
+      defaultMultimodalTypes: ['image_url', 'document'],
+      defaultCapabilities: capabilities(['image_url', 'document'], {
+        reasoning: 'delta',
+        maxOutputTokens: 393216,
+        reasoningControl: DEEPSEEK_RESPONSES_REASONING_CONTROL,
+        nativeTools: {
+          webSearch: {
+            enabled: true,
+            mode: 'auto',
+            includeSources: true,
+          },
+        },
+      }),
+      modelCatalogKeys: DEEPSEEK_RESPONSES_MODEL_CATALOG.map(item => item.id),
     },
     {
       key: 'doubao_responses',
