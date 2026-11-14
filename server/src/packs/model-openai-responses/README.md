@@ -1,6 +1,6 @@
 # OpenAI Responses 协议包
 
-协议 `openai_responses` 的适配器、消息映射、厂商预设与模型目录（含豆包方舟 Responses 兼容与原生联网搜索）；适配器在构造时向内核 ModelStreamRegistry 注册协议描述。
+协议 `openai_responses` 的适配器、消息映射、厂商预设与模型目录（含 DeepSeek V4.1 Flash / V4 Pro 原生视觉、Files API PDF 解析、原生联网搜索与网页阅读，以及豆包方舟 Responses 兼容）；适配器在构造时向内核 ModelStreamRegistry 注册协议描述。
 
 ## 开关
 

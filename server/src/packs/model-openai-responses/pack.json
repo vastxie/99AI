@@ -1,7 +1,7 @@
 {
   "id": "model-openai-responses",
   "tier": "system",
-  "description": "OpenAI Responses 协议（含豆包方舟兼容、原生联网搜索）的适配器、厂商预设与模型目录",
+  "description": "OpenAI Responses 协议（含 DeepSeek 原生多模态/联网与豆包方舟兼容）的适配器、厂商预设与模型目录",
   "flag": "MODEL_OPENAI_RESPONSES_PACK_ENABLED",
   "contributes": {
     "modelProtocols": ["openai_responses"]

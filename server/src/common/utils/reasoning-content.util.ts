@@ -19,7 +19,7 @@ export function shouldKeepReasoningContentForModel(
   if (thinkingType === 'disabled') return false;
   if (thinkingType === 'enabled') return true;
 
-  if (isDeepSeekModel) return /(reason|r1|thinking|v4|pro)/i.test(normalized);
+  if (isDeepSeekModel) return /(reason|r1|thinking|v4|pro|flash)/i.test(normalized);
 
   return /v2(?:\.5)?(?:-|$)|pro|omni|flash|thinking/i.test(normalized);
 }

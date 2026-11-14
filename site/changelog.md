@@ -4,6 +4,7 @@
 
 ### ✨ 新增
 
+- 新增「DeepSeek 原生 Responses」供应商模板与 `deepseek-flash`（DeepSeek V4.1 Flash）、`deepseek-v4-pro` 模型预设：直连 `https://api.deepseek.com` 支持图片解析、PDF 文档版面识别（自动上传至 Files API 并限时过期，真实探针自动清理临时文件）、原生联网搜索与网页阅读（与沙箱工具同轮并存时自动桥接官方检索与抓取端点），以及 `off / low / high / max` 四档推理强度与工具调用思考回放，见[模型设置](/configuration/ai/model-settings#deepseek-responses)。
 - Gemini 协议支持按型号发送思考参数（Gemini 3 / 4 使用思考等级，Gemini 2.5 使用思考预算），支持拉取远程模型列表与启用 Google 原生联网搜索（Gemini 3 / 4 可在同一轮同时使用原生搜索与沙箱工具，实时展示搜索进度与网页来源），见[模型设置](/configuration/ai/model-settings#gemini-reasoning)；模型目录新增 Gemini 4 Hydrogen / Argon / Carbon、Gemini 3.8 / 3.5 / 3.1 系列与 Gemma 4。
 
 ### 🐛 修复
