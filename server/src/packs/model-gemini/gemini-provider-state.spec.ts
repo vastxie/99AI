@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { ModelGatewayUrlBuilder } from '@/modules/modelGateway/model-gateway-url.builder';
-import { ModelStreamRegistry } from '@/modules/modelGateway/model-stream';
-import { collectModelStream } from '@/modules/modelGateway/model-stream/model-stream.collector';
+import { collectModelStream, ModelStreamRegistry } from '@/modules/modelGateway/model-stream';
 import { mapGatewayMessagesToGeminiContent } from './gemini-content.mapper';
 import { GeminiGenerateContentAdapter } from './gemini-generate-content.adapter';
 import {
@@ -104,6 +103,24 @@ describe('Gemini thought signatures', () => {
       expect(state?.parts).toEqual([
         { kind: 'call', index: 0, name: 'a', args: '{}', signature: 'SIG_1' },
       ]);
+      expect(
+        collect(G3, [[{ text: 'thinking...', thought: true, thoughtSignature: 'SIG_ONLY' }]]),
+      ).toBeUndefined();
+    });
+
+    it('treats a trailing signature-only part without a text field as an empty signed text part', () => {
+      const state = collect(G3, [
+        [call('search', { q: 'a' }, 'SIG_CALL')],
+        [{ thoughtSignature: 'SIG_TAIL_NO_TEXT' }],
+      ]);
+      expect(state).toMatchObject({
+        replayable: true,
+        signedCalls: [0],
+        parts: [
+          { kind: 'call', index: 0, name: 'search', args: '{"q":"a"}', signature: 'SIG_CALL' },
+          { kind: 'text', text: '', signature: 'SIG_TAIL_NO_TEXT' },
+        ],
+      });
     });
 
     it('needs no state when nothing was signed', () => {
@@ -242,6 +259,74 @@ describe('Gemini thought signatures', () => {
         );
         expect(mapped.contents[1].parts[0]).not.toHaveProperty('thoughtSignature');
       }
+    });
+    it('replays server-side Google Search parts alongside signed client function calls on gemini-4', () => {
+      const g4 = 'gemini-4-hydrogen';
+      const state = collect(g4, [
+        [
+          {
+            thoughtSignature: 'SIG_SERVER_CALL',
+            toolCall: {
+              id: 'gs_1',
+              toolType: 'GOOGLE_SEARCH_WEB',
+              args: { queries: ['gemini 4'] },
+            },
+          },
+        ],
+        [
+          {
+            thoughtSignature: 'SIG_SERVER_RESP',
+            toolResponse: { id: 'gs_1', toolType: 'GOOGLE_SEARCH_WEB', response: { ok: true } },
+          },
+        ],
+        [call('save_note', { note: 'released' }, 'SIG_FN')],
+      ])!;
+      expect(state.replayable).toBe(true);
+      const mapped = mapGatewayMessagesToGeminiContent(
+        [
+          { role: 'user', content: 'search and save' },
+          assistant(state, '', [['save_note', { note: 'released' }]]),
+          toolResult(0),
+        ],
+        { model: g4 },
+      );
+      expect(mapped.contents[1]).toEqual({
+        role: 'model',
+        parts: [
+          {
+            thoughtSignature: 'SIG_SERVER_CALL',
+            toolCall: {
+              id: 'gs_1',
+              toolType: 'GOOGLE_SEARCH_WEB',
+              args: { queries: ['gemini 4'] },
+            },
+          },
+          {
+            thoughtSignature: 'SIG_SERVER_RESP',
+            toolResponse: { id: 'gs_1', toolType: 'GOOGLE_SEARCH_WEB', response: { ok: true } },
+          },
+          {
+            functionCall: { name: 'save_note', args: { note: 'released' } },
+            thoughtSignature: 'SIG_FN',
+          },
+        ],
+      });
+
+      // 当参数变化无法原样回放时，gemini-4 也补 skip_thought_signature_validator 占位
+      const fallback = mapGatewayMessagesToGeminiContent(
+        [
+          { role: 'user', content: 'search and save' },
+          assistant(state, '', [['save_note', { note: 'modified' }]]),
+          toolResult(0),
+        ],
+        { model: g4 },
+      );
+      expect(fallback.contents[1].parts).toEqual([
+        {
+          functionCall: { name: 'save_note', args: { note: 'modified' } },
+          thoughtSignature: GEMINI_SKIP_THOUGHT_SIGNATURE,
+        },
+      ]);
     });
   });
 

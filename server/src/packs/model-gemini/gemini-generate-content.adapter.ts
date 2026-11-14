@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { GEMINI_GENERATE_CONTENT_PROFILES } from './gemini-generate-content.profiles';
-import type { ModelProtocolDescriptor } from '@/modules/modelGateway/model-stream';
+import type {
+  ModelProtocolDescriptor,
+  ModelStreamRuntimeConfig,
+} from '@/modules/modelGateway/model-stream';
 import {
   ModelStreamRegistry,
   toClassifiedProviderError,
@@ -8,12 +11,9 @@ import {
 import { ModelGatewayUrlBuilder } from '@/modules/modelGateway/model-gateway-url.builder';
 import {
   assertNoReservedAdditionalParams,
-  mapModelGatewayReasoningEffort,
   ModelGatewayEvent,
-  ModelGatewayReasoningEffort,
   ModelGatewayRequest,
   ModelGatewayUsage,
-  shouldApplyModelGatewayReasoningEffort,
 } from '@/modules/modelGateway/model-gateway.types';
 import type {
   ModelCompleteResult,
@@ -25,7 +25,13 @@ import {
   mapGatewayMessagesToGeminiContent,
   mapOpenAIChatToolsToGeminiTools,
 } from './gemini-content.mapper';
+import { buildGeminiThinkingConfig, isGemini3OrLaterModel } from './gemini-model-capabilities';
 import { GeminiProviderStateCollector } from './gemini-provider-state';
+import {
+  GeminiNativeWebSearchConfig,
+  GeminiWebSearchCollector,
+  getGeminiNativeWebSearchConfig,
+} from './gemini-web-search';
 
 export const GEMINI_GENERATE_CONTENT_PROTOCOL = 'gemini_generate_content';
 
@@ -36,10 +42,12 @@ export const GEMINI_GENERATE_CONTENT_DESCRIPTOR: ModelProtocolDescriptor = {
   endpoints: {
     default: '/v1beta/models/{model}:generateContent',
     stream: '/v1beta/models/{model}:streamGenerateContent',
+    modelsList: '/v1beta/models',
     streamQuery: { alt: 'sse' },
     knownSuffixes: [':generateContent', ':streamGenerateContent'],
   },
   multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+  supportsNativeWebSearch: true,
   profiles: GEMINI_GENERATE_CONTENT_PROFILES,
 };
 
@@ -56,19 +64,40 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
   }
 
   async *stream(request: ModelStreamInput): AsyncGenerator<ModelStreamEvent> {
+    const gatewayRequest = request as ModelGatewayRequest;
+    const hasFunctionTools =
+      gatewayRequest.purpose !== 'context_compaction' &&
+      mapOpenAIChatToolsToGeminiTools(gatewayRequest.tools).length > 0;
+    const nativeWebSearch = getGeminiNativeWebSearchConfig(gatewayRequest, { hasFunctionTools });
+    const searchCollector = nativeWebSearch
+      ? new GeminiWebSearchCollector(nativeWebSearch.includeSources)
+      : undefined;
+
     try {
-      const response = await this.post(request as ModelGatewayRequest, true);
+      const response = await this.post(gatewayRequest, true);
       await assertOkResponse(response);
 
       let toolIndex = 0;
-      const collector = new GeminiProviderStateCollector(request.config.model);
+      let finishObserved = false;
+      const collector = new GeminiProviderStateCollector(gatewayRequest.config.model);
 
       for await (const chunk of readGeminiSseEvents((response as any).body)) {
         if (chunk?.error) {
           throw toClassifiedProviderError(chunk.error, { requestOutcome: 'rejected' });
         }
-        const events = this.mapGenerateContentChunk(chunk, () => toolIndex++, collector);
+        const events = this.mapGenerateContentChunk(
+          chunk,
+          () => toolIndex++,
+          collector,
+          searchCollector,
+        );
         for (const event of events) {
+          if (event.type === 'done') finishObserved = true;
+          yield event;
+        }
+      }
+      if (finishObserved && searchCollector) {
+        for (const event of searchCollector.finish()) {
           yield event;
         }
       }
@@ -76,6 +105,11 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
       const state = collector.finish();
       if (state) yield { type: 'provider_state', state };
     } catch (error) {
+      if (searchCollector) {
+        for (const event of searchCollector.fail()) {
+          yield event;
+        }
+      }
       throw toClassifiedProviderError(error, { signal: request.signal });
     }
   }
@@ -98,15 +132,72 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
     }
   }
 
-  buildRequestBody(request: ModelGatewayRequest, stream: boolean): any {
-    const additionalParams = request.config.additionalParams || {};
+  async listRemoteModels(config: ModelStreamRuntimeConfig): Promise<any[]> {
+    const builtUrl = this.urlBuilder.build({
+      protocol: config.protocol as any,
+      baseUrl: config.baseUrl,
+      model: config.model,
+      operation: 'models_list',
+    }).url;
+    const url = new URL(builtUrl);
+    if (!url.searchParams.has('pageSize')) {
+      url.searchParams.set('pageSize', '200');
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        'x-goog-api-key': config.apiKey,
+      },
+      redirect: 'error',
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      throw new Error(`远程模型列表获取失败: HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    const models = Array.isArray(data?.models) ? data.models : [];
+    return models
+      .filter((item: any) => {
+        const methods = Array.isArray(item?.supportedGenerationMethods)
+          ? item.supportedGenerationMethods
+          : [];
+        return !methods.length || methods.includes('generateContent');
+      })
+      .map((item: any) => {
+        const rawName = typeof item?.name === 'string' ? item.name.trim() : '';
+        const id = rawName.replace(/^models\//, '');
+        if (!id) return null;
+        const displayName =
+          typeof item?.displayName === 'string' && item.displayName.trim()
+            ? item.displayName.trim()
+            : id;
+        return { id, name: displayName };
+      })
+      .filter(Boolean);
+  }
+
+  buildRequestBody(request: ModelGatewayRequest, _stream: boolean): any {
+    const isContextCompaction = request.purpose === 'context_compaction';
+    const additionalParams = isContextCompaction ? {} : request.config.additionalParams || {};
     assertNoReservedAdditionalParams(additionalParams);
     assertNoGeminiCoreOverrides(additionalParams);
 
     const mapped = mapGatewayMessagesToGeminiContent(request.messages, {
       model: request.config.model,
     });
-    const tools = mapOpenAIChatToolsToGeminiTools(request.tools);
+    const functionTools = isContextCompaction ? [] : mapOpenAIChatToolsToGeminiTools(request.tools);
+    const hasFunctionTools = functionTools.length > 0;
+    const nativeWebSearch = getGeminiNativeWebSearchConfig(request, { hasFunctionTools });
+    const tools = [...(nativeWebSearch ? [{ googleSearch: {} }] : []), ...functionTools];
+    const toolConfig = buildGeminiToolConfig({
+      toolChoice: request.toolChoice,
+      hasFunctionTools,
+      nativeWebSearch,
+      model: request.config.model,
+    });
+
     // 不设默认温度：没指定时使用模型服务自己的默认值
     const generationConfig: Record<string, unknown> =
       request.temperature !== undefined ? { temperature: request.temperature } : {};
@@ -123,7 +214,7 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
       contents: mapped.contents,
       systemInstruction: mapped.systemInstruction,
       tools: tools.length ? tools : undefined,
-      toolConfig: tools.length ? mapToolConfig(request.toolChoice) : undefined,
+      toolConfig,
       generationConfig,
     };
   }
@@ -132,7 +223,7 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
     const url = this.urlBuilder.build({
       protocol: request.config.protocol,
       baseUrl: request.config.baseUrl,
-      endpointPath: request.config.endpointPath,
+      endpointPath: resolveGeminiEndpointPath(request.config.endpointPath, stream),
       model: request.config.model,
       operation: stream ? 'stream' : 'non_stream',
     }).url;
@@ -145,6 +236,7 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
         'x-goog-api-key': request.config.apiKey,
       },
       body: JSON.stringify(this.buildRequestBody(request, stream)),
+      redirect: 'error',
       signal: request.signal,
     });
   }
@@ -153,6 +245,7 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
     chunk: any,
     nextToolIndex: () => number,
     collector?: GeminiProviderStateCollector,
+    searchCollector?: GeminiWebSearchCollector,
   ): ModelGatewayEvent[] {
     const events: ModelGatewayEvent[] = [];
     let emittedTopLevelText = false;
@@ -167,6 +260,9 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
       const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
       for (const part of parts) {
         collector?.onPart(part);
+        if (searchCollector) {
+          events.push(...searchCollector.onPart(part));
+        }
         if (part?.thought === true) {
           // 思考摘要：按推理过程展示，不当正文
           if (typeof part.text === 'string' && part.text) {
@@ -195,6 +291,9 @@ export class GeminiGenerateContentAdapter implements ModelStreamAdapter {
             rawName: part.functionCall.name,
           });
         }
+      }
+      if (searchCollector && candidate?.groundingMetadata) {
+        events.push(...searchCollector.onGroundingMetadata(candidate.groundingMetadata));
       }
       if (candidate?.finishReason) {
         events.push({ type: 'done', finishReason: candidate.finishReason });
@@ -270,9 +369,10 @@ async function* readGeminiSseEvents(body: any): AsyncGenerator<any> {
 }
 
 function normalizeGeminiUsage(usage: any): ModelGatewayUsage {
-  const inputTokens = usage.promptTokenCount || 0;
-  const outputTokens = usage.candidatesTokenCount || 0;
-  const totalTokens = usage.totalTokenCount || inputTokens + outputTokens;
+  const inputTokens = (usage.promptTokenCount || 0) + (usage.toolUsePromptTokenCount || 0);
+  const thoughtsTokens = usage.thoughtsTokenCount || 0;
+  const outputTokens = (usage.candidatesTokenCount || 0) + thoughtsTokens;
+  const totalTokens = Math.max(usage.totalTokenCount || 0, inputTokens + outputTokens);
   const cacheHitTokens = usage.cachedContentTokenCount || 0;
   return {
     inputTokens,
@@ -281,6 +381,21 @@ function normalizeGeminiUsage(usage: any): ModelGatewayUsage {
     cacheHitTokens,
     cacheMissTokens: Math.max(inputTokens - cacheHitTokens, 0),
   };
+}
+
+function resolveGeminiEndpointPath(
+  endpointPath: string | undefined,
+  stream: boolean,
+): string | undefined {
+  const trimmed = typeof endpointPath === 'string' ? endpointPath.trim() : '';
+  if (!trimmed) return undefined;
+  if (stream && trimmed.endsWith(':generateContent')) {
+    return `${trimmed.slice(0, -':generateContent'.length)}:streamGenerateContent`;
+  }
+  if (!stream && trimmed.endsWith(':streamGenerateContent')) {
+    return `${trimmed.slice(0, -':streamGenerateContent'.length)}:generateContent`;
+  }
+  return trimmed;
 }
 
 function collectGeminiText(data: any): string {
@@ -297,56 +412,22 @@ function collectGeminiText(data: any): string {
     .join('');
 }
 
-function mapToolConfig(toolChoice: ModelGatewayRequest['toolChoice']): any {
-  const mode = toolChoice === 'none' ? 'NONE' : toolChoice === 'required' ? 'ANY' : 'AUTO';
-  return { functionCallingConfig: { mode } };
-}
-
-function buildGeminiThinkingConfig(
-  request: ModelGatewayRequest,
-): Record<string, string | number> | undefined {
-  const effort = request.disableThinking ? 'off' : request.config.reasoningEffort;
-  if (!shouldApplyModelGatewayReasoningEffort(effort)) return undefined;
-  const mapped = mapModelGatewayReasoningEffort(effort, request.config.capabilities);
-  if (mapped === null) return undefined;
-  const normalized = String(mapped || effort).toLowerCase();
-  if (effort === 'off' || normalized === 'off' || normalized === 'none') {
-    return { thinkingBudget: 0 };
+function buildGeminiToolConfig(input: {
+  toolChoice: ModelGatewayRequest['toolChoice'];
+  hasFunctionTools: boolean;
+  nativeWebSearch?: GeminiNativeWebSearchConfig;
+  model?: string;
+}): Record<string, unknown> | undefined {
+  const config: Record<string, unknown> = {};
+  if (input.hasFunctionTools) {
+    const mode =
+      input.toolChoice === 'none' ? 'NONE' : input.toolChoice === 'required' ? 'ANY' : 'AUTO';
+    config.functionCallingConfig = { mode };
   }
-
-  const canonical = normalizeGeminiReasoningLevel(normalized, effort);
-  if (/^gemini-3(?:\.|-|$)/i.test(String(request.config.model || '').trim())) {
-    return {
-      thinkingLevel:
-        canonical === 'minimal'
-          ? 'MINIMAL'
-          : canonical === 'low'
-            ? 'LOW'
-            : canonical === 'medium'
-              ? 'MEDIUM'
-              : 'HIGH',
-    };
+  if (input.nativeWebSearch && (input.hasFunctionTools || isGemini3OrLaterModel(input.model))) {
+    config.includeServerSideToolInvocations = true;
   }
-
-  const budgets: Record<ModelGatewayReasoningEffort, number> = {
-    off: 0,
-    minimal: 1024,
-    low: 2048,
-    medium: 8192,
-    high: 16384,
-    xhigh: 32768,
-    max: -1,
-  };
-  return { thinkingBudget: budgets[canonical] };
-}
-
-function normalizeGeminiReasoningLevel(
-  value: string,
-  fallback: ModelGatewayReasoningEffort,
-): ModelGatewayReasoningEffort {
-  return ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'].includes(value)
-    ? (value as ModelGatewayReasoningEffort)
-    : fallback;
+  return Object.keys(config).length ? config : undefined;
 }
 
 function assertNoGeminiCoreOverrides(additionalParams: Record<string, unknown>): void {
