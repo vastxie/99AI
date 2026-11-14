@@ -6,30 +6,13 @@ import type {
   ModelGatewayCatalogItem,
   ModelGatewayProtocolProfiles,
 } from '@/modules/modelGateway/provider-profiles.types';
+import { geminiCatalogReasoningControl } from './gemini-model-capabilities';
 
 /** Google Gemini Generate Content 协议的内容格式、模型目录与厂商预设 */
-const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
+const GEMINI_MODEL_CATALOG_BASE: ModelGatewayCatalogItem[] = [
   catalogItem({
-    id: 'gemini-2.0-flash',
-    label: 'Gemini 2.0 Flash',
-    providerKey: 'gemini_generate_content',
-    protocol: 'gemini_generate_content',
-    maxTokens: 1048576,
-    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
-    reasoning: 'none',
-  }),
-  catalogItem({
-    id: 'gemini-2.0-flash-lite',
-    label: 'Gemini 2.0 Flash-Lite',
-    providerKey: 'gemini_generate_content',
-    protocol: 'gemini_generate_content',
-    maxTokens: 1048576,
-    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
-    reasoning: 'none',
-  }),
-  catalogItem({
-    id: 'gemini-2.5-flash',
-    label: 'Gemini 2.5 Flash',
+    id: 'gemini-4-hydrogen',
+    label: 'Gemini 4 Hydrogen',
     providerKey: 'gemini_generate_content',
     protocol: 'gemini_generate_content',
     maxTokens: 1048576,
@@ -37,8 +20,8 @@ const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
     reasoning: 'summary',
   }),
   catalogItem({
-    id: 'gemini-2.5-flash-lite',
-    label: 'Gemini 2.5 Flash-Lite',
+    id: 'gemini-4-argon',
+    label: 'Gemini 4 Argon',
     providerKey: 'gemini_generate_content',
     protocol: 'gemini_generate_content',
     maxTokens: 1048576,
@@ -46,8 +29,8 @@ const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
     reasoning: 'summary',
   }),
   catalogItem({
-    id: 'gemini-2.5-pro',
-    label: 'Gemini 2.5 Pro',
+    id: 'gemini-4-carbon',
+    label: 'Gemini 4 Carbon',
     providerKey: 'gemini_generate_content',
     protocol: 'gemini_generate_content',
     maxTokens: 1048576,
@@ -55,8 +38,8 @@ const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
     reasoning: 'summary',
   }),
   catalogItem({
-    id: 'gemini-3-flash-preview',
-    label: 'Gemini 3 Flash Preview',
+    id: 'gemini-3.8-flash',
+    label: 'Gemini 3.8 Flash',
     providerKey: 'gemini_generate_content',
     protocol: 'gemini_generate_content',
     maxTokens: 1048576,
@@ -64,26 +47,8 @@ const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
     reasoning: 'summary',
   }),
   catalogItem({
-    id: 'gemini-3-pro-preview',
-    label: 'Gemini 3 Pro Preview',
-    providerKey: 'gemini_generate_content',
-    protocol: 'gemini_generate_content',
-    maxTokens: 1048576,
-    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
-    reasoning: 'summary',
-  }),
-  catalogItem({
-    id: 'gemini-3.1-flash-lite',
-    label: 'Gemini 3.1 Flash Lite',
-    providerKey: 'gemini_generate_content',
-    protocol: 'gemini_generate_content',
-    maxTokens: 1048576,
-    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
-    reasoning: 'summary',
-  }),
-  catalogItem({
-    id: 'gemini-3.1-flash-lite-preview',
-    label: 'Gemini 3.1 Flash Lite Preview',
+    id: 'gemini-3.5-flash',
+    label: 'Gemini 3.5 Flash',
     providerKey: 'gemini_generate_content',
     protocol: 'gemini_generate_content',
     maxTokens: 1048576,
@@ -109,13 +74,85 @@ const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
     reasoning: 'summary',
   }),
   catalogItem({
-    id: 'gemini-3.5-flash',
-    label: 'Gemini 3.5 Flash',
+    id: 'gemini-3.1-flash-lite',
+    label: 'Gemini 3.1 Flash Lite',
     providerKey: 'gemini_generate_content',
     protocol: 'gemini_generate_content',
     maxTokens: 1048576,
     multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
     reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-3.1-flash-lite-preview',
+    label: 'Gemini 3.1 Flash Lite Preview',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-3-pro-preview',
+    label: 'Gemini 3 Pro Preview',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-3-flash-preview',
+    label: 'Gemini 3 Flash Preview',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-2.5-pro',
+    label: 'Gemini 2.5 Pro',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-2.5-flash',
+    label: 'Gemini 2.5 Flash',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-2.5-flash-lite',
+    label: 'Gemini 2.5 Flash-Lite',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'summary',
+  }),
+  catalogItem({
+    id: 'gemini-2.0-flash',
+    label: 'Gemini 2.0 Flash',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'none',
+  }),
+  catalogItem({
+    id: 'gemini-2.0-flash-lite',
+    label: 'Gemini 2.0 Flash-Lite',
+    providerKey: 'gemini_generate_content',
+    protocol: 'gemini_generate_content',
+    maxTokens: 1048576,
+    multimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
+    reasoning: 'none',
   }),
   catalogItem({
     id: 'gemini-flash-latest',
@@ -155,6 +192,13 @@ const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = [
   }),
 ];
 
+const GEMINI_MODEL_CATALOG: ModelGatewayCatalogItem[] = GEMINI_MODEL_CATALOG_BASE.map(item => {
+  const reasoningControl = geminiCatalogReasoningControl(item.id);
+  return reasoningControl
+    ? { ...item, capabilities: { ...item.capabilities, reasoningControl } }
+    : item;
+});
+
 export const GEMINI_GENERATE_CONTENT_PROFILES: ModelGatewayProtocolProfiles = {
   contentProfiles: [
     {
@@ -173,8 +217,7 @@ export const GEMINI_GENERATE_CONTENT_PROFILES: ModelGatewayProtocolProfiles = {
       label: 'Google Gemini Generate Content',
       protocol: 'gemini_generate_content',
       baseUrl: 'https://generativelanguage.googleapis.com',
-      endpointPath: '/v1beta/models/{model}:generateContent',
-      supportsRemoteModelList: false,
+      supportsRemoteModelList: true,
       contentProfileKey: 'gemini_generate_content',
       defaultMultimodalTypes: ['image_url', 'document', 'video_url', 'audio_url'],
       defaultCapabilities: capabilities(['image_url', 'document', 'video_url', 'audio_url'], {

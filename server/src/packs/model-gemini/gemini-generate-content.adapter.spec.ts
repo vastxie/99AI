@@ -78,7 +78,7 @@ describe('GeminiGenerateContentAdapter', () => {
     ).toMatchObject({ temperature: 0 });
   });
 
-  it('maps controlled reasoning levels into Gemini thinkingConfig', () => {
+  it('maps controlled reasoning levels into Gemini thinkingConfig across Gemini 2.5, 3, and 4', () => {
     const adapter = createAdapter();
     const gemini3 = adapter.buildRequestBody(
       {
@@ -91,7 +91,74 @@ describe('GeminiGenerateContentAdapter', () => {
       },
       false,
     );
-    expect(gemini3.generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'MEDIUM' });
+    expect(gemini3.generationConfig.thinkingConfig).toEqual({
+      includeThoughts: true,
+      thinkingLevel: 'MEDIUM',
+    });
+
+    const hydrogenXHigh = adapter.buildRequestBody(
+      {
+        ...baseRequest,
+        config: {
+          ...baseRequest.config,
+          model: 'gemini-4-hydrogen',
+          reasoningEffort: 'xhigh',
+        },
+      },
+      false,
+    );
+    expect(hydrogenXHigh.generationConfig.thinkingConfig).toEqual({
+      includeThoughts: true,
+      thinkingLevel: 'XHIGH',
+    });
+
+    const hydrogenMinimalFallback = adapter.buildRequestBody(
+      {
+        ...baseRequest,
+        config: {
+          ...baseRequest.config,
+          model: 'gemini-4-hydrogen',
+          reasoningEffort: 'minimal',
+        },
+      },
+      false,
+    );
+    expect(hydrogenMinimalFallback.generationConfig.thinkingConfig).toEqual({
+      includeThoughts: true,
+    });
+
+    const argonXHighClamped = adapter.buildRequestBody(
+      {
+        ...baseRequest,
+        config: {
+          ...baseRequest.config,
+          model: 'gemini-4-argon',
+          reasoningEffort: 'xhigh',
+        },
+      },
+      false,
+    );
+    expect(argonXHighClamped.generationConfig.thinkingConfig).toEqual({
+      includeThoughts: true,
+      thinkingLevel: 'HIGH',
+    });
+
+    const gemini4Compaction = adapter.buildRequestBody(
+      {
+        ...baseRequest,
+        purpose: 'context_compaction',
+        disableThinking: true,
+        config: {
+          ...baseRequest.config,
+          model: 'gemini-4-hydrogen',
+          reasoningEffort: 'off',
+        },
+      },
+      false,
+    );
+    expect(gemini4Compaction.generationConfig.thinkingConfig).toEqual({
+      thinkingLevel: 'LOW',
+    });
 
     const disabled = adapter.buildRequestBody(
       {
@@ -117,7 +184,238 @@ describe('GeminiGenerateContentAdapter', () => {
       },
       false,
     );
-    expect(maximum.generationConfig.thinkingConfig).toEqual({ thinkingBudget: -1 });
+    expect(maximum.generationConfig.thinkingConfig).toEqual({
+      includeThoughts: true,
+      thinkingBudget: -1,
+    });
+
+    // 不支持关闭思考的模型（gemini-2.5-pro、gemini-3-pro）在 disableThinking 与 off 下不会发非法 0 预算或 MINIMAL
+    expect(
+      adapter.buildRequestBody(
+        {
+          ...baseRequest,
+          disableThinking: true,
+          config: { ...baseRequest.config, model: 'gemini-2.5-pro', reasoningEffort: 'off' },
+        },
+        false,
+      ).generationConfig.thinkingConfig,
+    ).toEqual({ thinkingBudget: 128 });
+    expect(
+      adapter.buildRequestBody(
+        {
+          ...baseRequest,
+          config: {
+            ...baseRequest.config,
+            model: 'gemini-3-pro-preview',
+            reasoningEffort: 'minimal',
+          },
+        },
+        false,
+      ).generationConfig.thinkingConfig,
+    ).toEqual({ includeThoughts: true });
+    expect(
+      adapter.buildRequestBody(
+        {
+          ...baseRequest,
+          config: { ...baseRequest.config, model: 'gemma-4-31b-it', reasoningEffort: 'high' },
+        },
+        false,
+      ).generationConfig.thinkingConfig,
+    ).toEqual({ includeThoughts: true });
+    expect(
+      adapter.buildRequestBody(
+        {
+          ...baseRequest,
+          config: { ...baseRequest.config, model: 'gemini-2.5-flash', reasoningEffort: 'xhigh' },
+        },
+        false,
+      ).generationConfig.thinkingConfig,
+    ).toEqual({ includeThoughts: true, thinkingBudget: 24576 });
+    expect(
+      adapter.buildRequestBody(
+        {
+          ...baseRequest,
+          config: { ...baseRequest.config, model: 'gemma-3-27b-it', reasoningEffort: 'high' },
+        },
+        false,
+      ).generationConfig.thinkingConfig,
+    ).toBeUndefined();
+  });
+
+  it('enables native Google Search alongside function tools and projects hosted search events', async () => {
+    const adapter = createAdapter();
+    const searchRequest = {
+      ...baseRequest,
+      config: {
+        ...baseRequest.config,
+        model: 'gemini-4-hydrogen',
+        capabilities: {
+          nativeTools: {
+            webSearch: {
+              enabled: true,
+              mode: 'auto',
+              includeSources: true,
+            },
+          },
+        },
+      },
+    };
+
+    const body = adapter.buildRequestBody(searchRequest, true);
+    expect(body.tools).toEqual([
+      { googleSearch: {} },
+      { functionDeclarations: [{ name: 'search', parameters: {} }] },
+    ]);
+    expect(body.toolConfig).toEqual({
+      functionCallingConfig: { mode: 'AUTO' },
+      includeServerSideToolInvocations: true,
+    });
+
+    const probeBody = adapter.buildRequestBody(
+      { ...searchRequest, purpose: 'test_connection' },
+      false,
+    );
+    expect(probeBody.tools).toEqual([
+      { functionDeclarations: [{ name: 'search', parameters: {} }] },
+    ]);
+
+    expect(adapter.buildRequestBody({ ...searchRequest, toolChoice: 'none' }, false).tools).toEqual(
+      [{ functionDeclarations: [{ name: 'search', parameters: {} }] }],
+    );
+    expect(
+      adapter.buildRequestBody(
+        { ...searchRequest, purpose: 'chat_title', disableThinking: true },
+        false,
+      ).tools,
+    ).toEqual([{ functionDeclarations: [{ name: 'search', parameters: {} }] }]);
+    expect(
+      adapter.buildRequestBody(
+        { ...searchRequest, config: { ...searchRequest.config, model: 'gemini-2.5-flash' } },
+        false,
+      ).tools,
+    ).toEqual([{ functionDeclarations: [{ name: 'search', parameters: {} }] }]);
+
+    (adapter as any).post = jest.fn().mockResolvedValue(
+      mockSseResponse([
+        {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    thoughtSignature: 'SIG_S1',
+                    toolCall: {
+                      id: 'gsearch_1',
+                      toolType: 'GOOGLE_SEARCH_WEB',
+                      args: { queries: ['Gemini 4 Hydrogen release'] },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    thoughtSignature: 'SIG_S2',
+                    toolResponse: {
+                      id: 'gsearch_1',
+                      toolType: 'GOOGLE_SEARCH_WEB',
+                      response: {},
+                    },
+                  },
+                  { text: 'Released in Nov 2026.' },
+                ],
+              },
+              groundingMetadata: {
+                webSearchQueries: ['Gemini 4 Hydrogen release'],
+                groundingChunks: [
+                  { web: { uri: 'https://blog.google/gemini-4', title: 'Google Blog' } },
+                  { web: { uri: 'javascript:alert(1)' } },
+                ],
+              },
+              finishReason: 'STOP',
+            },
+          ],
+          usageMetadata: {
+            promptTokenCount: 10,
+            toolUsePromptTokenCount: 5,
+            candidatesTokenCount: 6,
+            thoughtsTokenCount: 14,
+            totalTokenCount: 35,
+          },
+        },
+      ]),
+    );
+
+    const streamed: any[] = [];
+    for await (const event of adapter.stream(searchRequest)) {
+      streamed.push(event);
+    }
+
+    const hosted = streamed.filter(event => event.type === 'hosted_tool_call');
+    expect(hosted).toHaveLength(3);
+    expect(hosted[0].toolCall).toMatchObject({
+      name: 'gemini_google_search',
+      status: 'searching',
+      inputSummary: '搜索：Gemini 4 Hydrogen release',
+    });
+    expect(hosted[1].toolCall).toMatchObject({
+      name: 'gemini_google_search',
+      status: 'success',
+    });
+    expect(hosted[2].toolCall).toMatchObject({
+      name: 'gemini_google_search',
+      status: 'success',
+      update: true,
+      output: expect.objectContaining({
+        queries: ['Gemini 4 Hydrogen release'],
+        results: [{ title: 'Google Blog', url: 'https://blog.google/gemini-4' }],
+      }),
+    });
+    const usageEvent = streamed.find(event => event.type === 'usage');
+    expect(usageEvent.usage).toMatchObject({
+      inputTokens: 15,
+      outputTokens: 20,
+      totalTokens: 35,
+    });
+  });
+
+  it('lists generateContent models from /v1beta/models', async () => {
+    const adapter = createAdapter();
+    const previousFetch = (global as any).fetch;
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        models: [
+          {
+            name: 'models/gemini-4-hydrogen',
+            displayName: 'Gemini 4 Hydrogen',
+            supportedGenerationMethods: ['generateContent', 'countTokens'],
+          },
+          {
+            name: 'models/gemini-3.8-live',
+            displayName: 'Gemini 3.8 Live',
+            supportedGenerationMethods: ['bidiGenerateContent'],
+          },
+        ],
+      }),
+    });
+    try {
+      const models = await adapter.listRemoteModels({
+        protocol: 'gemini_generate_content',
+        baseUrl: 'https://core.example.com',
+        apiKey: 'gemini-key',
+        model: 'gemini-4-hydrogen',
+      });
+      expect(models).toEqual([{ id: 'gemini-4-hydrogen', name: 'Gemini 4 Hydrogen' }]);
+    } finally {
+      (global as any).fetch = previousFetch;
+    }
   });
 
   it('uses URL builder endpoints, x-goog-api-key, and maps Gemini stream chunks', async () => {
@@ -159,11 +457,32 @@ describe('GeminiGenerateContentAdapter', () => {
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-test:streamGenerateContent?alt=sse',
         expect.objectContaining({
           method: 'POST',
+          redirect: 'error',
           headers: expect.objectContaining({
             'x-goog-api-key': 'gemini-test-key',
             accept: 'text/event-stream',
           }),
         }),
+      );
+
+      // 即使模型配置保存了非流式后缀 endpointPath，流式调用也会自动切换为 :streamGenerateContent
+      fetchMock.mockResolvedValueOnce(
+        mockSseResponse([
+          { candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }] },
+        ]),
+      );
+      for await (const _event of adapter.stream({
+        ...baseRequest,
+        config: {
+          ...baseRequest.config,
+          endpointPath: '/v1beta/models/{model}:generateContent',
+        },
+      })) {
+        // consume
+      }
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-test:streamGenerateContent?alt=sse',
+        expect.objectContaining({ redirect: 'error' }),
       );
       expect(mapped).toEqual([
         { type: 'text_delta', delta: '答' },
