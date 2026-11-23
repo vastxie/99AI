@@ -17,7 +17,7 @@
     "@codemirror/lang-rust": "^6.0.2",
     "@codemirror/lang-sql": "^6.10.0",
     "@codemirror/language": "6.13.1",
-    "@codemirror/lint": "6.9.7",
+    "@codemirror/lint": "6.9.8",
     "@codemirror/search": "6.7.2",
     "@codemirror/state": "^6.7.6",
     "@codemirror/theme-one-dark": "^6.1.3",
